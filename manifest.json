@@ -1,8 +1,7 @@
 {
   "name": "Yotta Notes",
   "short_name": "Yotta",
-  "description": "Elite Phantom Edition Notes",
-  "start_url": "index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1a1a1a",
   "theme_color": "#8a3ffc",
@@ -11,8 +10,7 @@
     {
       "src": "https://i.ibb.co/vxS8m6m/ZpL5srbv.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }
