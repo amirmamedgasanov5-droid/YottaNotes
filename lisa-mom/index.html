@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Сообщение от мамы — страшилка</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#000}
+  body{display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;width:min(100vw,56.25vh);aspect-ratio:9/16;overflow:hidden;background:#000}
+  svg{position:absolute;inset:0;width:100%;height:100%;display:block;font-family:"Trebuchet MS","DejaVu Sans","Segoe UI",system-ui,sans-serif}
+
+  /* visible window: appears at --t for --d seconds */
+  .pulse{opacity:0;animation:pulse var(--d,1s) var(--t,0s) forwards}
+  @keyframes pulse{0%{opacity:1}99.9%{opacity:1}100%{opacity:0}}
+  .hide{animation:hide .01s var(--t,0s) forwards}
+  @keyframes hide{to{opacity:0}}
+  .pop{opacity:0;transform-box:fill-box;transform-origin:var(--o,center);animation:pop .28s var(--t,0s) forwards cubic-bezier(.3,1.7,.5,1)}
+  @keyframes pop{0%{opacity:0;transform:scale(.6)}100%{opacity:1;transform:scale(1)}}
+
+  .idle{animation:idle 2.6s infinite ease-in-out}
+  @keyframes idle{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+  .tremble{animation:trem .07s 29.6s infinite alternate}
+  @keyframes trem{from{transform:translateX(-1.4px)}to{transform:translateX(1.4px)}}
+  .jolt{transform-box:fill-box;transform-origin:center;animation:jolt .4s 30s}
+  @keyframes jolt{0%{transform:translateY(0)}30%{transform:translateY(-14px)}100%{transform:translateY(0)}}
+  .doorshake{animation:ds .12s 34s 75 alternate}
+  @keyframes ds{from{transform:translateX(-1.6px)}to{transform:translateX(1.6px)}}
+  .lampflick{animation:lf 2.7s 40s infinite steps(1)}
+  @keyframes lf{0%,100%{opacity:1}8%{opacity:.2}11%{opacity:1}55%{opacity:.35}58%{opacity:1}80%{opacity:.1}83%{opacity:1}}
+  .vig{opacity:0;animation:vig 31s 29s forwards linear}
+  @keyframes vig{to{opacity:1}}
+  .kbuzz{animation:kb .07s 50s 15 alternate}
+  @keyframes kb{from{transform:translate(-1.5px,0)}to{transform:translate(1.5px,1px)}}
+  .kflick{animation:kf .9s 51.2s infinite steps(1)}
+  @keyframes kf{0%,100%{opacity:1}40%{opacity:.5}45%{opacity:1}}
+  .figpop{opacity:0;transform-box:fill-box;transform-origin:50% 100%;animation:fp .5s 60.4s forwards cubic-bezier(.2,1.5,.5,1)}
+  @keyframes fp{0%{opacity:0;transform:scale(.4)}100%{opacity:1;transform:scale(1)}}
+  .titlecard{animation:tc 4.6s forwards}
+  @keyframes tc{0%{opacity:1}82%{opacity:1}100%{opacity:0}}
+  .rise{opacity:0;animation:rise 1.4s .3s forwards}
+  @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div id="stage"><svg id="svg" viewBox="0 0 360 640" preserveAspectRatio="xMidYMid slice"></svg></div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const svg = document.getElementById('svg');
+
+/* ---------------- scene markup ---------------- */
+svg.innerHTML = `
+<defs>
+  <radialGradient id="lamp"><stop offset="0" stop-color="#ffd98a" stop-opacity=".75"/><stop offset="1" stop-color="#ffd98a" stop-opacity="0"/></radialGradient>
+  <radialGradient id="vg" cx=".5" cy=".42" r=".75"><stop offset=".3" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".93"/></radialGradient>
+  <radialGradient id="kg"><stop offset="0" stop-color="#9fd3ff" stop-opacity=".8"/><stop offset="1" stop-color="#9fd3ff" stop-opacity="0"/></radialGradient>
+</defs>
+
+<!-- room -->
+<rect width="360" height="400" fill="#27303f"/>
+<rect y="335" width="360" height="65" fill="#3a2d28"/>
+<rect y="331" width="360" height="5" fill="#1d1612"/>
+<!-- window -->
+<g>
+  <rect x="112" y="58" width="96" height="104" fill="#0a1226" stroke="#10151c" stroke-width="5"/>
+  <circle cx="178" cy="92" r="13" fill="#f3f1d8"/><circle cx="184" cy="88" r="11" fill="#0a1226"/>
+  <line x1="160" y1="58" x2="160" y2="162" stroke="#10151c" stroke-width="3"/><line x1="112" y1="110" x2="208" y2="110" stroke="#10151c" stroke-width="3"/>
+  <path d="M104 52 Q116 110 108 170 L128 170 Q122 110 128 52Z" fill="#7a4b5c"/><path d="M216 52 Q204 110 212 170 L192 170 Q198 110 192 52Z" fill="#7a4b5c"/>
+</g>
+<!-- wall clock -->
+<g><circle cx="248" cy="96" r="17" fill="#e8e4d4" stroke="#10151c" stroke-width="3"/><line x1="248" y1="96" x2="248" y2="84" stroke="#10151c" stroke-width="2.5"/><line x1="248" y1="96" x2="257" y2="99" stroke="#10151c" stroke-width="2.5"/></g>
+
+<!-- kitchen doorway -->
+<g>
+  <rect x="14" y="136" width="88" height="200" fill="#1d1612"/>
+  <rect x="18" y="140" width="80" height="196" fill="#04060a"/>
+  <rect x="30" y="302" width="56" height="5" fill="#2a2a2e"/><line x1="34" y1="307" x2="34" y2="336" stroke="#2a2a2e" stroke-width="3"/><line x1="82" y1="307" x2="82" y2="336" stroke="#2a2a2e" stroke-width="3"/>
+  <g class="kbuzz"><rect x="50" y="294" width="17" height="8" rx="1.5" fill="#15181d" stroke="#2a2e36"/>
+    <g class="pulse" style="--t:50s;--d:999s"><g class="kflick"><ellipse cx="58" cy="290" rx="52" ry="40" fill="url(#kg)"/><rect x="51.5" y="295" width="14" height="5" rx="1" fill="#bfe3ff"/></g></g>
+  </g>
+</g>
+
+<!-- front door -->
+<g class="doorshake">
+  <rect x="284" y="126" width="68" height="206" fill="#5a3a22" stroke="#1a0f08" stroke-width="4"/>
+  <rect x="294" y="140" width="48" height="74" fill="none" stroke="#3a2414" stroke-width="3"/><rect x="294" y="226" width="48" height="90" fill="none" stroke="#3a2414" stroke-width="3"/>
+  <circle cx="297" cy="236" r="4.5" fill="#d4a93c"/><circle cx="318" cy="172" r="4" fill="#0b0b0b"/>
+  <rect x="300" y="248" width="14" height="4" fill="#bbb"/>
+  <rect x="286" y="327" width="64" height="4" fill="#ffe9a0" opacity=".9"/>
+  <g class="pulse" style="--t:29.6s;--d:14.2s"><rect x="296" y="326" width="13" height="6" fill="#04060a"/><rect x="322" y="326" width="13" height="6" fill="#04060a"/></g>
+</g>
+
+<!-- lamp -->
+<g class="lampflick">
+  <ellipse cx="236" cy="250" rx="130" ry="150" fill="url(#lamp)"/>
+  <line x1="236" y1="190" x2="236" y2="336" stroke="#1a1410" stroke-width="4"/>
+  <polygon points="214,192 258,192 248,166 224,166" fill="#d9a441" stroke="#1a1410" stroke-width="2"/>
+  <ellipse cx="236" cy="338" rx="16" ry="4" fill="#1a1410"/>
+</g>
+
+<!-- sofa + Lisa -->
+<g>
+  <rect x="80" y="236" width="140" height="62" rx="14" fill="#5b3f78" stroke="#1d1328" stroke-width="3"/>
+  <g class="idle"><g class="tremble">
+    <g stroke-linecap="round" fill="none">
+      <g stroke="#111" stroke-width="10"><line x1="150" y1="265" x2="150" y2="304"/><line x1="150" y1="304" x2="188" y2="306"/><line x1="188" y1="306" x2="188" y2="336"/><line x1="150" y1="274" x2="172" y2="290"/></g>
+      <g stroke="#fff" stroke-width="5.5"><line x1="150" y1="265" x2="150" y2="304"/><line x1="150" y1="304" x2="188" y2="306"/><line x1="188" y1="306" x2="188" y2="336"/><line x1="150" y1="274" x2="172" y2="290"/></g>
+    </g>
+    <g class="jolt">
+      <circle cx="150" cy="244" r="20" fill="#fff" stroke="#111" stroke-width="3.5"/>
+      <path d="M130 240 Q150 214 170 240 Q150 228 130 240Z" fill="#3a2414" stroke="#111" stroke-width="1.5"/>
+      <!-- calm: looking at phone -->
+      <g class="hide" style="--t:29.6s"><circle cx="156" cy="246" r="2.4" fill="#111"/><circle cx="167" cy="246" r="2.4" fill="#111"/><path d="M158 255 h8" stroke="#111" stroke-width="2.4" stroke-linecap="round"/></g>
+      <!-- scared, looking at the door -->
+      <g class="pulse" style="--t:29.6s;--d:19.8s"><circle cx="156" cy="243" r="5.6" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="168" cy="243" r="5.6" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="158.5" cy="244" r="2.2" fill="#111"/><circle cx="170.5" cy="244" r="2.2" fill="#111"/><ellipse cx="162" cy="257" rx="3.4" ry="4.6" fill="#111"/></g>
+      <!-- scared, looking at the kitchen -->
+      <g class="pulse" style="--t:49.4s;--d:999s"><circle cx="156" cy="243" r="5.6" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="168" cy="243" r="5.6" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="153.5" cy="244" r="2.2" fill="#111"/><circle cx="165.5" cy="244" r="2.2" fill="#111"/><ellipse cx="162" cy="258" rx="3.8" ry="5.2" fill="#111"/></g>
+    </g>
+    <g><rect x="170" y="282" width="10" height="17" rx="2" fill="#0e1218" stroke="#444" transform="rotate(-18 175 290)"/><rect x="172" y="284" width="6" height="12" rx="1" fill="#9fd3ff" transform="rotate(-18 175 290)" opacity=".85"/></g>
+  </g></g>
+  <rect x="80" y="290" width="140" height="46" rx="10" fill="#6c4b8c" stroke="#1d1328" stroke-width="3"/>
+</g>
+
+<!-- thing in the kitchen door -->
+<g class="figpop" style="opacity:0">
+  <g fill="#04060a" stroke="#161b24" stroke-width="1.5" stroke-linejoin="round">
+    <ellipse cx="58" cy="190" rx="13" ry="17"/>
+    <path d="M36 214 Q58 202 80 214 L86 300 L77 300 L76 262 L71 336 L63 336 L58 290 L53 336 L45 336 L40 262 L39 300 L30 300 Z"/>
+  </g>
+  <ellipse cx="52" cy="187" rx="3.2" ry="4.6" fill="#fff"/><ellipse cx="64" cy="187" rx="3.2" ry="4.6" fill="#fff"/>
+</g>
+
+<!-- voice from behind the door -->
+<g class="pulse" style="--t:33.4s;--d:4.8s"><g class="pop" style="--t:33.4s;--o:90% 100%">
+  <path d="M168 62 h170 a10 10 0 0 1 10 10 v40 a10 10 0 0 1 -10 10 h-52 l-14 18 l-4 -18 h-100 a10 10 0 0 1 -10 -10 v-40 a10 10 0 0 1 10 -10z" fill="#fff" stroke="#111" stroke-width="2.5"/>
+  <text x="258" y="88" text-anchor="middle" font-size="15" font-weight="800" fill="#111">— Лиза, открой,</text>
+  <text x="258" y="108" text-anchor="middle" font-size="15" font-weight="800" fill="#c01818">это мама!</text>
+</g></g>
+
+<!-- darkness grows -->
+<rect width="360" height="640" fill="url(#vg)" class="vig"/>
+`;
+
+/* ---------------- chat panel ---------------- */
+const chat = document.createElementNS(NS, 'g');
+svg.appendChild(chat);
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || chat).appendChild(e); return e; };
+
+const panel = el('g', { class: 'pulse', style: '--t:11.4s;--d:56.2s' });
+el('rect', { x: 14, y: 398, width: 332, height: 228, rx: 22, fill: '#0f141b', stroke: '#2a3340', 'stroke-width': 2 }, panel);
+el('circle', { cx: 42, cy: 421, r: 11, fill: '#d97aa0' }, panel);
+const nm = el('text', { x: 62, y: 426, 'font-size': 15, 'font-weight': 800, fill: '#fff' }, panel); nm.textContent = 'Мама';
+const st = el('text', { x: 118, y: 426, 'font-size': 11, fill: '#7fbf7f' }, panel); st.textContent = '● в сети';
+
+// [start, end, side, text, slot, red]
+const msgs = [
+  [12.0, 23.2, 'L', 'Лиза, ты дома?', 0],
+  [13.6, 23.2, 'L', 'Запри дверь на ключ.', 1],
+  [16.2, 23.2, 'R', 'Заперла 🔒', 2],
+  [23.6, 44.4, 'L', 'Никому не открывай.', 0],
+  [25.4, 44.4, 'L', 'Что бы ты ни услышала.', 1],
+  [27.6, 44.4, 'R', 'Мам, ты чего?', 2],
+  [38.6, 44.4, 'L', 'Не открывай. Это не я.', 3, true],
+  [45.2, 59.6, 'R', 'Мам, ты скоро?', 0],
+  [47.4, 59.6, 'L', 'Я уже рядом.', 1],
+  [61.0, 67.4, 'L', 'Ты заперла дверь.', 0],
+  [63.2, 67.4, 'L', 'Вместе со мной.', 1, true],
+];
+msgs.forEach(([s, e, side, text, slot, red]) => {
+  const w = Math.min(300, Math.round(text.length * 8.6 + 28)), h = 34, y = 440 + slot * 44;
+  const x = side === 'L' ? 28 : 332 - w;
+  const win = el('g', { class: 'pulse', style: `--t:${s}s;--d:${(e - s).toFixed(2)}s` });
+  const inner = el('g', { class: 'pop', style: `--t:${s}s;--o:${side === 'L' ? '0%' : '100%'} 50%` }, win);
+  el('rect', { x, y, width: w, height: h, rx: 17, fill: red ? '#7a1010' : side === 'L' ? '#2b3440' : '#2f6fed' }, inner);
+  const t = el('text', { x: x + 14, y: y + 22.5, 'font-size': 15, 'font-weight': red ? 800 : 600, fill: '#fff' }, inner);
+  t.textContent = text;
+});
+
+/* ---------------- cards ---------------- */
+const title = el('g', { class: 'titlecard' }, svg);
+el('rect', { width: 360, height: 640, fill: '#05070a' }, title);
+const t1 = el('text', { x: 180, y: 262, 'text-anchor': 'middle', 'font-size': 40, 'font-weight': 900, fill: '#fff', class: 'rise' }, title); t1.textContent = 'СООБЩЕНИЕ';
+const t2 = el('text', { x: 180, y: 312, 'text-anchor': 'middle', 'font-size': 40, 'font-weight': 900, fill: '#e03131', class: 'rise' }, title); t2.textContent = 'ОТ МАМЫ';
+const t3 = el('text', { x: 180, y: 360, 'text-anchor': 'middle', 'font-size': 15, fill: '#94a3b8', class: 'rise' }, title); t3.textContent = 'страшная история';
+
+const endc = el('g', { class: 'pulse', style: '--t:67.4s;--d:999s' }, svg);
+el('rect', { width: 360, height: 640, fill: '#000' }, endc);
+const e1 = el('text', { x: 180, y: 320, 'text-anchor': 'middle', 'font-size': 26, 'font-weight': 800, fill: '#e03131' }, endc); e1.textContent = 'КОНЕЦ';
+
+/* ---------------- seek (used for frame-by-frame rendering) ---------------- */
+window.TOTAL = 71;
+window.seek = (t) => { document.getAnimations().forEach(a => { a.pause(); a.currentTime = t * 1000; }); };
+</script>
+</body>
+</html>
