@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Сообщение от мамы — серия 3</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#000}
+  body{display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;width:min(100vw,56.25vh);aspect-ratio:9/16;overflow:hidden;background:#000}
+  svg{position:absolute;inset:0;width:100%;height:100%;display:block;font-family:"Trebuchet MS","DejaVu Sans","Segoe UI",system-ui,sans-serif}
+
+  .pulse{opacity:0;animation:pulse var(--d,1s) var(--t,0s) forwards}
+  @keyframes pulse{0%{opacity:1}99.9%{opacity:1}100%{opacity:0}}
+  .hide{animation:hide .01s var(--t,0s) forwards}
+  @keyframes hide{to{opacity:0}}
+  .pop{opacity:0;transform-box:fill-box;transform-origin:var(--o,center);animation:pop .28s var(--t,0s) forwards cubic-bezier(.3,1.7,.5,1)}
+  @keyframes pop{0%{opacity:0;transform:scale(.6)}100%{opacity:1;transform:scale(1)}}
+
+  /* actors: positions as keyframes over the whole 70 s (percent = seconds / 0.7) */
+  .lisa{animation:lisax 70s forwards linear}
+  @keyframes lisax{
+    0%,8.29%{transform:translateX(470px)}
+    12.86%,78.57%{transform:translateX(212px)}
+    82.86%{transform:translateX(335px)}
+    84.29%,100%{transform:translateX(470px)}
+  }
+  .mom{animation:momx 70s forwards linear}
+  @keyframes momx{
+    0%,9%{transform:translateX(490px)}
+    13.7%{transform:translateX(262px)}
+    21.43%{transform:translateX(262px)}
+    27.14%{transform:translateX(60px)}
+    30%{transform:translateX(60px)}
+    35.7%{transform:translateX(255px)}
+    78.57%{transform:translateX(255px)}
+    83.57%{transform:translateX(350px)}
+    85.71%,100%{transform:translateX(490px)}
+  }
+  .bob{animation:bob .3s infinite alternate ease-in-out}
+  @keyframes bob{from{transform:translateY(0)}to{transform:translateY(-3px)}}
+  .tremble{animation:trem .07s 41s infinite alternate}
+  @keyframes trem{from{transform:translateX(-1.3px)}to{transform:translateX(1.3px)}}
+
+  .doorswing{transform-origin:352px 230px;animation:dsw 55s 5s forwards}
+  @keyframes dsw{0%{transform:scaleX(1)}.8%,98.9%{transform:scaleX(.2)}100%{transform:scaleX(1)}}
+
+  .dim{opacity:0;animation:dim 70s forwards linear}
+  @keyframes dim{0%,58.5%{opacity:0}74.3%{opacity:.5}100%{opacity:.7}}
+  .vig{opacity:0;animation:vg 70s forwards linear}
+  @keyframes vg{0%,58.5%{opacity:0}74.3%{opacity:.7}100%{opacity:1}}
+  .flash{opacity:0;animation:fl .45s 41s}
+  @keyframes fl{0%{opacity:.95}100%{opacity:0}}
+  .glitch{opacity:0;animation:gl .3s 52.1s}
+  @keyframes gl{0%{opacity:1}30%{opacity:0}55%{opacity:.8}100%{opacity:0}}
+  .thingp{transform-origin:58px 336px;transform:scale(1.2)}
+  .blink{animation:bl 2.2s infinite steps(1)}
+  @keyframes bl{0%,100%{opacity:1}46%{opacity:0}50%{opacity:1}}
+  .kflick{animation:kf .9s infinite steps(1)}
+  @keyframes kf{0%,100%{opacity:1}40%{opacity:.5}45%{opacity:1}}
+  .titlecard{animation:tc 4.6s forwards}
+  @keyframes tc{0%{opacity:1}82%{opacity:1}100%{opacity:0}}
+  .rise{opacity:0;animation:rise 1.4s .3s forwards}
+  @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div id="stage"><svg id="svg" viewBox="0 0 360 640" preserveAspectRatio="xMidYMid slice"></svg></div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const svg = document.getElementById('svg');
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || svg).appendChild(e); return e; };
+const win = (t, d) => `class="pulse" style="--t:${t}s;--d:${d}s"`;
+
+/* faces: [state, start, duration]; pupils shift: 0 centre, 1 right (door), -1 left (kitchen) */
+const faces = [['calm', 1, 0, 41], ['scared', 0, 41, 11], ['scared', -1, 52, 3], ['scared', 1, 55, 20]];
+function face(cy, r) {
+  return faces.map(([st, dir, t, d]) => {
+    const px = dir * 2.6;
+    if (st === 'calm') return `<g ${win(t, d)}><circle cx="-6" cy="${cy}" r="2.4" fill="#111"/><circle cx="6" cy="${cy}" r="2.4" fill="#111"/><path d="M-4 ${cy + 12} h8" stroke="#111" stroke-width="2.4" stroke-linecap="round"/></g>`;
+    return `<g ${win(t, d)}><circle cx="-6" cy="${cy}" r="${r}" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="6" cy="${cy}" r="${r}" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="${-6 + px}" cy="${cy + 1}" r="2.1" fill="#111"/><circle cx="${6 + px}" cy="${cy + 1}" r="2.1" fill="#111"/><ellipse cx="0" cy="${cy + 15}" rx="3.2" ry="4.4" fill="#111"/></g>`;
+  }).join('');
+}
+
+svg.innerHTML = `
+<defs>
+  <radialGradient id="vg" cx=".5" cy=".42" r=".75"><stop offset=".3" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".93"/></radialGradient>
+  <radialGradient id="kg"><stop offset="0" stop-color="#9fd3ff" stop-opacity=".8"/><stop offset="1" stop-color="#9fd3ff" stop-opacity="0"/></radialGradient>
+</defs>
+
+<!-- daylight room -->
+<rect width="360" height="400" fill="#d7c7a6"/>
+<rect y="335" width="360" height="65" fill="#9a7a58"/>
+<rect y="331" width="360" height="5" fill="#6e5538"/>
+<g>
+  <rect x="112" y="58" width="96" height="104" fill="#bfe6ff" stroke="#6e5538" stroke-width="5"/>
+  <circle cx="176" cy="96" r="16" fill="#fff4a8"/>
+  <line x1="160" y1="58" x2="160" y2="162" stroke="#6e5538" stroke-width="3"/><line x1="112" y1="110" x2="208" y2="110" stroke="#6e5538" stroke-width="3"/>
+  <path d="M104 52 Q116 110 108 170 L128 170 Q122 110 128 52Z" fill="#c9788a"/><path d="M216 52 Q204 110 212 170 L192 170 Q198 110 192 52Z" fill="#c9788a"/>
+  <polygon points="114,162 206,162 300,335 130,335" fill="#fff6c0" opacity=".2"/>
+</g>
+<g><circle cx="248" cy="96" r="17" fill="#f6f2e2" stroke="#6e5538" stroke-width="3"/><line x1="248" y1="96" x2="248" y2="84" stroke="#3a2a1a" stroke-width="2.5"/><line x1="248" y1="96" x2="257" y2="99" stroke="#3a2a1a" stroke-width="2.5"/></g>
+
+<!-- kitchen doorway -->
+<g>
+  <rect x="14" y="136" width="88" height="200" fill="#6e5538"/>
+  <rect x="18" y="140" width="80" height="196" fill="#241c16"/>
+  <rect x="30" y="302" width="56" height="5" fill="#4a3f36"/><line x1="34" y1="307" x2="34" y2="336" stroke="#4a3f36" stroke-width="3"/><line x1="82" y1="307" x2="82" y2="336" stroke="#4a3f36" stroke-width="3"/>
+  <g class="hide" style="--t:20.5s"><rect x="50" y="294" width="17" height="8" rx="1.5" fill="#15181d" stroke="#2a2e36"/></g>
+  <g class="pulse" style="--t:62s;--d:4.6s"><g class="blink"><ellipse cx="52" cy="206" rx="3.2" ry="4.6" fill="#fff"/><ellipse cx="64" cy="206" rx="3.2" ry="4.6" fill="#fff"/></g></g>
+</g>
+
+<!-- hall light behind the front door -->
+<rect ${win(5.2, 54.4)} x="284" y="126" width="68" height="206" fill="#fffbe8"/>
+
+<!-- Mom -->
+<g class="mom"><g class="bob">
+  <ellipse cx="0" cy="336" rx="26" ry="5" fill="#000" opacity=".22"/>
+  <g stroke-linecap="round" fill="none" stroke="#111" stroke-width="9"><line x1="-8" y1="310" x2="-10" y2="334"/><line x1="8" y1="310" x2="10" y2="334"/><line x1="-16" y1="272" x2="-26" y2="300"/><line x1="16" y1="272" x2="26" y2="300"/></g>
+  <g stroke-linecap="round" fill="none" stroke="#fff" stroke-width="4.5"><line x1="-8" y1="310" x2="-10" y2="334"/><line x1="8" y1="310" x2="10" y2="334"/><line x1="-16" y1="272" x2="-26" y2="300"/><line x1="16" y1="272" x2="26" y2="300"/></g>
+  <path d="M-17 262 L17 262 L24 312 L-24 312 Z" fill="#c0392b" stroke="#111" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="0" cy="240" r="21" fill="#fff" stroke="#111" stroke-width="3.5"/>
+  <path d="M-25 244 Q-28 212 0 211 Q28 212 25 244 L29 282 L19 280 L17 246 Q0 234 -17 246 L-19 280 L-29 282 Z" fill="#3a2414" stroke="#111" stroke-width="2" stroke-linejoin="round"/>
+  <ellipse cx="0" cy="263" rx="13" ry="4" fill="#e8b33c" stroke="#111" stroke-width="2"/>
+  ${face(241, 4.2)}
+  <g ${win(20.5, 999)}><rect x="-32" y="292" width="11" height="18" rx="2" fill="#0e1218" stroke="#555" transform="rotate(12 -26 300)"/><rect x="-30" y="294" width="7" height="13" rx="1" fill="#9fd3ff" opacity=".9" transform="rotate(12 -26 300)"/></g>
+</g></g>
+
+<!-- front door -->
+<g class="doorswing">
+  <rect x="284" y="126" width="68" height="206" fill="#5a3a22" stroke="#1a0f08" stroke-width="4"/>
+  <rect x="294" y="140" width="48" height="74" fill="none" stroke="#3a2414" stroke-width="3"/><rect x="294" y="226" width="48" height="90" fill="none" stroke="#3a2414" stroke-width="3"/>
+  <circle cx="297" cy="236" r="4.5" fill="#d4a93c"/><circle cx="318" cy="172" r="4" fill="#0b0b0b"/>
+  <rect x="300" y="248" width="14" height="4" fill="#bbb"/>
+</g>
+
+<!-- sofa -->
+<g>
+  <rect x="80" y="236" width="140" height="62" rx="14" fill="#7a5c99" stroke="#2a1d3a" stroke-width="3"/>
+  <rect x="80" y="290" width="140" height="46" rx="10" fill="#8a6cab" stroke="#2a1d3a" stroke-width="3"/>
+</g>
+
+<!-- Lisa -->
+<g class="lisa"><g class="bob"><g class="tremble">
+  <ellipse cx="0" cy="336" rx="24" ry="5" fill="#000" opacity=".22"/>
+  <g stroke-linecap="round" fill="none" stroke="#111" stroke-width="10"><line x1="0" y1="252" x2="0" y2="292"/><line x1="0" y1="292" x2="-9" y2="334"/><line x1="0" y1="292" x2="9" y2="334"/><line x1="0" y1="262" x2="-17" y2="292"/><line x1="0" y1="262" x2="17" y2="292"/></g>
+  <g stroke-linecap="round" fill="none" stroke="#fff" stroke-width="5.5"><line x1="0" y1="252" x2="0" y2="292"/><line x1="0" y1="292" x2="-9" y2="334"/><line x1="0" y1="292" x2="9" y2="334"/><line x1="0" y1="262" x2="-17" y2="292"/><line x1="0" y1="262" x2="17" y2="292"/></g>
+  <circle cx="0" cy="232" r="20" fill="#fff" stroke="#111" stroke-width="3.5"/>
+  <path d="M-20 228 Q0 202 20 228 Q0 216 -20 228Z" fill="#3a2414" stroke="#111" stroke-width="1.5"/>
+  ${face(233, 4.8)}
+</g></g></g>
+
+<!-- the thing behind them -->
+<g ${win(44, 8.2)}><g class="thingp">
+  <g fill="#04060a" stroke="#161b24" stroke-width="1.5" stroke-linejoin="round">
+    <ellipse cx="58" cy="190" rx="13" ry="17"/>
+    <path d="M36 214 Q58 202 80 214 L86 300 L77 300 L76 262 L71 336 L63 336 L58 290 L53 336 L45 336 L40 262 L39 300 L30 300 Z"/>
+  </g>
+  <ellipse cx="52" cy="187" rx="3.2" ry="4.6" fill="#fff"/><ellipse cx="64" cy="187" rx="3.2" ry="4.6" fill="#fff"/>
+</g></g>
+
+<rect width="360" height="640" fill="#000" class="dim"/>
+<rect width="360" height="640" fill="url(#vg)" class="vig"/>
+<rect width="360" height="640" fill="#fff" class="flash"/>
+<rect width="360" height="640" fill="#000" class="glitch"/>
+`;
+
+/* ---------- gallery on mom's phone ---------- */
+function panel(s, e, header, avatar) {
+  const p = el('g', { class: 'pulse', style: `--t:${s}s;--d:${(e - s).toFixed(2)}s` });
+  el('rect', { x: 14, y: 398, width: 332, height: 228, rx: 22, fill: '#0f141b', stroke: '#2a3340', 'stroke-width': 2 }, p);
+  el('circle', { cx: 42, cy: 421, r: 11, fill: avatar }, p);
+  const nm = el('text', { x: 62, y: 426, 'font-size': 15, 'font-weight': 800, fill: '#fff' }, p); nm.textContent = header;
+  return p;
+}
+panel(25.4, 52.6, 'Галерея', '#5b8def');
+panel(59.8, 66.6, 'Неизвестный номер', '#6b7280');
+
+function thumb(slot, t, kind, label, red) {
+  const x = slot % 2 ? 188 : 26, y = slot < 2 ? 436 : 530, w = 146, h = 86;
+  const g = el('g', { class: 'pulse', style: `--t:${t}s;--d:${(52.6 - t).toFixed(2)}s` });
+  const p = el('g', { class: 'pop', style: `--t:${t}s` }, g);
+  const R = (a, b, c, d, f, ex = {}) => el('rect', Object.assign({ x: x + a, y: y + b, width: c, height: d, fill: f }, ex), p);
+  const C = (a, b, r, f, ex = {}) => el('circle', Object.assign({ cx: x + a, cy: y + b, r, fill: f }, ex), p);
+  if (kind === 1) { R(0, 0, w, h, '#27303f', { rx: 8 }); R(0, 62, w, 24, '#3a2d28'); R(36, 34, 64, 34, '#5b3f78', { rx: 6 }); C(68, 30, 8, '#fff', { stroke: '#111', 'stroke-width': 2 }); R(60, 38, 16, 22, '#fff', { rx: 4, stroke: '#111', 'stroke-width': 1.5 }); }
+  if (kind === 2) { R(0, 0, w, h, '#27303f', { rx: 8 }); R(50, 8, 46, 76, '#5a3a22', { stroke: '#1a0f08', 'stroke-width': 2 }); C(56, 48, 2.6, '#d4a93c'); C(73, 22, 2, '#000'); R(50, 82, 46, 2.6, '#ffe9a0'); }
+  if (kind === 3) { R(0, 0, w, h, '#05070a', { rx: 8 }); R(46, 8, 54, 78, '#0a0d12', { stroke: '#1d1612', 'stroke-width': 3 }); el('ellipse', { cx: x + 66, cy: y + 38, rx: 2.4, ry: 3.4, fill: '#fff' }, p); el('ellipse', { cx: x + 78, cy: y + 38, rx: 2.4, ry: 3.4, fill: '#fff' }, p); }
+  if (kind === 4) {
+    R(0, 0, w, h, '#d7c7a6', { rx: 8 }); R(0, 62, w, 24, '#9a7a58');
+    C(78, 36, 7, '#fff', { stroke: '#111', 'stroke-width': 2 }); R(72, 43, 12, 20, '#fff', { rx: 3, stroke: '#111', 'stroke-width': 1.5 });
+    C(100, 34, 7, '#3a2414', { stroke: '#111', 'stroke-width': 2 }); R(94, 41, 12, 22, '#c0392b', { rx: 3, stroke: '#111', 'stroke-width': 1.5 });
+    el('ellipse', { cx: x + 24, cy: y + 24, rx: 9, ry: 12, fill: '#04060a' }, p); R(12, 34, 24, 52, '#04060a', { rx: 6 });
+    el('ellipse', { cx: x + 20, cy: y + 22, rx: 1.8, ry: 2.6, fill: '#fff' }, p); el('ellipse', { cx: x + 28, cy: y + 22, rx: 1.8, ry: 2.6, fill: '#fff' }, p);
+  }
+  el('rect', { x: x, y: y, width: w, height: h, rx: 8, fill: 'none', stroke: red ? '#e03131' : '#3a4452', 'stroke-width': red ? 3 : 2 }, p);
+  R(6, h - 18, label.length * 6.4 + 12, 14, 'rgba(0,0,0,.7)', { rx: 4 });
+  const tx = el('text', { x: x + 12, y: y + h - 8, 'font-size': 10, 'font-weight': 700, fill: red ? '#ff6b6b' : '#fff' }, p); tx.textContent = label;
+}
+thumb(0, 28.6, 1, '21:40', false);
+thumb(1, 30.0, 2, '23:05', false);
+thumb(2, 32.4, 3, '03:12', false);
+thumb(3, 41.6, 4, '07:41 — сейчас', true);
+
+/* ---------- messages from the unknown number ---------- */
+[[61.0, 66.6, 'Вы забыли меня.', 0], [63.0, 66.6, 'Вернитесь.', 1]].forEach(([s, e, text, slot]) => {
+  const w = Math.round(text.length * 8.6 + 28), y = 440 + slot * 44;
+  const g = el('g', { class: 'pulse', style: `--t:${s}s;--d:${(e - s).toFixed(2)}s` });
+  const inner = el('g', { class: 'pop', style: `--t:${s}s;--o:0% 50%` }, g);
+  el('rect', { x: 28, y, width: w, height: 34, rx: 17, fill: '#7a1010' }, inner);
+  const t = el('text', { x: 42, y: y + 22.5, 'font-size': 15, 'font-weight': 800, fill: '#fff' }, inner); t.textContent = text;
+});
+
+/* ---------- cards ---------- */
+const title = el('g', { class: 'titlecard' });
+el('rect', { width: 360, height: 640, fill: '#05070a' }, title);
+const t1 = el('text', { x: 180, y: 252, 'text-anchor': 'middle', 'font-size': 24, 'font-weight': 900, fill: '#fff', class: 'rise' }, title); t1.textContent = 'СООБЩЕНИЕ ОТ МАМЫ';
+const t2 = el('text', { x: 180, y: 318, 'text-anchor': 'middle', 'font-size': 52, 'font-weight': 900, fill: '#e03131', class: 'rise' }, title); t2.textContent = 'СЕРИЯ 3';
+const t3 = el('text', { x: 180, y: 362, 'text-anchor': 'middle', 'font-size': 15, fill: '#94a3b8', class: 'rise' }, title); t3.textContent = 'страшная история';
+const endc = el('g', { class: 'pulse', style: '--t:66.6s;--d:999s' });
+el('rect', { width: 360, height: 640, fill: '#000' }, endc);
+const e1 = el('text', { x: 180, y: 310, 'text-anchor': 'middle', 'font-size': 26, 'font-weight': 800, fill: '#e03131' }, endc); e1.textContent = 'КОНЕЦ 3 СЕРИИ';
+const e2 = el('text', { x: 180, y: 348, 'text-anchor': 'middle', 'font-size': 15, fill: '#94a3b8' }, endc); e2.textContent = 'продолжение следует…';
+
+window.TOTAL = 70;
+window.seek = (t) => { document.getAnimations().forEach(a => { a.pause(); a.currentTime = t * 1000; }); };
+</script>
+</body>
+</html>
