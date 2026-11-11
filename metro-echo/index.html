@@ -8,7 +8,7 @@
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;background:#000;font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif}
   body{display:flex;align-items:center;justify-content:center}
-  #stage{position:relative;width:min(100vw,56.25vh);aspect-ratio:9/16;overflow:hidden;background:#111;container-type:inline-size;user-select:none}
+  #stage{position:relative;width:min(100vw,56.25vh);aspect-ratio:9/16;overflow:hidden;background:#000;container-type:inline-size;user-select:none}
   svg{position:absolute;inset:0;width:100%;height:100%;display:block}
 
   .pulse{opacity:0;animation:pulse var(--d,1s) var(--t,0s) forwards}
@@ -16,24 +16,35 @@
   .hide{animation:hide .01s var(--t,0s) forwards}
   @keyframes hide{to{opacity:0}}
 
-  .shake{animation:shake .09s 12s 80 alternate}
+  .shake{animation:shake .09s 28s 130 alternate}
   @keyframes shake{from{transform:translate(-2.5px,1px)}to{transform:translate(2.5px,-1px)}}
   .flicker{animation:flicker 3.1s infinite steps(1)}
   @keyframes flicker{0%,100%{opacity:1}7%{opacity:.25}9%{opacity:1}52%{opacity:.4}54%{opacity:1}}
+  .lampdie{animation:lampdie 8s var(--t,14s) forwards steps(1)}
+  @keyframes lampdie{0%{opacity:1}12%{opacity:.15}18%{opacity:1}34%{opacity:.1}40%{opacity:.8}58%{opacity:0}100%{opacity:0}}
   .idle{animation:idle 2.4s infinite ease-in-out}
   @keyframes idle{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-  .tremble{animation:trem .07s 16s infinite alternate}
+  .tremble{animation:trem .07s 14s infinite alternate}
   @keyframes trem{from{transform:translateX(-1.5px)}to{transform:translateX(1.5px)}}
-  .glow{opacity:0;transform-origin:180px 255px;animation:glow 5.5s 10s forwards ease-in}
+  .glow{opacity:0;transform-origin:180px 255px;animation:glow 7s 26s forwards ease-in}
   @keyframes glow{0%{opacity:1;transform:scale(.1)}85%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.1)}}
-  .train{opacity:0;transform-origin:180px 255px;animation:train 4s 15s forwards cubic-bezier(.2,.6,.3,1)}
+  .train{opacity:0;transform-origin:180px 255px;animation:train 4s 33s forwards cubic-bezier(.2,.6,.3,1)}
   @keyframes train{0%{opacity:1;transform:scale(.05)}100%{opacity:1;transform:scale(1)}}
-  .figure{opacity:0;transform-origin:180px 235px;animation:fig .5s 21.2s forwards cubic-bezier(.3,1.6,.5,1)}
+  .figure{opacity:0;transform-origin:180px 235px;animation:fig .5s 44.2s forwards cubic-bezier(.3,1.6,.5,1)}
   @keyframes fig{0%{opacity:0;transform:scale(.2)}100%{opacity:1;transform:scale(1)}}
-  .wave{transform-origin:200px 250px;animation:wave .35s 22.5s infinite alternate ease-in-out}
+  .wave{transform-origin:200px 250px;animation:wave .35s 45.4s infinite alternate ease-in-out}
   @keyframes wave{from{transform:rotate(-25deg)}to{transform:rotate(25deg)}}
-  .fadein{opacity:0;animation:fi 1s var(--t,0s) forwards}
-  @keyframes fi{to{opacity:1}}
+  .vig{opacity:0;animation:vig 40s 12s forwards linear}
+  @keyframes vig{to{opacity:1}}
+  .blackout{opacity:0;animation:blackout 3.2s 38.8s forwards}
+  @keyframes blackout{0%{opacity:0}5%{opacity:.96}18%{opacity:.35}24%{opacity:.96}88%{opacity:.96}100%{opacity:0}}
+  .shadow{opacity:0;transform-origin:60px 560px;animation:shadow 17s 39.5s forwards linear}
+  @keyframes shadow{0%{opacity:1;transform:scale(.35)}100%{opacity:1;transform:scale(1.1)}}
+  .jump{opacity:0;animation:jump 1.7s 56s forwards}
+  @keyframes jump{0%{opacity:1;transform:scale(1.5)}8%{transform:scale(1)}100%{opacity:1;transform:scale(1.08)}}
+  .jump{transform-origin:180px 280px}
+  .whiteflash{opacity:0;animation:wf .35s 56s}
+  @keyframes wf{0%{opacity:1}100%{opacity:0}}
 
   /* overlays */
   .ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;padding:8cqw}
@@ -48,20 +59,19 @@
   #sub{position:absolute;left:4cqw;right:4cqw;bottom:14cqw;text-align:center;z-index:5;pointer-events:none;min-height:20cqw}
   #sub span{display:inline-block;margin:0 1.1cqw;font-size:9cqw;font-weight:900;color:#fff;-webkit-text-stroke:1.8cqw #000;paint-order:stroke fill;
     opacity:0;transform:scale(.6);animation:w .22s forwards cubic-bezier(.3,1.7,.5,1)}
-  #sub span.hot{color:#ffd23f}
+  #sub span.hot{color:#ff3b3b}
   @keyframes w{to{opacity:1;transform:scale(1)}}
-  #end{background:rgba(0,0,0,.72);z-index:7;display:none;gap:4cqw}
+  #end{background:rgba(0,0,0,.8);z-index:7;display:none;gap:4cqw}
   #end.on{display:flex}
-  #end h2{margin:0 0 2cqw;font-size:8cqw;line-height:1.1;color:#ffd23f}
+  #end h2{margin:0 0 2cqw;font-size:8cqw;line-height:1.1;color:#ff3b3b}
   #end .msg{font-size:5.4cqw;min-height:14cqw;color:#fff}
-  #hint{position:absolute;top:2cqw;right:3cqw;z-index:6;color:#fff9;font-size:3.4cqw}
 </style>
 </head>
 <body>
 <div id="stage">
   <div class="ov" id="start">
     <h1>СТАНЦИЯ<br><span>«ЭХО»</span></h1>
-    <p>Серия 1 · со звуком 🔊</p>
+    <p>Серия 1 · страшная · со звуком 🔊<br><small>Включи громкость и наушники</small></p>
     <button class="btn" id="go">▶ Смотреть</button>
   </div>
 </div>
@@ -70,33 +80,34 @@
 <svg viewBox="0 0 360 640" preserveAspectRatio="xMidYMid slice">
   <defs>
     <radialGradient id="lg"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset=".35" stop-color="#fff3b0" stop-opacity=".9"/><stop offset="1" stop-color="#ffd23f" stop-opacity="0"/></radialGradient>
+    <radialGradient id="vg" cx=".5" cy=".5" r=".75"><stop offset=".35" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".92"/></radialGradient>
   </defs>
   <g class="shake">
     <!-- walls -->
-    <rect width="360" height="640" fill="#d8d2bf"/>
+    <rect width="360" height="640" fill="#cfc9b6"/>
     <g stroke="#a9a28c" stroke-width="1.5">
       <line x1="180" y1="255" x2="0" y2="40"/><line x1="180" y1="255" x2="0" y2="140"/><line x1="180" y1="255" x2="0" y2="240"/><line x1="180" y1="255" x2="0" y2="340"/><line x1="180" y1="255" x2="0" y2="440"/>
       <line x1="180" y1="255" x2="360" y2="40"/><line x1="180" y1="255" x2="360" y2="140"/><line x1="180" y1="255" x2="360" y2="240"/><line x1="180" y1="255" x2="360" y2="340"/><line x1="180" y1="255" x2="360" y2="440"/>
     </g>
-    <polygon points="0,205 140,255 140,262 0,300" fill="#5b7f6a" opacity=".85"/>
-    <polygon points="360,205 220,255 220,262 360,300" fill="#5b7f6a" opacity=".85"/>
+    <polygon points="0,205 140,255 140,262 0,300" fill="#4d6d5b" opacity=".85"/>
+    <polygon points="360,205 220,255 220,262 360,300" fill="#4d6d5b" opacity=".85"/>
     <!-- ceiling -->
-    <polygon points="0,0 360,0 220,215 140,215" fill="#2b3138"/>
-    <g class="flicker">
-      <ellipse cx="180" cy="40" rx="42" ry="8" fill="#fff7c2"/><ellipse cx="180" cy="110" rx="26" ry="5" fill="#fff7c2"/><ellipse cx="180" cy="165" rx="14" ry="3" fill="#fff7c2"/>
-    </g>
+    <polygon points="0,0 360,0 220,215 140,215" fill="#242a30"/>
+    <g class="flicker"><ellipse cx="180" cy="40" rx="42" ry="8" fill="#fff7c2"/></g>
+    <g class="lampdie" style="--t:14s"><ellipse cx="180" cy="110" rx="26" ry="5" fill="#fff7c2"/></g>
+    <g class="lampdie" style="--t:20s"><ellipse cx="180" cy="165" rx="14" ry="3" fill="#fff7c2"/></g>
     <!-- floor -->
-    <polygon points="0,560 140,295 220,295 360,560 360,640 0,640" fill="#8d9096"/>
-    <polygon points="166,295 194,295 315,640 45,640" fill="#2f3338"/>
+    <polygon points="0,560 140,295 220,295 360,560 360,640 0,640" fill="#7d8086"/>
+    <polygon points="166,295 194,295 315,640 45,640" fill="#2a2e33"/>
     <g stroke="#6b7078" stroke-width="3"><line x1="171.7" y1="295" x2="100" y2="640"/><line x1="188.3" y1="295" x2="260" y2="640"/></g>
     <g stroke="#f2c200" stroke-width="4"><line x1="166" y1="295" x2="45" y2="640"/><line x1="194" y1="295" x2="315" y2="640"/></g>
     <!-- tunnel mouth -->
     <rect x="140" y="215" width="80" height="80" fill="#03050a"/>
     <!-- timetable -->
     <rect x="125" y="68" width="110" height="38" rx="4" fill="#0b0f14" stroke="#4b5563" stroke-width="2"/>
-    <text x="180" y="95" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="28" fill="#ff5d3b"><tspan>05:29</tspan></text>
-    <rect x="127" y="70" width="106" height="34" fill="#0b0f14" class="pulse" style="--t:9s;--d:999s"/>
-    <text class="pulse" style="--t:9s;--d:999s" x="180" y="95" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="28" fill="#ff5d3b">05:30</text>
+    <text x="180" y="95" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="28" fill="#ff5d3b">05:29</text>
+    <rect x="127" y="70" width="106" height="34" fill="#0b0f14" class="pulse" style="--t:20s;--d:999s"/>
+    <text class="pulse" style="--t:20s;--d:999s" x="180" y="95" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="28" fill="#ff5d3b">05:30</text>
     <!-- station sign -->
     <polygon points="252,200 335,120 335,165 252,235" fill="#1d4ed8" stroke="#fff" stroke-width="2"/>
     <text x="262" y="222" font-size="26" font-weight="900" fill="#fff" transform="rotate(-33 262 222)">ЭХО</text>
@@ -112,12 +123,22 @@
       <g class="figure">
         <circle cx="180" cy="224" r="22" fill="#fff" stroke="#111" stroke-width="3"/>
         <path d="M168 222 h8 M184 222 h8" stroke="#111" stroke-width="3" stroke-linecap="round"/>
-        <path d="M170 234 q10 6 20 0" stroke="#111" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M168 234 q12 10 24 0" stroke="#111" stroke-width="3" fill="none" stroke-linecap="round"/>
         <path d="M150 264 q30 -26 60 0" fill="#fff" stroke="#111" stroke-width="3"/>
         <g class="wave"><line x1="200" y1="250" x2="222" y2="214" stroke="#111" stroke-width="8" stroke-linecap="round"/><line x1="200" y1="250" x2="222" y2="214" stroke="#fff" stroke-width="4" stroke-linecap="round"/></g>
       </g>
       <circle cx="125" cy="318" r="12" fill="#fff6c8" stroke="#111" stroke-width="2"/><circle cx="235" cy="318" r="12" fill="#fff6c8" stroke="#111" stroke-width="2"/>
       <rect x="150" y="296" width="60" height="26" rx="4" fill="#0b0f14"/><text x="180" y="315" text-anchor="middle" font-family="monospace" font-size="16" font-weight="bold" fill="#ff5d3b">05:30</text>
+    </g>
+
+    <!-- shadow figure (creeps closer) -->
+    <g class="shadow">
+      <ellipse cx="60" cy="560" rx="40" ry="8" fill="#000" opacity=".5"/>
+      <g fill="#04060a" stroke="#1b212a" stroke-width="2" stroke-linejoin="round">
+        <ellipse cx="60" cy="380" rx="21" ry="28"/>
+        <path d="M30 410 Q60 396 90 410 L96 520 L84 520 L82 470 L76 548 L66 548 L60 490 L54 548 L44 548 L38 470 L36 520 L24 520 Z"/>
+      </g>
+      <ellipse cx="51" cy="376" rx="4" ry="6" fill="#fff"/><ellipse cx="69" cy="376" rx="4" ry="6" fill="#fff"/>
     </g>
 
     <!-- character -->
@@ -128,12 +149,25 @@
         <g stroke="#fff" stroke-width="6"><line x1="318" y1="440" x2="318" y2="490"/><line x1="318" y1="455" x2="298" y2="482"/><line x1="318" y1="455" x2="338" y2="482"/><line x1="318" y1="490" x2="304" y2="540"/><line x1="318" y1="490" x2="334" y2="540"/></g>
       </g>
       <circle cx="318" cy="410" r="32" fill="#fff" stroke="#111" stroke-width="4"/>
-      <!-- calm face -->
-      <g class="hide" style="--t:16s"><path d="M296 404 h10 M312 404 h10" stroke="#111" stroke-width="3.5" stroke-linecap="round"/><path d="M298 422 h10" stroke="#111" stroke-width="3.5" stroke-linecap="round"/></g>
-      <!-- scared face -->
-      <g class="pulse" style="--t:16s;--d:999s"><circle cx="300" cy="403" r="6.5" fill="#fff" stroke="#111" stroke-width="2.5"/><circle cx="318" cy="403" r="6.5" fill="#fff" stroke="#111" stroke-width="2.5"/><circle cx="298" cy="403" r="2.4" fill="#111"/><circle cx="316" cy="403" r="2.4" fill="#111"/><ellipse cx="305" cy="424" rx="4" ry="6" fill="#111"/></g>
+      <g class="hide" style="--t:14s"><path d="M296 404 h10 M312 404 h10" stroke="#111" stroke-width="3.5" stroke-linecap="round"/><path d="M298 422 h10" stroke="#111" stroke-width="3.5" stroke-linecap="round"/></g>
+      <g class="pulse" style="--t:14s;--d:999s"><circle cx="300" cy="403" r="6.5" fill="#fff" stroke="#111" stroke-width="2.5"/><circle cx="318" cy="403" r="6.5" fill="#fff" stroke="#111" stroke-width="2.5"/><circle cx="298" cy="403" r="2.4" fill="#111"/><circle cx="316" cy="403" r="2.4" fill="#111"/><ellipse cx="305" cy="424" rx="4" ry="6" fill="#111"/></g>
     </g></g>
   </g>
+
+  <!-- darkness that grows -->
+  <rect width="360" height="640" fill="url(#vg)" class="vig"/>
+  <rect width="360" height="640" fill="#000" class="blackout"/>
+  <g class="pulse" style="--t:39.4s;--d:2s"><circle cx="54" cy="497" r="3" fill="#fff"/><circle cx="66" cy="497" r="3" fill="#fff"/></g>
+
+  <!-- jump scare -->
+  <rect width="360" height="640" fill="#000" class="pulse" style="--t:56s;--d:999s"/>
+  <g class="jump">
+    <ellipse cx="180" cy="300" rx="150" ry="210" fill="#04060a"/>
+    <ellipse cx="120" cy="240" rx="40" ry="58" fill="#fff"/><ellipse cx="240" cy="240" rx="40" ry="58" fill="#fff"/>
+    <circle cx="124" cy="246" r="7" fill="#000"/><circle cx="236" cy="246" r="7" fill="#000"/>
+    <path d="M90 400 L110 372 L135 408 L158 370 L180 410 L204 370 L228 408 L250 372 L270 400 L250 440 L225 420 L204 450 L180 424 L156 450 L135 420 L110 440 Z" fill="#fff"/>
+  </g>
+  <rect width="360" height="640" fill="#fff" class="whiteflash"/>
 </svg>
 </template>
 
@@ -143,20 +177,34 @@
   const tpl = document.getElementById('tpl');
   let timers = [], ac = null, nodes = [];
 
-  // [seconds, subtitle text, hot words (indexes)]
+  // [seconds, subtitle text, hot word indexes]
   const lines = [
     [3.3,  'Ночь. Станция пуста.', [0]],
     [6.0,  'Последний поезд ушёл час назад.', [3]],
-    [9.0,  'На табло — ноль пять тридцать.', [3,4]],
-    [11.6, 'Но поездов в это время нет…', [3]],
-    [14.6, 'Что это за свет?', [3]],
-    [18.0, 'Двери открываются. Вагон пуст.', [3]],
-    [21.0, 'Нет. Не пуст.', [1,2]],
-    [23.3, 'В кабине сидит… он сам.', [2,3]],
+    [9.0,  'Ты совсем один…', [2]],
+    [11.6, 'Слышишь шаги?', [1]],
+    [14.2, 'Но ты стоишь на месте.', [3]],
+    [17.2, 'Шаги… всё ближе.', [2]],
+    [20.2, 'На табло — ноль пять тридцать.', [3,4]],
+    [23.2, 'Но поездов в это время нет…', [3]],
+    [26.4, 'В тоннеле загорается свет.', [2]],
+    [30.0, 'Грохот становится громче!', [2]],
+    [34.0, 'Поезд пришёл. Двери открылись.', [1]],
+    [37.6, 'Вагон пуст.', [1]],
+    [41.6, 'Свет вернулся…', [0]],
+    [44.2, 'В кабине сидит… он сам.', [3,4]],
+    [47.6, 'Он смотрит не на тебя.', [3]],
+    [50.2, 'А тебе за спину.', [3]],
+    [52.8, 'Не оборачивайся.', [1]],
   ];
+  const END_AT = 58.6;
 
-  function clear(){ timers.forEach(clearTimeout); timers = []; nodes.forEach(n => { try{n.stop()}catch(e){} }); nodes = [];
-    if (ac) { try{ac.close()}catch(e){} ac = null; } try{speechSynthesis.cancel()}catch(e){} }
+  function clear(){
+    timers.forEach(clearTimeout); timers = [];
+    nodes.forEach(n => { try{n.stop()}catch(e){} }); nodes = [];
+    if (ac) { try{ac.close()}catch(e){} ac = null; }
+    try{speechSynthesis.cancel()}catch(e){}
+  }
 
   /* ---------- voice ---------- */
   let voice = null;
@@ -165,11 +213,11 @@
     voice = v.find(x => /^ru/i.test(x.lang) && /male|муж|pavel|павел|yuri|юрий|dmitry/i.test(x.name)) || v.find(x => /^ru/i.test(x.lang)) || null;
   }
   try{ speechSynthesis.onvoiceschanged = pickVoice; pickVoice(); }catch(e){}
-  function speak(text){
+  function speak(text, o = {}){
     try{
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'ru-RU'; if (voice) u.voice = voice;
-      u.rate = .9; u.pitch = .6; u.volume = 1;
+      u.rate = o.rate || .82; u.pitch = o.pitch || .4; u.volume = o.volume || 1;
       speechSynthesis.speak(u);
     }catch(e){}
   }
@@ -178,39 +226,81 @@
   function audio(){
     try{
       ac = new (window.AudioContext || window.webkitAudioContext)();
-      const t0 = ac.currentTime, out = ac.createGain(); out.gain.value = .9; out.connect(ac.destination);
-      // low drone
-      const o = ac.createOscillator(), og = ac.createGain(), lp = ac.createBiquadFilter();
-      o.type = 'sawtooth'; o.frequency.value = 48; lp.type = 'lowpass'; lp.frequency.value = 160; og.gain.value = .07;
-      o.connect(lp); lp.connect(og); og.connect(out); o.start(); nodes.push(o);
-      // rumble noise (train approaching 10s → 19s)
-      const buf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate), d = buf.getChannelData(0);
-      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-      const n = ac.createBufferSource(), nf = ac.createBiquadFilter(), ng = ac.createGain();
-      n.buffer = buf; n.loop = true; nf.type = 'lowpass'; nf.frequency.value = 380;
-      ng.gain.setValueAtTime(0, t0); ng.gain.setValueAtTime(0, t0 + 10);
-      ng.gain.linearRampToValueAtTime(.55, t0 + 18); ng.gain.linearRampToValueAtTime(.06, t0 + 21);
-      n.connect(nf); nf.connect(ng); ng.connect(out); n.start(); nodes.push(n);
-      // beep when timetable changes (9s)
+      const t0 = ac.currentTime, out = ac.createGain(); out.gain.value = .85; out.connect(ac.destination);
+      const noise = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate), nd = noise.getChannelData(0);
+      for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+      const short = ac.createBuffer(1, Math.floor(ac.sampleRate * .12), ac.sampleRate), sd = short.getChannelData(0);
+      for (let i = 0; i < sd.length; i++) sd[i] = Math.random() * 2 - 1;
+      const add = n => { nodes.push(n); return n; };
+
+      // low drone (+ detuned second voice for unease)
+      [48, 50.6].forEach(f => {
+        const o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter();
+        o.type = 'sawtooth'; o.frequency.value = f; lp.type = 'lowpass'; lp.frequency.value = 150; g.gain.value = .05;
+        o.connect(lp); lp.connect(g); g.connect(out); o.start(); add(o);
+      });
+      // echo bus for footsteps
+      const echo = ac.createDelay(1); echo.delayTime.value = .32;
+      const fb = ac.createGain(); fb.gain.value = .42; const ef = ac.createBiquadFilter(); ef.type = 'lowpass'; ef.frequency.value = 900;
+      echo.connect(ef); ef.connect(fb); fb.connect(echo); ef.connect(out);
+
+      // footsteps 11.5 → 20 (faster and louder)
+      let t = 11.5, k = 0;
+      while (t < 20) {
+        const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+        s.buffer = short; f.type = 'lowpass'; f.frequency.value = 520;
+        g.gain.setValueAtTime(.3 + k * .04, t0 + t); g.gain.exponentialRampToValueAtTime(.001, t0 + t + .13);
+        s.connect(f); f.connect(g); g.connect(out); g.connect(echo); s.start(t0 + t); add(s);
+        t += Math.max(.38, .85 - k * .045); k++;
+      }
+      // timetable beep (20s)
       const b = ac.createOscillator(), bg = ac.createGain();
-      b.type = 'square'; b.frequency.value = 880; bg.gain.setValueAtTime(0, t0); bg.gain.setValueAtTime(.12, t0 + 9); bg.gain.setValueAtTime(0, t0 + 9.25);
-      b.connect(bg); bg.connect(out); b.start(); nodes.push(b);
-      // door hiss (18s)
+      b.type = 'square'; b.frequency.value = 880; bg.gain.setValueAtTime(0, t0); bg.gain.setValueAtTime(.1, t0 + 20); bg.gain.setValueAtTime(0, t0 + 20.25);
+      b.connect(bg); bg.connect(out); b.start(); add(b);
+      // rumble of the train 28 → 38
+      const n = ac.createBufferSource(), nf = ac.createBiquadFilter(), ng = ac.createGain();
+      n.buffer = noise; n.loop = true; nf.type = 'lowpass'; nf.frequency.value = 380;
+      ng.gain.setValueAtTime(0, t0); ng.gain.setValueAtTime(0, t0 + 27); ng.gain.linearRampToValueAtTime(.6, t0 + 36); ng.gain.linearRampToValueAtTime(.05, t0 + 38.6);
+      n.connect(nf); nf.connect(ng); ng.connect(out); n.start(); add(n);
+      // door hiss 34.8
       const h = ac.createBufferSource(), hf = ac.createBiquadFilter(), hg = ac.createGain();
-      h.buffer = buf; h.loop = true; hf.type = 'highpass'; hf.frequency.value = 2500;
-      hg.gain.setValueAtTime(0, t0); hg.gain.setValueAtTime(.18, t0 + 18.2); hg.gain.linearRampToValueAtTime(0, t0 + 19.4);
-      h.connect(hf); hf.connect(hg); hg.connect(out); h.start(); nodes.push(h);
-      // sting at 21s
-      const s = ac.createOscillator(), sg = ac.createGain();
-      s.type = 'triangle'; s.frequency.setValueAtTime(220, t0 + 21); s.frequency.exponentialRampToValueAtTime(70, t0 + 23);
-      sg.gain.setValueAtTime(0, t0); sg.gain.setValueAtTime(.2, t0 + 21); sg.gain.exponentialRampToValueAtTime(.001, t0 + 23.5);
-      s.connect(sg); sg.connect(out); s.start(); nodes.push(s);
+      h.buffer = noise; h.loop = true; hf.type = 'highpass'; hf.frequency.value = 2500;
+      hg.gain.setValueAtTime(0, t0); hg.gain.setValueAtTime(.16, t0 + 34.8); hg.gain.linearRampToValueAtTime(0, t0 + 36.2);
+      h.connect(hf); hf.connect(hg); hg.connect(out); h.start(); add(h);
+      // power-down at 38.8
+      const pd = ac.createOscillator(), pg = ac.createGain();
+      pd.type = 'sine'; pd.frequency.setValueAtTime(420, t0 + 38.8); pd.frequency.exponentialRampToValueAtTime(35, t0 + 39.8);
+      pg.gain.setValueAtTime(0, t0); pg.gain.setValueAtTime(.3, t0 + 38.8); pg.gain.exponentialRampToValueAtTime(.001, t0 + 40);
+      pd.connect(pg); pg.connect(out); pd.start(); add(pd);
+      // heartbeat 41.5 → 56 (speeds up)
+      let hb = 41.5, hi = 0;
+      while (hb < 56) {
+        [0, .2].forEach((d, j) => {
+          const o = ac.createOscillator(), g = ac.createGain();
+          o.type = 'sine'; o.frequency.value = 55; g.gain.setValueAtTime(j ? .3 : .5, t0 + hb + d); g.gain.exponentialRampToValueAtTime(.001, t0 + hb + d + .18);
+          o.connect(g); g.connect(out); o.start(t0 + hb + d); o.stop(t0 + hb + d + .2); add(o);
+        });
+        hb += Math.max(.5, 1 - hi * .045); hi++;
+      }
+      // rising whine 44 → 56
+      const w = ac.createOscillator(), wg = ac.createGain();
+      w.type = 'sine'; w.frequency.setValueAtTime(1100, t0 + 44); w.frequency.linearRampToValueAtTime(2100, t0 + 56);
+      wg.gain.setValueAtTime(0, t0); wg.gain.setValueAtTime(.004, t0 + 44); wg.gain.linearRampToValueAtTime(.03, t0 + 56); wg.gain.setValueAtTime(0, t0 + 56.05);
+      w.connect(wg); wg.connect(out); w.start(); add(w);
+      // jump scare at 56
+      const js = ac.createBufferSource(), jg = ac.createGain();
+      js.buffer = noise; js.loop = true; jg.gain.setValueAtTime(0, t0); jg.gain.setValueAtTime(.9, t0 + 56); jg.gain.exponentialRampToValueAtTime(.001, t0 + 57.2);
+      js.connect(jg); jg.connect(out); js.start(); add(js);
+      const sc = ac.createOscillator(), sg = ac.createGain();
+      sc.type = 'sawtooth'; sc.frequency.setValueAtTime(130, t0 + 56); sc.frequency.exponentialRampToValueAtTime(60, t0 + 58);
+      sg.gain.setValueAtTime(0, t0); sg.gain.setValueAtTime(.45, t0 + 56); sg.gain.exponentialRampToValueAtTime(.001, t0 + 58);
+      sc.connect(sg); sg.connect(out); sc.start(); add(sc);
     }catch(e){}
   }
 
   /* ---------- subtitles ---------- */
   function showSub(text, hot){
-    const sub = document.getElementById('sub'); sub.textContent = '';
+    const sub = document.getElementById('sub'); if (!sub) return; sub.textContent = '';
     text.split(' ').forEach((w, i) => {
       const s = document.createElement('span'); s.textContent = w;
       if (hot.includes(i)) s.className = 'hot';
@@ -227,17 +317,17 @@
       '<div id="sub"></div>' +
       '<div class="ov" id="title"><h1>СТАНЦИЯ<br><span>«ЭХО»</span></h1><p>Серия 1</p></div>' +
       '<div class="ov" id="end"><h2>СЛЕДУЮЩУЮ СЕРИЮ<br>РЕШАЕШЬ ТЫ</h2>' +
-      '<button class="btn" data-c="enter">🚪 Войти в вагон</button>' +
+      '<button class="btn" data-c="enter">🚪 Обернуться</button>' +
       '<button class="btn ghost" data-c="run">🏃 Бежать</button>' +
       '<div class="msg" id="msg"></div>' +
       '<button class="btn ghost" id="again">↻ Сначала</button></div>');
     audio();
     lines.forEach(([t, text, hot]) => timers.push(setTimeout(() => { showSub(text, hot); speak(text); }, t * 1000)));
-    timers.push(setTimeout(() => { document.getElementById('sub').textContent = ''; }, 26000));
+    timers.push(setTimeout(() => { const s = document.getElementById('sub'); if (s) s.textContent = ''; }, 55500));
     timers.push(setTimeout(() => {
       document.getElementById('end').classList.add('on');
-      speak('Следующую серию решаешь ты. Войти в вагон? Или бежать?');
-    }, 26500));
+      speak('Обернуться? Или бежать? Решай.');
+    }, END_AT * 1000));
   }
 
   stage.addEventListener('click', e => {
