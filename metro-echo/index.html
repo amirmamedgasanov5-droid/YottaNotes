@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Станция «Эхо» — серия 1</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#000;font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif}
+  body{display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;width:min(100vw,56.25vh);aspect-ratio:9/16;overflow:hidden;background:#111;container-type:inline-size;user-select:none}
+  svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+  .pulse{opacity:0;animation:pulse var(--d,1s) var(--t,0s) forwards}
+  @keyframes pulse{0%{opacity:1}99%{opacity:1}100%{opacity:0}}
+  .hide{animation:hide .01s var(--t,0s) forwards}
+  @keyframes hide{to{opacity:0}}
+
+  .shake{animation:shake .09s 12s 80 alternate}
+  @keyframes shake{from{transform:translate(-2.5px,1px)}to{transform:translate(2.5px,-1px)}}
+  .flicker{animation:flicker 3.1s infinite steps(1)}
+  @keyframes flicker{0%,100%{opacity:1}7%{opacity:.25}9%{opacity:1}52%{opacity:.4}54%{opacity:1}}
+  .idle{animation:idle 2.4s infinite ease-in-out}
+  @keyframes idle{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+  .tremble{animation:trem .07s 16s infinite alternate}
+  @keyframes trem{from{transform:translateX(-1.5px)}to{transform:translateX(1.5px)}}
+  .glow{opacity:0;transform-origin:180px 255px;animation:glow 5.5s 10s forwards ease-in}
+  @keyframes glow{0%{opacity:1;transform:scale(.1)}85%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.1)}}
+  .train{opacity:0;transform-origin:180px 255px;animation:train 4s 15s forwards cubic-bezier(.2,.6,.3,1)}
+  @keyframes train{0%{opacity:1;transform:scale(.05)}100%{opacity:1;transform:scale(1)}}
+  .figure{opacity:0;transform-origin:180px 235px;animation:fig .5s 21.2s forwards cubic-bezier(.3,1.6,.5,1)}
+  @keyframes fig{0%{opacity:0;transform:scale(.2)}100%{opacity:1;transform:scale(1)}}
+  .wave{transform-origin:200px 250px;animation:wave .35s 22.5s infinite alternate ease-in-out}
+  @keyframes wave{from{transform:rotate(-25deg)}to{transform:rotate(25deg)}}
+  .fadein{opacity:0;animation:fi 1s var(--t,0s) forwards}
+  @keyframes fi{to{opacity:1}}
+
+  /* overlays */
+  .ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;padding:8cqw}
+  #start{background:radial-gradient(circle at 50% 35%,#1f2937,#05070a);z-index:9}
+  #start h1,#title h1{margin:0 0 3cqw;font-size:11cqw;line-height:1;letter-spacing:.3cqw;text-shadow:0 0 3cqw rgba(255,200,60,.5)}
+  #start h1 span,#title h1 span{color:#ffd23f}
+  #start p,#title p{margin:0 0 8cqw;font-size:5cqw;color:#cbd5e1}
+  .btn{font:inherit;font-weight:800;font-size:5.5cqw;padding:2.4cqw 7cqw;border-radius:99px;border:.6cqw solid #ffd23f;background:#ffd23f;color:#111;cursor:pointer}
+  .btn.ghost{background:rgba(0,0,0,.55);color:#fff;border-color:#fff}
+  #title{background:#05070a;z-index:8;opacity:0;pointer-events:none;animation:ttl 3.2s forwards}
+  @keyframes ttl{0%{opacity:0}12%{opacity:1}75%{opacity:1}100%{opacity:0}}
+  #sub{position:absolute;left:4cqw;right:4cqw;bottom:14cqw;text-align:center;z-index:5;pointer-events:none;min-height:20cqw}
+  #sub span{display:inline-block;margin:0 1.1cqw;font-size:9cqw;font-weight:900;color:#fff;-webkit-text-stroke:1.8cqw #000;paint-order:stroke fill;
+    opacity:0;transform:scale(.6);animation:w .22s forwards cubic-bezier(.3,1.7,.5,1)}
+  #sub span.hot{color:#ffd23f}
+  @keyframes w{to{opacity:1;transform:scale(1)}}
+  #end{background:rgba(0,0,0,.72);z-index:7;display:none;gap:4cqw}
+  #end.on{display:flex}
+  #end h2{margin:0 0 2cqw;font-size:8cqw;line-height:1.1;color:#ffd23f}
+  #end .msg{font-size:5.4cqw;min-height:14cqw;color:#fff}
+  #hint{position:absolute;top:2cqw;right:3cqw;z-index:6;color:#fff9;font-size:3.4cqw}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="ov" id="start">
+    <h1>СТАНЦИЯ<br><span>«ЭХО»</span></h1>
+    <p>Серия 1 · со звуком 🔊</p>
+    <button class="btn" id="go">▶ Смотреть</button>
+  </div>
+</div>
+
+<template id="tpl">
+<svg viewBox="0 0 360 640" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="lg"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset=".35" stop-color="#fff3b0" stop-opacity=".9"/><stop offset="1" stop-color="#ffd23f" stop-opacity="0"/></radialGradient>
+  </defs>
+  <g class="shake">
+    <!-- walls -->
+    <rect width="360" height="640" fill="#d8d2bf"/>
+    <g stroke="#a9a28c" stroke-width="1.5">
+      <line x1="180" y1="255" x2="0" y2="40"/><line x1="180" y1="255" x2="0" y2="140"/><line x1="180" y1="255" x2="0" y2="240"/><line x1="180" y1="255" x2="0" y2="340"/><line x1="180" y1="255" x2="0" y2="440"/>
+      <line x1="180" y1="255" x2="360" y2="40"/><line x1="180" y1="255" x2="360" y2="140"/><line x1="180" y1="255" x2="360" y2="240"/><line x1="180" y1="255" x2="360" y2="340"/><line x1="180" y1="255" x2="360" y2="440"/>
+    </g>
+    <polygon points="0,205 140,255 140,262 0,300" fill="#5b7f6a" opacity=".85"/>
+    <polygon points="360,205 220,255 220,262 360,300" fill="#5b7f6a" opacity=".85"/>
+    <!-- ceiling -->
+    <polygon points="0,0 360,0 220,215 140,215" fill="#2b3138"/>
+    <g class="flicker">
+      <ellipse cx="180" cy="40" rx="42" ry="8" fill="#fff7c2"/><ellipse cx="180" cy="110" rx="26" ry="5" fill="#fff7c2"/><ellipse cx="180" cy="165" rx="14" ry="3" fill="#fff7c2"/>
+    </g>
+    <!-- floor -->
+    <polygon points="0,560 140,295 220,295 360,560 360,640 0,640" fill="#8d9096"/>
+    <polygon points="166,295 194,295 315,640 45,640" fill="#2f3338"/>
+    <g stroke="#6b7078" stroke-width="3"><line x1="171.7" y1="295" x2="100" y2="640"/><line x1="188.3" y1="295" x2="260" y2="640"/></g>
+    <g stroke="#f2c200" stroke-width="4"><line x1="166" y1="295" x2="45" y2="640"/><line x1="194" y1="295" x2="315" y2="640"/></g>
+    <!-- tunnel mouth -->
+    <rect x="140" y="215" width="80" height="80" fill="#03050a"/>
+    <!-- timetable -->
+    <rect x="125" y="68" width="110" height="38" rx="4" fill="#0b0f14" stroke="#4b5563" stroke-width="2"/>
+    <text x="180" y="95" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="28" fill="#ff5d3b"><tspan>05:29</tspan></text>
+    <rect x="127" y="70" width="106" height="34" fill="#0b0f14" class="pulse" style="--t:9s;--d:999s"/>
+    <text class="pulse" style="--t:9s;--d:999s" x="180" y="95" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="28" fill="#ff5d3b">05:30</text>
+    <!-- station sign -->
+    <polygon points="252,200 335,120 335,165 252,235" fill="#1d4ed8" stroke="#fff" stroke-width="2"/>
+    <text x="262" y="222" font-size="26" font-weight="900" fill="#fff" transform="rotate(-33 262 222)">ЭХО</text>
+
+    <!-- glow from tunnel -->
+    <g class="glow"><circle cx="180" cy="255" r="150" fill="url(#lg)"/></g>
+
+    <!-- train -->
+    <g class="train">
+      <rect x="95" y="160" width="170" height="190" rx="22" fill="#364152" stroke="#0b0f14" stroke-width="4"/>
+      <rect x="112" y="178" width="136" height="86" rx="10" fill="#ffe9a8" stroke="#0b0f14" stroke-width="3"/>
+      <rect x="112" y="178" width="136" height="86" rx="10" fill="#000" opacity=".25"/>
+      <g class="figure">
+        <circle cx="180" cy="224" r="22" fill="#fff" stroke="#111" stroke-width="3"/>
+        <path d="M168 222 h8 M184 222 h8" stroke="#111" stroke-width="3" stroke-linecap="round"/>
+        <path d="M170 234 q10 6 20 0" stroke="#111" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M150 264 q30 -26 60 0" fill="#fff" stroke="#111" stroke-width="3"/>
+        <g class="wave"><line x1="200" y1="250" x2="222" y2="214" stroke="#111" stroke-width="8" stroke-linecap="round"/><line x1="200" y1="250" x2="222" y2="214" stroke="#fff" stroke-width="4" stroke-linecap="round"/></g>
+      </g>
+      <circle cx="125" cy="318" r="12" fill="#fff6c8" stroke="#111" stroke-width="2"/><circle cx="235" cy="318" r="12" fill="#fff6c8" stroke="#111" stroke-width="2"/>
+      <rect x="150" y="296" width="60" height="26" rx="4" fill="#0b0f14"/><text x="180" y="315" text-anchor="middle" font-family="monospace" font-size="16" font-weight="bold" fill="#ff5d3b">05:30</text>
+    </g>
+
+    <!-- character -->
+    <g class="idle"><g class="tremble">
+      <ellipse cx="318" cy="544" rx="38" ry="8" fill="#000" opacity=".28"/>
+      <g stroke-linecap="round" fill="none">
+        <g stroke="#111" stroke-width="11"><line x1="318" y1="440" x2="318" y2="490"/><line x1="318" y1="455" x2="298" y2="482"/><line x1="318" y1="455" x2="338" y2="482"/><line x1="318" y1="490" x2="304" y2="540"/><line x1="318" y1="490" x2="334" y2="540"/></g>
+        <g stroke="#fff" stroke-width="6"><line x1="318" y1="440" x2="318" y2="490"/><line x1="318" y1="455" x2="298" y2="482"/><line x1="318" y1="455" x2="338" y2="482"/><line x1="318" y1="490" x2="304" y2="540"/><line x1="318" y1="490" x2="334" y2="540"/></g>
+      </g>
+      <circle cx="318" cy="410" r="32" fill="#fff" stroke="#111" stroke-width="4"/>
+      <!-- calm face -->
+      <g class="hide" style="--t:16s"><path d="M296 404 h10 M312 404 h10" stroke="#111" stroke-width="3.5" stroke-linecap="round"/><path d="M298 422 h10" stroke="#111" stroke-width="3.5" stroke-linecap="round"/></g>
+      <!-- scared face -->
+      <g class="pulse" style="--t:16s;--d:999s"><circle cx="300" cy="403" r="6.5" fill="#fff" stroke="#111" stroke-width="2.5"/><circle cx="318" cy="403" r="6.5" fill="#fff" stroke="#111" stroke-width="2.5"/><circle cx="298" cy="403" r="2.4" fill="#111"/><circle cx="316" cy="403" r="2.4" fill="#111"/><ellipse cx="305" cy="424" rx="4" ry="6" fill="#111"/></g>
+    </g></g>
+  </g>
+</svg>
+</template>
+
+<script>
+(() => {
+  const stage = document.getElementById('stage');
+  const tpl = document.getElementById('tpl');
+  let timers = [], ac = null, nodes = [];
+
+  // [seconds, subtitle text, hot words (indexes)]
+  const lines = [
+    [3.3,  'Ночь. Станция пуста.', [0]],
+    [6.0,  'Последний поезд ушёл час назад.', [3]],
+    [9.0,  'На табло — ноль пять тридцать.', [3,4]],
+    [11.6, 'Но поездов в это время нет…', [3]],
+    [14.6, 'Что это за свет?', [3]],
+    [18.0, 'Двери открываются. Вагон пуст.', [3]],
+    [21.0, 'Нет. Не пуст.', [1,2]],
+    [23.3, 'В кабине сидит… он сам.', [2,3]],
+  ];
+
+  function clear(){ timers.forEach(clearTimeout); timers = []; nodes.forEach(n => { try{n.stop()}catch(e){} }); nodes = [];
+    if (ac) { try{ac.close()}catch(e){} ac = null; } try{speechSynthesis.cancel()}catch(e){} }
+
+  /* ---------- voice ---------- */
+  let voice = null;
+  function pickVoice(){
+    const v = speechSynthesis.getVoices();
+    voice = v.find(x => /^ru/i.test(x.lang) && /male|муж|pavel|павел|yuri|юрий|dmitry/i.test(x.name)) || v.find(x => /^ru/i.test(x.lang)) || null;
+  }
+  try{ speechSynthesis.onvoiceschanged = pickVoice; pickVoice(); }catch(e){}
+  function speak(text){
+    try{
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ru-RU'; if (voice) u.voice = voice;
+      u.rate = .9; u.pitch = .6; u.volume = 1;
+      speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
+  /* ---------- sound design ---------- */
+  function audio(){
+    try{
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      const t0 = ac.currentTime, out = ac.createGain(); out.gain.value = .9; out.connect(ac.destination);
+      // low drone
+      const o = ac.createOscillator(), og = ac.createGain(), lp = ac.createBiquadFilter();
+      o.type = 'sawtooth'; o.frequency.value = 48; lp.type = 'lowpass'; lp.frequency.value = 160; og.gain.value = .07;
+      o.connect(lp); lp.connect(og); og.connect(out); o.start(); nodes.push(o);
+      // rumble noise (train approaching 10s → 19s)
+      const buf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      const n = ac.createBufferSource(), nf = ac.createBiquadFilter(), ng = ac.createGain();
+      n.buffer = buf; n.loop = true; nf.type = 'lowpass'; nf.frequency.value = 380;
+      ng.gain.setValueAtTime(0, t0); ng.gain.setValueAtTime(0, t0 + 10);
+      ng.gain.linearRampToValueAtTime(.55, t0 + 18); ng.gain.linearRampToValueAtTime(.06, t0 + 21);
+      n.connect(nf); nf.connect(ng); ng.connect(out); n.start(); nodes.push(n);
+      // beep when timetable changes (9s)
+      const b = ac.createOscillator(), bg = ac.createGain();
+      b.type = 'square'; b.frequency.value = 880; bg.gain.setValueAtTime(0, t0); bg.gain.setValueAtTime(.12, t0 + 9); bg.gain.setValueAtTime(0, t0 + 9.25);
+      b.connect(bg); bg.connect(out); b.start(); nodes.push(b);
+      // door hiss (18s)
+      const h = ac.createBufferSource(), hf = ac.createBiquadFilter(), hg = ac.createGain();
+      h.buffer = buf; h.loop = true; hf.type = 'highpass'; hf.frequency.value = 2500;
+      hg.gain.setValueAtTime(0, t0); hg.gain.setValueAtTime(.18, t0 + 18.2); hg.gain.linearRampToValueAtTime(0, t0 + 19.4);
+      h.connect(hf); hf.connect(hg); hg.connect(out); h.start(); nodes.push(h);
+      // sting at 21s
+      const s = ac.createOscillator(), sg = ac.createGain();
+      s.type = 'triangle'; s.frequency.setValueAtTime(220, t0 + 21); s.frequency.exponentialRampToValueAtTime(70, t0 + 23);
+      sg.gain.setValueAtTime(0, t0); sg.gain.setValueAtTime(.2, t0 + 21); sg.gain.exponentialRampToValueAtTime(.001, t0 + 23.5);
+      s.connect(sg); sg.connect(out); s.start(); nodes.push(s);
+    }catch(e){}
+  }
+
+  /* ---------- subtitles ---------- */
+  function showSub(text, hot){
+    const sub = document.getElementById('sub'); sub.textContent = '';
+    text.split(' ').forEach((w, i) => {
+      const s = document.createElement('span'); s.textContent = w;
+      if (hot.includes(i)) s.className = 'hot';
+      s.style.animationDelay = (i * 0.28) + 's'; sub.appendChild(s);
+    });
+  }
+
+  /* ---------- run ---------- */
+  function run(){
+    clear();
+    stage.innerHTML = '';
+    stage.appendChild(tpl.content.cloneNode(true));
+    stage.insertAdjacentHTML('beforeend',
+      '<div id="sub"></div>' +
+      '<div class="ov" id="title"><h1>СТАНЦИЯ<br><span>«ЭХО»</span></h1><p>Серия 1</p></div>' +
+      '<div class="ov" id="end"><h2>СЛЕДУЮЩУЮ СЕРИЮ<br>РЕШАЕШЬ ТЫ</h2>' +
+      '<button class="btn" data-c="enter">🚪 Войти в вагон</button>' +
+      '<button class="btn ghost" data-c="run">🏃 Бежать</button>' +
+      '<div class="msg" id="msg"></div>' +
+      '<button class="btn ghost" id="again">↻ Сначала</button></div>');
+    audio();
+    lines.forEach(([t, text, hot]) => timers.push(setTimeout(() => { showSub(text, hot); speak(text); }, t * 1000)));
+    timers.push(setTimeout(() => { document.getElementById('sub').textContent = ''; }, 26000));
+    timers.push(setTimeout(() => {
+      document.getElementById('end').classList.add('on');
+      speak('Следующую серию решаешь ты. Войти в вагон? Или бежать?');
+    }, 26500));
+  }
+
+  stage.addEventListener('click', e => {
+    if (e.target.id === 'go' || e.target.id === 'again') return run();
+    if (e.target.dataset && e.target.dataset.c) {
+      document.getElementById('msg').textContent = 'Напиши свой выбор в комментариях — от него зависит серия 2!';
+      speak('Напиши свой выбор в комментариях.');
+    }
+  });
+})();
+</script>
+</body>
+</html>
