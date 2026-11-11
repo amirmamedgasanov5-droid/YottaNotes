@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Мир без резины: 1 секунда</title>
+<style>
+  :root{--ink:#1d2433}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#0d1117;font-family:"Comic Sans MS","Marker Felt","Trebuchet MS",system-ui,sans-serif}
+  body{display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;width:min(100vw,177.78vh);aspect-ratio:16/9;overflow:hidden;background:#87ceeb;container-type:inline-size}
+  .scene{position:absolute;inset:0;display:none}
+  .scene.active{display:block}
+  svg{width:100%;height:100%;display:block}
+
+  /* generic timing helpers: --t = delay, --d = duration */
+  .pulse{opacity:0;animation:pulse var(--d,1s) var(--t,0s) forwards}
+  @keyframes pulse{0%{opacity:1}99%{opacity:1}100%{opacity:0}}
+  .gone{animation:gone 1s 4s forwards}
+  @keyframes gone{0%{opacity:0}99%{opacity:0}100%{opacity:1}}
+  .pop{opacity:0;animation:pop .5s var(--t,0s) forwards cubic-bezier(.3,1.6,.5,1)}
+  @keyframes pop{0%{opacity:0;transform:scale(.3)}100%{opacity:1;transform:scale(1)}}
+
+  /* ---------- intro ---------- */
+  #intro{background:radial-gradient(circle at 50% 40%,#3b82f6,#1e3a8a)}
+  #intro h1{position:absolute;left:0;right:0;top:12%;margin:0;text-align:center;color:#fff;
+    font-size:6.4cqw;line-height:1.1;text-shadow:0 .5cqw 0 rgba(0,0,0,.25);padding:0 6cqw;
+    opacity:0;animation:pop .7s .2s forwards cubic-bezier(.3,1.6,.5,1)}
+  #intro h1 span{color:#ffd23f}
+  #intro .ball{position:absolute;left:50%;bottom:9%;width:9cqw;height:9cqw;margin-left:-4.5cqw;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#ff8a8a,#e03131 60%,#9c1d1d);animation:bounce .9s infinite cubic-bezier(.3,0,.7,1)}
+  @keyframes bounce{0%,100%{transform:translateY(0) scale(1.1,.85)}50%{transform:translateY(-22cqw) scale(.95,1.05)}}
+  #intro .sub{position:absolute;left:0;right:0;bottom:2%;text-align:center;color:#dbeafe;font-size:2.4cqw;opacity:0;animation:pop .6s 1.6s forwards}
+
+  /* ---------- street ---------- */
+  #street .drive{animation:drive 10s linear forwards}
+  @keyframes drive{from{transform:translateX(-300px)}to{transform:translateX(300px)}}
+  #street .carDrop{animation:drop 1s 4s forwards}
+  @keyframes drop{0%{transform:translateY(0)}8%{transform:translateY(16px)}92%{transform:translateY(16px)}100%{transform:translateY(0)}}
+  #street .kid{transform-origin:560px 330px;animation:fall 3s 4s forwards}
+  @keyframes fall{0%{transform:rotate(0)}10%{transform:rotate(-85deg)}70%{transform:rotate(-85deg)}90%{transform:rotate(0)}100%{transform:rotate(0)}}
+  #street .ballb{animation:bounce2 .8s infinite ease-in}
+  @keyframes bounce2{0%,100%{transform:translateY(0)}50%{transform:translateY(-70px)}}
+  #street .balloon{animation:bob 2s infinite ease-in-out}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+  #street .flash{opacity:0;animation:flash .5s 3.8s}
+  @keyframes flash{0%{opacity:0}30%{opacity:.95}100%{opacity:0}}
+  #street .spark{opacity:0;animation:spark .12s 4.05s 7 alternate}
+  @keyframes spark{from{opacity:1}to{opacity:.2}}
+  #street .shake{animation:shake .08s 4s 12 alternate}
+  @keyframes shake{from{transform:translate(-3px,0)}to{transform:translate(3px,2px)}}
+  #street .big{font-size:60px;font-weight:900;text-anchor:middle;fill:#fff;stroke:#1d2433;stroke-width:8;paint-order:stroke;
+    transform-box:fill-box;transform-origin:center}
+  #street .timer{font-size:34px;font-weight:900;text-anchor:middle;fill:#ffd23f;stroke:#1d2433;stroke-width:6;paint-order:stroke}
+
+  /* ---------- cards ---------- */
+  #cards{background:linear-gradient(#fef3c7,#fde68a);display:none}
+  #cards.active{display:block}
+  #cards h2{position:absolute;top:4%;left:0;right:0;margin:0;text-align:center;font-size:4.2cqw;color:var(--ink)}
+  .grid{position:absolute;left:4%;right:4%;top:20%;bottom:14%;display:grid;grid-template-columns:1fr 1fr;gap:2.5cqw}
+  .card{background:#fff;border:.45cqw solid var(--ink);border-radius:2cqw;box-shadow:.6cqw .6cqw 0 var(--ink);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1cqw;
+    opacity:0;animation:pop .5s var(--t) forwards cubic-bezier(.3,1.6,.5,1)}
+  .card .em{font-size:8cqw;line-height:1;animation:wob .5s var(--t) infinite alternate ease-in-out}
+  .card p{margin:.8cqw 0 0;font-size:2.3cqw;font-weight:700;color:var(--ink)}
+  .card small{font-size:1.8cqw;color:#555}
+  @keyframes wob{from{transform:rotate(-8deg) translateY(0)}to{transform:rotate(8deg) translateY(-1cqw)}}
+
+  /* ---------- end ---------- */
+  #end{background:radial-gradient(circle at 50% 40%,#fbbf24,#f59e0b)}
+  #end .box{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 7cqw;color:var(--ink)}
+  #end h2{font-size:6cqw;margin:0 0 2cqw;opacity:0;animation:pop .7s .2s forwards cubic-bezier(.3,1.6,.5,1)}
+  #end p{font-size:2.9cqw;margin:0 0 3cqw;opacity:0;animation:pop .7s 1.2s forwards}
+  #end button{font:inherit;font-size:2.6cqw;font-weight:800;padding:1cqw 3cqw;border-radius:99px;border:.4cqw solid var(--ink);
+    background:#fff;color:var(--ink);cursor:pointer;box-shadow:.5cqw .5cqw 0 var(--ink);opacity:0;animation:pop .6s 2.2s forwards}
+  #end button:hover{background:#fef3c7}
+
+  /* ---------- captions ---------- */
+  #cap{position:absolute;left:3%;right:3%;bottom:3%;text-align:center;color:#fff;background:rgba(13,17,23,.78);
+    border-radius:1.4cqw;padding:1cqw 2cqw;font-size:2.7cqw;font-weight:700;min-height:5.6cqw;opacity:0;transition:opacity .25s;pointer-events:none}
+  #cap.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- 1. INTRO -->
+  <section class="scene" id="intro">
+    <h1>Что будет, если вся <span>резина</span> в мире исчезнет на <span>1 секунду</span>?</h1>
+    <div class="ball"></div>
+    <div class="sub">мультик-фантазия</div>
+  </section>
+
+  <!-- 2. STREET -->
+  <section class="scene" id="street">
+    <svg viewBox="0 0 800 450" preserveAspectRatio="xMidYMid slice">
+      <rect width="800" height="450" fill="#87ceeb"/>
+      <circle cx="690" cy="70" r="34" fill="#ffe066"/>
+      <g fill="#fff"><ellipse cx="170" cy="70" rx="60" ry="22"/><ellipse cx="215" cy="60" rx="40" ry="20"/><ellipse cx="480" cy="105" rx="55" ry="18"/></g>
+      <!-- houses -->
+      <g stroke="#1d2433" stroke-width="3">
+        <rect x="40" y="170" width="150" height="160" fill="#f4a261"/><polygon points="30,170 115,110 200,170" fill="#c0392b"/><rect x="85" y="240" width="40" height="90" fill="#6b4226"/>
+        <rect x="330" y="150" width="170" height="180" fill="#90be6d"/><polygon points="320,150 415,92 510,150" fill="#8d5524"/><rect x="360" y="190" width="40" height="40" fill="#cdeaff"/><rect x="430" y="190" width="40" height="40" fill="#cdeaff"/>
+        <rect x="620" y="190" width="150" height="140" fill="#b392f0"/><polygon points="610,190 695,135 780,190" fill="#5e548e"/>
+      </g>
+      <!-- sidewalk + road -->
+      <rect y="326" width="800" height="14" fill="#cfd4da" stroke="#1d2433" stroke-width="3"/>
+      <rect y="340" width="800" height="110" fill="#4b5563"/>
+      <g fill="#fff"><rect x="40" y="395" width="90" height="8"/><rect x="240" y="395" width="90" height="8"/><rect x="440" y="395" width="90" height="8"/><rect x="640" y="395" width="90" height="8"/></g>
+
+      <!-- balloon -->
+      <g class="balloon"><g class="gone">
+        <path d="M120 250 C120 330 110 360 112 380" stroke="#555" stroke-width="2" fill="none" transform="translate(0,-90)"/>
+        <ellipse cx="120" cy="165" rx="26" ry="32" fill="#ff5d8f" stroke="#1d2433" stroke-width="3"/>
+        <ellipse cx="111" cy="152" rx="6" ry="9" fill="#fff" opacity=".6"/>
+      </g></g>
+
+      <!-- kid -->
+      <g class="kid">
+        <g stroke="#1d2433" stroke-width="3" stroke-linejoin="round">
+          <rect x="545" y="258" width="14" height="52" rx="5" fill="#264653"/>
+          <rect x="563" y="258" width="14" height="52" rx="5" fill="#264653"/>
+          <rect x="540" y="202" width="42" height="64" rx="12" fill="#e76f51"/>
+          <circle cx="561" cy="180" r="24" fill="#ffd8b5"/>
+          <path d="M538 176 Q561 148 584 176 Q561 164 538 176Z" fill="#4a2c0a"/>
+        </g>
+        <circle cx="553" cy="182" r="3" fill="#1d2433"/><circle cx="569" cy="182" r="3" fill="#1d2433"/>
+        <path d="M553 193 Q561 200 569 193" stroke="#1d2433" stroke-width="3" fill="none"/>
+        <!-- shoes: whole shoe (sole is rubber and vanishes) -->
+        <g class="gone">
+          <rect x="537" y="310" width="28" height="10" rx="4" fill="#222"/>
+          <rect x="568" y="310" width="28" height="10" rx="4" fill="#222"/>
+          <rect x="537" y="312" width="28" height="4" fill="#fff"/>
+        </g>
+        <rect x="537" y="306" width="28" height="7" rx="3" fill="#2a9d8f" stroke="#1d2433" stroke-width="2"/>
+        <rect x="568" y="306" width="28" height="7" rx="3" fill="#2a9d8f" stroke="#1d2433" stroke-width="2"/>
+      </g>
+      <g class="pulse" style="--t:4.2s;--d:2.8s"><text x="640" y="250" font-size="38" font-weight="900" fill="#fff" stroke="#1d2433" stroke-width="6" paint-order="stroke">Ой!</text></g>
+
+      <!-- ball -->
+      <g transform="translate(660,0)"><g class="ballb"><g class="gone">
+        <circle cx="0" cy="290" r="22" fill="#ffd23f" stroke="#1d2433" stroke-width="3"/>
+        <path d="M-22 290 Q0 270 22 290 M-14 273 Q0 290 14 273" stroke="#1d2433" stroke-width="2" fill="none"/>
+      </g></g></g>
+
+      <!-- car -->
+      <g class="drive"><g class="carDrop"><g class="shake">
+        <g stroke="#1d2433" stroke-width="3" stroke-linejoin="round">
+          <path d="M0 300 L0 262 Q0 248 16 246 L66 244 L96 214 Q104 208 116 208 L176 208 Q188 208 196 216 L222 244 L262 248 Q278 250 278 266 L278 300 Z" fill="#e63946"/>
+          <path d="M104 220 L174 220 L196 244 L82 244 Z" fill="#cdeaff"/>
+          <line x1="140" y1="220" x2="140" y2="244"/>
+          <rect x="262" y="262" width="16" height="14" fill="#ffe066"/>
+        </g>
+        <!-- rims (always there) -->
+        <circle cx="62" cy="300" r="22" fill="#cbd5e1" stroke="#1d2433" stroke-width="3"/><circle cx="62" cy="300" r="6" fill="#64748b"/>
+        <circle cx="216" cy="300" r="22" fill="#cbd5e1" stroke="#1d2433" stroke-width="3"/><circle cx="216" cy="300" r="6" fill="#64748b"/>
+        <!-- tires (rubber) -->
+        <g class="gone">
+          <circle cx="62" cy="300" r="38" fill="none" stroke="#111" stroke-width="16"/><circle cx="216" cy="300" r="38" fill="none" stroke="#111" stroke-width="16"/>
+        </g>
+        <!-- sparks -->
+        <g class="spark" fill="#ffb703" stroke="#e85d04" stroke-width="1.5">
+          <polygon points="50,322 40,336 56,330 52,344 66,326"/><polygon points="204,322 194,338 210,330 206,346 222,326"/>
+        </g>
+      </g></g></g>
+
+      <!-- countdown + effects -->
+      <g>
+        <text class="big pulse" style="--t:1s;--d:1s" x="400" y="120">3</text>
+        <text class="big pulse" style="--t:2s;--d:1s" x="400" y="120">2</text>
+        <text class="big pulse" style="--t:3s;--d:.8s" x="400" y="120">1</text>
+        <text class="big pop" style="--t:4s" x="400" y="110">ПУФ!</text>
+        <text class="timer pulse" style="--t:4s;--d:1s" x="400" y="160">⏱ 1 секунда без резины</text>
+      </g>
+      <rect class="flash" width="800" height="450" fill="#fff"/>
+    </svg>
+  </section>
+
+  <!-- 3. CARDS -->
+  <section class="scene" id="cards">
+    <h2>А что ещё случилось за эту секунду?</h2>
+    <div class="grid">
+      <div class="card" style="--t:.4s"><div class="em">✈️</div><p>Самолёты<br><small>шасси без шин — искры на всю полосу</small></p></div>
+      <div class="card" style="--t:2.4s"><div class="em">🚰</div><p>Трубы и краны<br><small>уплотнители пропали — фонтаны!</small></p></div>
+      <div class="card" style="--t:4.4s"><div class="em">⚡</div><p>Провода<br><small>изоляция исчезла — коротит и мигает свет</small></p></div>
+      <div class="card" style="--t:6.4s"><div class="em">👖</div><p>Штаны и носки<br><small>резинки пропали — всё упало (стыдно!)</small></p></div>
+    </div>
+  </section>
+
+  <!-- 4. END -->
+  <section class="scene" id="end">
+    <div class="box">
+      <h2>Секунда прошла — и всё вернулось 😅</h2>
+      <p>Но мир успел сказать «ой».<br>Резина — незаметный герой: без неё всё рассыпается.</p>
+      <button id="replay">↻ Смотреть снова</button>
+    </div>
+  </section>
+
+  <div id="cap"></div>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const scenes = ['intro','street','cards','end'].map($);
+  const cap = $('cap');
+  let timers = [];
+
+  // [time in seconds from the start, action]
+  const show = i => () => scenes.forEach((s,k) => s.classList.toggle('active', k === i));
+  const say  = text => () => { cap.textContent = text; cap.classList.toggle('on', !!text); };
+
+  const S = 4.5, C = 14.5, E = 26;           // scene start times
+  const plan = [
+    [0,        show(0)],
+    [S,        show(1)], [S+0,   say('Обычный день в городе…')],
+    [S+1,      say('Сейчас вся резина в мире исчезнет… ровно на 1 секунду!')],
+    [S+4,      say('ПУФ! Шины, подошвы, мяч, шарик — всё пропало')],
+    [S+5,      say('Секунда прошла. Резина вернулась…')],
+    [S+7,      say('…но малыш уже упал, а машина чуть не развалилась')],
+    [C,        show(2)], [C,      say('')],
+    [C+0.4,    say('✈️ Самолёты остались без шин')],
+    [C+2.4,    say('🚰 Из труб хлынула вода')],
+    [C+4.4,    say('⚡ Провода остались голыми')],
+    [C+6.4,    say('👖 Ну а штаны… сами понимаете')],
+    [E,        show(3)], [E,      say('')],
+  ];
+
+  function start(){
+    timers.forEach(clearTimeout); timers = [];
+    scenes.forEach(s => s.classList.remove('active'));
+    cap.classList.remove('on');
+    void document.body.offsetWidth;          // reflow so CSS animations restart
+    plan.forEach(([t,fn]) => timers.push(setTimeout(fn, t*1000)));
+  }
+  $('replay').addEventListener('click', start);
+  start();
+})();
+</script>
+</body>
+</html>
