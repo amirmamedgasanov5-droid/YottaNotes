@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Сообщение от мамы — серия 2</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#000}
+  body{display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;width:min(100vw,56.25vh);aspect-ratio:9/16;overflow:hidden;background:#000}
+  svg{position:absolute;inset:0;width:100%;height:100%;display:block;font-family:"Trebuchet MS","DejaVu Sans","Segoe UI",system-ui,sans-serif}
+
+  .pulse{opacity:0;animation:pulse var(--d,1s) var(--t,0s) forwards}
+  @keyframes pulse{0%{opacity:1}99.9%{opacity:1}100%{opacity:0}}
+  .hide{animation:hide .01s var(--t,0s) forwards}
+  @keyframes hide{to{opacity:0}}
+  .pop{opacity:0;transform-box:fill-box;transform-origin:var(--o,center);animation:pop .28s var(--t,0s) forwards cubic-bezier(.3,1.7,.5,1)}
+  @keyframes pop{0%{opacity:0;transform:scale(.6)}100%{opacity:1;transform:scale(1)}}
+
+  .idle{animation:idle 2.6s infinite ease-in-out}
+  @keyframes idle{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+  .tremble{animation:trem .07s infinite alternate}
+  @keyframes trem{from{transform:translateX(-1.4px)}to{transform:translateX(1.4px)}}
+  .lampflick{animation:lf 2.7s infinite steps(1)}
+  @keyframes lf{0%,100%{opacity:1}8%{opacity:.2}11%{opacity:1}55%{opacity:.35}58%{opacity:1}80%{opacity:.1}83%{opacity:1}}
+  .vig{opacity:.85;animation:vig 3s 42s forwards linear}
+  @keyframes vig{to{opacity:.45}}
+
+  /* the thing in the room: creeps closer, then rushes the door */
+  .thing{transform-origin:58px 336px;animation:thing 60s forwards linear}
+  @keyframes thing{
+    0%,18.33%{transform:translateX(0) scale(1);opacity:1}
+    40%,64.17%{transform:translateX(72px) scale(1.12);opacity:1}
+    67.17%,84.17%{transform:translateX(200px) scale(1.35);opacity:1}
+    85%,100%{transform:translateX(200px) scale(1.35);opacity:0}
+  }
+  /* Lisa runs to the door */
+  .runner{opacity:0;animation:runx 4s 38s forwards linear}
+  @keyframes runx{
+    0%{opacity:1;transform:translateX(150px)}
+    40%,75%{opacity:1;transform:translateX(265px)}
+    97.5%,100%{opacity:1;transform:translateX(430px)}
+  }
+  .bob{animation:bob .17s infinite alternate ease-in-out}
+  @keyframes bob{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+  /* mom appears in the hall light and drags Lisa out */
+  .mom{opacity:0;animation:momx 1.9s 40.2s forwards linear}
+  @keyframes momx{
+    0%{opacity:1;transform:translateX(316px)}
+    42%{opacity:1;transform:translateX(316px)}
+    90%,100%{opacity:1;transform:translateX(450px)}
+  }
+  .doorswing{transform-origin:352px 230px;animation:dsw 2.1s 40s forwards}
+  @keyframes dsw{0%{transform:scaleX(1)}17%,90%{transform:scaleX(.2)}96%,100%{transform:scaleX(1)}}
+  .doorbang{animation:db .1s 42.1s 26 alternate}
+  @keyframes db{from{transform:translateX(-2.2px)}to{transform:translateX(2.2px)}}
+  .polb{animation:pb .8s steps(1) infinite}
+  @keyframes pb{0%{opacity:.65}50%{opacity:0}}
+  .polr{animation:pr .8s steps(1) infinite}
+  @keyframes pr{0%{opacity:0}50%{opacity:.65}}
+  .kbuzz{animation:kb .07s 59.2s 15 alternate}
+  @keyframes kb{from{transform:translate(-1.5px,0)}to{transform:translate(1.5px,1px)}}
+  .kflick{animation:kf .9s infinite steps(1)}
+  @keyframes kf{0%,100%{opacity:1}40%{opacity:.5}45%{opacity:1}}
+  .blink{animation:bl 2.2s infinite steps(1)}
+  @keyframes bl{0%,100%{opacity:1}46%{opacity:0}50%{opacity:1}}
+  .titlecard{animation:tc 4.6s forwards}
+  @keyframes tc{0%{opacity:1}82%{opacity:1}100%{opacity:0}}
+  .rise{opacity:0;animation:rise 1.4s .3s forwards}
+  @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div id="stage"><svg id="svg" viewBox="0 0 360 640" preserveAspectRatio="xMidYMid slice"></svg></div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const svg = document.getElementById('svg');
+
+svg.innerHTML = `
+<defs>
+  <radialGradient id="lamp"><stop offset="0" stop-color="#ffd98a" stop-opacity=".75"/><stop offset="1" stop-color="#ffd98a" stop-opacity="0"/></radialGradient>
+  <radialGradient id="vg" cx=".5" cy=".42" r=".75"><stop offset=".3" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".93"/></radialGradient>
+  <radialGradient id="kg"><stop offset="0" stop-color="#9fd3ff" stop-opacity=".8"/><stop offset="1" stop-color="#9fd3ff" stop-opacity="0"/></radialGradient>
+</defs>
+
+<!-- room -->
+<rect width="360" height="400" fill="#27303f"/>
+<rect y="335" width="360" height="65" fill="#3a2d28"/>
+<rect y="331" width="360" height="5" fill="#1d1612"/>
+<!-- window (+ police lights) -->
+<g>
+  <rect x="112" y="58" width="96" height="104" fill="#0a1226" stroke="#10151c" stroke-width="5"/>
+  <circle cx="178" cy="92" r="13" fill="#f3f1d8"/><circle cx="184" cy="88" r="11" fill="#0a1226"/>
+  <line x1="160" y1="58" x2="160" y2="162" stroke="#10151c" stroke-width="3"/><line x1="112" y1="110" x2="208" y2="110" stroke="#10151c" stroke-width="3"/>
+  <path d="M104 52 Q116 110 108 170 L128 170 Q122 110 128 52Z" fill="#7a4b5c"/><path d="M216 52 Q204 110 212 170 L192 170 Q198 110 192 52Z" fill="#7a4b5c"/>
+  <g class="pulse" style="--t:49.5s;--d:17s">
+    <g class="polb"><rect x="114" y="60" width="92" height="100" fill="#3b82f6"/><rect width="360" height="331" fill="#3b82f6" opacity=".18"/></g>
+    <g class="polr"><rect x="114" y="60" width="92" height="100" fill="#ef4444"/><rect width="360" height="331" fill="#ef4444" opacity=".18"/></g>
+  </g>
+</g>
+<!-- wall clock -->
+<g><circle cx="248" cy="96" r="17" fill="#e8e4d4" stroke="#10151c" stroke-width="3"/><line x1="248" y1="96" x2="248" y2="84" stroke="#10151c" stroke-width="2.5"/><line x1="248" y1="96" x2="257" y2="99" stroke="#10151c" stroke-width="2.5"/></g>
+
+<!-- kitchen doorway -->
+<g>
+  <rect x="14" y="136" width="88" height="200" fill="#1d1612"/>
+  <rect x="18" y="140" width="80" height="196" fill="#04060a"/>
+  <rect x="30" y="302" width="56" height="5" fill="#2a2a2e"/><line x1="34" y1="307" x2="34" y2="336" stroke="#2a2a2e" stroke-width="3"/><line x1="82" y1="307" x2="82" y2="336" stroke="#2a2a2e" stroke-width="3"/>
+  <g class="kbuzz"><rect x="50" y="294" width="17" height="8" rx="1.5" fill="#15181d" stroke="#2a2e36"/>
+    <g class="pulse" style="--t:52.5s;--d:17s"><g class="kflick"><ellipse cx="58" cy="290" rx="52" ry="40" fill="url(#kg)"/><rect x="51.5" y="295" width="14" height="5" rx="1" fill="#bfe3ff"/></g></g>
+  </g>
+  <!-- eyes in the dark kitchen, end of episode -->
+  <g class="pulse" style="--t:66s;--d:3.4s"><g class="blink"><ellipse cx="52" cy="206" rx="3.2" ry="4.6" fill="#fff"/><ellipse cx="64" cy="206" rx="3.2" ry="4.6" fill="#fff"/></g></g>
+</g>
+
+<!-- hall light behind the front door -->
+<rect class="pulse" style="--t:40.2s;--d:1.9s" x="284" y="126" width="68" height="206" fill="#fff2c4"/>
+
+<!-- mom -->
+<g class="mom">
+  <ellipse cx="0" cy="336" rx="26" ry="5" fill="#000" opacity=".25"/>
+  <g stroke-linecap="round" fill="none" stroke="#111" stroke-width="9"><line x1="-8" y1="310" x2="-10" y2="334"/><line x1="8" y1="310" x2="10" y2="334"/><line x1="-16" y1="272" x2="-30" y2="298"/><line x1="16" y1="272" x2="30" y2="298"/></g>
+  <g stroke-linecap="round" fill="none" stroke="#fff" stroke-width="4.5"><line x1="-8" y1="310" x2="-10" y2="334"/><line x1="8" y1="310" x2="10" y2="334"/><line x1="-16" y1="272" x2="-30" y2="298"/><line x1="16" y1="272" x2="30" y2="298"/></g>
+  <path d="M-17 262 L17 262 L24 312 L-24 312 Z" fill="#c0392b" stroke="#111" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="0" cy="240" r="21" fill="#fff" stroke="#111" stroke-width="3.5"/>
+  <path d="M-25 244 Q-28 212 0 211 Q28 212 25 244 L29 282 L19 280 L17 246 Q0 234 -17 246 L-19 280 L-29 282 Z" fill="#3a2414" stroke="#111" stroke-width="2" stroke-linejoin="round"/>
+  <ellipse cx="0" cy="263" rx="13" ry="4" fill="#e8b33c" stroke="#111" stroke-width="2"/>
+  <circle cx="-7" cy="241" r="4" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="7" cy="241" r="4" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="-7" cy="242" r="1.6" fill="#111"/><circle cx="7" cy="242" r="1.6" fill="#111"/>
+  <path d="M-6 253 Q0 248 6 253" stroke="#111" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+</g>
+
+<!-- front door (swings open when Lisa unlocks it) -->
+<g class="doorswing"><g class="doorbang">
+  <rect x="284" y="126" width="68" height="206" fill="#5a3a22" stroke="#1a0f08" stroke-width="4"/>
+  <rect x="294" y="140" width="48" height="74" fill="none" stroke="#3a2414" stroke-width="3"/><rect x="294" y="226" width="48" height="90" fill="none" stroke="#3a2414" stroke-width="3"/>
+  <circle cx="297" cy="236" r="4.5" fill="#d4a93c"/><circle cx="318" cy="172" r="4" fill="#0b0b0b"/>
+  <rect x="300" y="248" width="14" height="4" fill="#bbb"/>
+  <rect x="286" y="327" width="64" height="4" fill="#ffe9a0" opacity=".9"/>
+</g></g>
+
+<!-- lamp -->
+<g class="lampflick">
+  <ellipse cx="236" cy="250" rx="130" ry="150" fill="url(#lamp)"/>
+  <line x1="236" y1="190" x2="236" y2="336" stroke="#1a1410" stroke-width="4"/>
+  <polygon points="214,192 258,192 248,166 224,166" fill="#d9a441" stroke="#1a1410" stroke-width="2"/>
+  <ellipse cx="236" cy="338" rx="16" ry="4" fill="#1a1410"/>
+</g>
+
+<!-- sofa + Lisa (sitting) -->
+<g>
+  <rect x="80" y="236" width="140" height="62" rx="14" fill="#5b3f78" stroke="#1d1328" stroke-width="3"/>
+  <g class="hide" style="--t:38s"><g class="idle"><g class="tremble">
+    <g stroke-linecap="round" fill="none">
+      <g stroke="#111" stroke-width="10"><line x1="150" y1="265" x2="150" y2="304"/><line x1="150" y1="304" x2="188" y2="306"/><line x1="188" y1="306" x2="188" y2="336"/><line x1="150" y1="274" x2="172" y2="290"/></g>
+      <g stroke="#fff" stroke-width="5.5"><line x1="150" y1="265" x2="150" y2="304"/><line x1="150" y1="304" x2="188" y2="306"/><line x1="188" y1="306" x2="188" y2="336"/><line x1="150" y1="274" x2="172" y2="290"/></g>
+    </g>
+    <circle cx="150" cy="244" r="20" fill="#fff" stroke="#111" stroke-width="3.5"/>
+    <path d="M130 240 Q150 214 170 240 Q150 228 130 240Z" fill="#3a2414" stroke="#111" stroke-width="1.5"/>
+    <!-- looking at the kitchen -->
+    <g class="pulse" style="--t:0s;--d:22s"><circle cx="156" cy="243" r="5.6" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="168" cy="243" r="5.6" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="153.5" cy="244" r="2.2" fill="#111"/><circle cx="165.5" cy="244" r="2.2" fill="#111"/><ellipse cx="162" cy="258" rx="3.8" ry="5.2" fill="#111"/></g>
+    <!-- looking at the door -->
+    <g class="pulse" style="--t:22s;--d:16s"><circle cx="156" cy="243" r="5.6" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="168" cy="243" r="5.6" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="158.5" cy="244" r="2.2" fill="#111"/><circle cx="170.5" cy="244" r="2.2" fill="#111"/><path d="M156 257 h10" stroke="#111" stroke-width="2.6" stroke-linecap="round"/></g>
+    <g><rect x="170" y="282" width="10" height="17" rx="2" fill="#0e1218" stroke="#444" transform="rotate(-18 175 290)"/><rect x="172" y="284" width="6" height="12" rx="1" fill="#9fd3ff" transform="rotate(-18 175 290)" opacity=".85"/></g>
+  </g></g></g>
+  <rect x="80" y="290" width="140" height="46" rx="10" fill="#6c4b8c" stroke="#1d1328" stroke-width="3"/>
+</g>
+
+<!-- Lisa running to the door -->
+<g class="runner"><g class="bob">
+  <g stroke-linecap="round" fill="none" stroke="#111" stroke-width="10"><line x1="0" y1="252" x2="0" y2="290"/><line x1="0" y1="290" x2="-17" y2="334"/><line x1="0" y1="290" x2="17" y2="326"/><line x1="0" y1="262" x2="-20" y2="284"/><line x1="0" y1="262" x2="22" y2="246"/></g>
+  <g stroke-linecap="round" fill="none" stroke="#fff" stroke-width="5.5"><line x1="0" y1="252" x2="0" y2="290"/><line x1="0" y1="290" x2="-17" y2="334"/><line x1="0" y1="290" x2="17" y2="326"/><line x1="0" y1="262" x2="-20" y2="284"/><line x1="0" y1="262" x2="22" y2="246"/></g>
+  <circle cx="24" cy="243" r="4" fill="#d4a93c" stroke="#111" stroke-width="1.5"/>
+  <circle cx="0" cy="232" r="20" fill="#fff" stroke="#111" stroke-width="3.5"/>
+  <path d="M-20 228 Q0 202 20 228 Q0 216 -20 228Z" fill="#3a2414" stroke="#111" stroke-width="1.5"/>
+  <circle cx="6" cy="232" r="4.6" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="17" cy="232" r="4.6" fill="#fff" stroke="#111" stroke-width="2"/><circle cx="8" cy="232" r="1.9" fill="#111"/><circle cx="19" cy="232" r="1.9" fill="#111"/>
+  <path d="M5 245 Q12 241 19 245" stroke="#111" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+</g></g>
+
+<!-- the thing -->
+<g class="thing">
+  <g fill="#04060a" stroke="#161b24" stroke-width="1.5" stroke-linejoin="round">
+    <ellipse cx="58" cy="190" rx="13" ry="17"/>
+    <path d="M36 214 Q58 202 80 214 L86 300 L77 300 L76 262 L71 336 L63 336 L58 290 L53 336 L45 336 L40 262 L39 300 L30 300 Z"/>
+  </g>
+  <ellipse cx="52" cy="187" rx="3.2" ry="4.6" fill="#fff"/><ellipse cx="64" cy="187" rx="3.2" ry="4.6" fill="#fff"/>
+</g>
+
+<!-- voice from behind the door -->
+<g class="pulse" style="--t:22.4s;--d:5s"><g class="pop" style="--t:22.4s;--o:90% 100%">
+  <path d="M158 56 h180 a10 10 0 0 1 10 10 v50 a10 10 0 0 1 -10 10 h-52 l-14 18 l-4 -18 h-110 a10 10 0 0 1 -10 -10 v-50 a10 10 0 0 1 10 -10z" fill="#fff" stroke="#111" stroke-width="2.5"/>
+  <text x="253" y="82" text-anchor="middle" font-size="13" font-weight="800" fill="#111">— Лиза, это правда я!</text>
+  <text x="253" y="102" text-anchor="middle" font-size="13" font-weight="800" fill="#c01818">Ключ у тебя! Открой!</text>
+  <text x="258" y="122" text-anchor="middle" font-size="12" fill="#555">(настоящая мама)</text>
+</g></g>
+
+<rect width="360" height="640" fill="url(#vg)" class="vig"/>
+`;
+
+const chat = document.createElementNS(NS, 'g');
+svg.appendChild(chat);
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || chat).appendChild(e); return e; };
+
+function panel(s, e, header) {
+  const p = el('g', { class: 'pulse', style: `--t:${s}s;--d:${(e - s).toFixed(2)}s` });
+  el('rect', { x: 14, y: 398, width: 332, height: 228, rx: 22, fill: '#0f141b', stroke: '#2a3340', 'stroke-width': 2 }, p);
+  el('circle', { cx: 42, cy: 421, r: 11, fill: '#d97aa0' }, p);
+  const nm = el('text', { x: 62, y: 426, 'font-size': 15, 'font-weight': 800, fill: '#fff' }, p); nm.textContent = header;
+  const st = el('text', { x: 118, y: 426, 'font-size': 11, fill: '#7fbf7f' }, p); st.textContent = '● в сети';
+}
+panel(4.6, 38.6, 'Мама');
+panel(59.2, 69.4, 'Мама');
+
+// [start, end, side, text, slot, red]
+const msgs = [
+  [4.6, 10.8, 'L', 'Ты заперла дверь.', 0],
+  [4.9, 10.8, 'L', 'Вместе со мной.', 1, true],
+  [11.2, 32.6, 'L', 'Положи ключ на стол.', 0],
+  [13.6, 32.6, 'R', 'Кто ты?', 1],
+  [15.8, 32.6, 'L', 'Тот, кто был здесь раньше.', 2, true],
+  [24.2, 32.6, 'L', 'Не слушай её.', 3, true],
+  [33.0, 38.0, 'L', 'Положи ключ.', 0, true],
+  [35.0, 38.0, 'L', 'ПОЛОЖИ КЛЮЧ!!!', 1, true],
+  [36.6, 38.0, 'L', 'ПОЛОЖИ!!!', 2, true],
+  [61.0, 69.4, 'L', 'Дом большой.', 0, true],
+  [63.0, 69.4, 'L', 'Я подожду.', 1, true],
+];
+msgs.forEach(([s, e, side, text, slot, red]) => {
+  const w = Math.min(300, Math.round(text.length * 8.6 + 28)), h = 34, y = 440 + slot * 44;
+  const x = side === 'L' ? 28 : 332 - w;
+  const win = el('g', { class: 'pulse', style: `--t:${s}s;--d:${(e - s).toFixed(2)}s` });
+  const inner = el('g', { class: 'pop', style: `--t:${s}s;--o:${side === 'L' ? '0%' : '100%'} 50%` }, win);
+  el('rect', { x, y, width: w, height: h, rx: 17, fill: red ? '#7a1010' : side === 'L' ? '#2b3440' : '#2f6fed' }, inner);
+  const t = el('text', { x: x + 14, y: y + 22.5, 'font-size': 15, 'font-weight': red ? 800 : 600, fill: '#fff' }, inner);
+  t.textContent = text;
+});
+
+const title = el('g', { class: 'titlecard' }, svg);
+el('rect', { width: 360, height: 640, fill: '#05070a' }, title);
+const t1 = el('text', { x: 180, y: 252, 'text-anchor': 'middle', 'font-size': 31, 'font-weight': 900, fill: '#fff', class: 'rise' }, title); t1.textContent = 'СООБЩЕНИЕ ОТ МАМЫ';
+const t2 = el('text', { x: 180, y: 318, 'text-anchor': 'middle', 'font-size': 52, 'font-weight': 900, fill: '#e03131', class: 'rise' }, title); t2.textContent = 'СЕРИЯ 2';
+const t3 = el('text', { x: 180, y: 362, 'text-anchor': 'middle', 'font-size': 15, fill: '#94a3b8', class: 'rise' }, title); t3.textContent = 'страшная история';
+
+const endc = el('g', { class: 'pulse', style: '--t:69.4s;--d:999s' }, svg);
+el('rect', { width: 360, height: 640, fill: '#000' }, endc);
+const e1 = el('text', { x: 180, y: 310, 'text-anchor': 'middle', 'font-size': 26, 'font-weight': 800, fill: '#e03131' }, endc); e1.textContent = 'КОНЕЦ 2 СЕРИИ';
+const e2 = el('text', { x: 180, y: 348, 'text-anchor': 'middle', 'font-size': 15, fill: '#94a3b8' }, endc); e2.textContent = 'продолжение следует…';
+
+window.TOTAL = 75;
+window.seek = (t) => { document.getAnimations().forEach(a => { a.pause(); a.currentTime = t * 1000; }); };
+</script>
+</body>
+</html>
