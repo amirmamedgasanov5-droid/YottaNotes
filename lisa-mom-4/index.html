@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Сообщение от мамы — серия 4</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#000}
+  body{display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;width:min(100vw,56.25vh);aspect-ratio:9/16;overflow:hidden;background:#000}
+  svg{position:absolute;inset:0;width:100%;height:100%;display:block;font-family:"Trebuchet MS","DejaVu Sans","Segoe UI",system-ui,sans-serif}
+</style>
+</head>
+<body>
+<div id="stage"><svg id="svg" viewBox="0 0 360 640" preserveAspectRatio="xMidYMid slice"></svg></div>
+<script src="../shared/engine.js"></script>
+<script>
+E.TOTAL = 120;
+const Y = 338;
+
+/* ---------- scenes ---------- */
+const stairs = E.scene(4.6, 24.4, g => E.stairs(g, '5'));
+const flat = E.scene(24.4, 117, g => E.flat(g));
+stairs.open44(17.5, 24.4);
+E.raw(flat.g, '<g><rect x="296" y="326" width="13" height="6" fill="#04060a"/><rect x="322" y="326" width="13" height="6" fill="#04060a"/></g>');
+const feet = flat.g.lastElementChild; E.vis(feet, [[76, 105.3]]);
+E.shake(flat.door, [[76, 80, 1.2, 14], [80, 93.5, .6, 12], [93.5, 105, 3.2, 17]]);
+E.flicker(stairs.bulb, 1, 7);
+
+/* ---------- actors ---------- */
+const lisa = E.Lisa(E.layers.actors), mom = E.Mom(E.layers.actors), valya = E.Valya(E.layers.actors);
+E.at(lisa, [[0, 170, Y], [11, 170], [13.5, 205], [22.4, 205], [24.2, 330], [24.3, 430], [28, 75], [117, 75]]);
+E.at(mom, [[0, 215, Y], [11, 215], [13, 239], [22, 239], [24.2, 330], [24.3, 430], [27.4, 200], [100, 200], [101.6, 108], [117, 108]]);
+E.at(valya, [[0, 239, Y], [17.5, 239], [24.3, 239], [24.4, 430], [27, 292], [117, 292]]);
+E.vis(valya.g, [[17.6, 24.3], [24.5, 117]]);
+E.vis(lisa.g, [[0, 117]]); E.vis(mom.g, [[0, 117]]);
+
+E.face(lisa, [[0, 17.5, 'scared', 0], [17.5, 36, 'worry', 1], [36, 69.8, 'worry', 0], [69.8, 76, 'scared', 0], [76, 98, 'scared', 1], [98, 101.5, 'scared', 0], [101.5, 117, 'worry', 0]]);
+E.face(mom, [[0, 24.4, 'grim', 0], [24.4, 69.8, 'worry', 0], [69.8, 80, 'worry', 1], [80, 88.5, 'shock', 1], [88.5, 100, 'scared', 1], [100, 110, 'grim', 0], [110, 117, 'worry', 0]]);
+E.face(valya, [[17.5, 76, 'calm', 0], [76, 93.5, 'worry', 1], [93.5, 105.4, 'scared', 1], [105.4, 117, 'worry', 0]]);
+
+/* ---------- on-screen text, phones, effects ---------- */
+E.card(0, 4.6, [{ text: 'СООБЩЕНИЕ ОТ МАМЫ', size: 24, y: 252 }, { text: 'СЕРИЯ 4', size: 52, y: 318, color: '#e03131' }, { text: 'страшная история', size: 15, y: 362, color: '#94a3b8', weight: 400 }]);
+E.card(116.6, 122, [{ text: 'КОНЕЦ 4 СЕРИИ', size: 26, y: 310, color: '#e03131' }, { text: 'продолжение следует…', size: 15, y: 348, color: '#94a3b8', weight: 400 }], '#000');
+E.cut(24.4, .3);
+
+E.tag(4.6, 24, 'Лестничная площадка. Ночь.');
+E.chat(5.0, 12.6, 'Неизвестный номер', '#6b7280', [[5.6, 'L', 'Вы забыли меня.', 0, 'red'], [7.6, 'L', 'Вернитесь.', 1, 'red']], null);
+
+E.tag(24.8, 36, 'Квартира 44. Баба Валя');
+E.tag(36.5, 62.5, 'Нина. 20 лет назад');
+E.dim([[0, 0], [36.5, 0], [37.5, .32], [62, .32], [63, 0]]);
+E.chat(43.0, 62.0, 'Нина → Дочка', '#d97aa0', [[43.6, 'L', 'Запри дверь на ключ.', 0], [46.2, 'L', 'Никому не открывай.', 1], [48.8, 'L', 'Что бы ты ни услышала.', 2], [54.5, 'L', 'Ты дома?', 3]], '2004');
+
+E.rings(63.0, 69.8, 72, 236, '#ff5d5d');
+E.tag(69.8, 75.8, 'Каждый ответ делает его сильнее');
+E.chat(70.0, 75.8, 'Эхо (Мама)', '#d97aa0', [[70.4, 'L', 'Лиза, ты дома?', 0, 'red'], [71.6, 'R', 'Заперла 🔒', 1], [72.8, 'R', 'Мам, ты чего?', 2], [74.0, 'R', 'Мам, ты скоро?', 3]], null);
+
+E.bubble(80.0, 85.4, { x: 140, y: 64, w: 200, tx: 318, lines: [{ text: '— Лиза, открой.' }, { text: '— Это мама.', color: '#c01818' }] });
+E.bubble(88.8, 93.2, { x: 258, y: 150, w: 70, tx: 292, lines: [{ text: 'Тсс…' }] });
+E.vignette([[0, 0], [75, .25], [105, .85], [108, .15], [120, 0]]);
+E.chat(98.0, 105.4, 'Мама', '#d97aa0', [[98.4, 'L', 'Лиза, ты дома?', 0, 'red'], [100.6, 'R', 'Я зд…', 1]], 'печатает…');
+
+E.tag(110.8, 116.5, 'Подвал. Кладовка Нины.');
+const casW = E.G(E.layers.ui); E.move(casW, [[0, 214, 238, 2.3], [117, 214, 238, 2.3]]); E.pop(E.cassette(casW), 110.4, 116.6);
+
+window.TOTAL = E.TOTAL;
+window.seek = t => document.getAnimations().forEach(a => { a.pause(); a.currentTime = t * 1000; });
+</script>
+</body>
+</html>

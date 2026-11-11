@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Сообщение от мамы — серия 6 (финал)</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#000}
+  body{display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;width:min(100vw,56.25vh);aspect-ratio:9/16;overflow:hidden;background:#000}
+  svg{position:absolute;inset:0;width:100%;height:100%;display:block;font-family:"Trebuchet MS","DejaVu Sans","Segoe UI",system-ui,sans-serif}
+</style>
+</head>
+<body>
+<div id="stage"><svg id="svg" viewBox="0 0 360 640" preserveAspectRatio="xMidYMid slice"></svg></div>
+<script src="../shared/engine.js"></script>
+<script>
+E.TOTAL = 120;
+const Y = 338;
+
+/* ---------- scenes: five landings (the sky gets lighter), then the flat at dawn ---------- */
+const sky = ['#10182e', '#1c2750', '#4a4a7a', '#9a6a8a', '#f4a384'];
+const cuts = [4.6, 9.5, 14.0, 18.5, 22.5, 27.2];
+const land = sky.map((c, i) => E.scene(cuts[i], cuts[i + 1], g => E.stairs(g, String(i + 1), c)));
+land.forEach((s, i) => E.flicker(s.bulb, 1, 31 + i));
+land[4].open44(22.6, 26.9); land[4].open47(25.0, 26.9);
+const apt = E.scene(27.2, 121, g => E.apt(g, 'dawn'));
+// the front door of flat 47: opens for the escape (27.2 – 28.6), then again at the end (104.5 –)
+{
+  const f = [[0, { transform: 'scaleX(1)' }]];
+  [[27.2, 28.6], [104.5, 121]].forEach(([a, b]) => f.push([a, { transform: 'scaleX(1)' }], [a + .4, { transform: 'scaleX(.2)' }], [b, { transform: 'scaleX(.2)' }], [b + .12, { transform: 'scaleX(1)' }]));
+  apt.door.style.transformBox = 'view-box'; E.anim(apt.door, f);
+  E.vis(apt.hall, [[27.4, 28.6], [104.7, 121]]);
+}
+E.cut(27.2, .3);
+cuts.slice(1, 5).forEach(t => E.cut(t, .25));
+
+/* ---------- actors ---------- */
+const lisa = E.Lisa(E.layers.actors), mom = E.Mom(E.layers.actors), valya = E.Valya(E.layers.actors), thing = E.Thing(E.layers.actors);
+// chase across landings 1-4: run left to right, the echo about 90 units behind
+const run = (a, b, dx) => [[a, -40 + dx], [b - .1, 420 + dx]];
+const L = [], M = [], T = [];
+[[4.6, 9.5], [9.5, 14.0], [14.0, 18.5], [18.5, 22.4]].forEach(([a, b]) => {
+  L.push([a, -30], [b - .1, 400]); M.push([a, 10], [b - .1, 440]); T.push([a, -150, 346, 1.25], [b - .1, 330, 346, 1.25]);
+});
+const withY = (pts) => pts.map(p => p.length === 2 ? [p[0], p[1], Y] : p);
+E.at(lisa, withY([...L, [22.5, -40], [24.6, 150], [25.2, 150], [26.2, 112], [26.6, 112], [26.7, 420], [27.4, 430], [29.2, 215], [111, 215], [121, 215]]));
+E.at(mom, withY([...M, [22.5, 0], [24.2, 123], [25.2, 123], [26.2, 100], [26.6, 100], [26.7, 450], [27.4, 450], [29.4, 262], [109, 262], [111, 243], [121, 243]]));
+E.at(valya, withY([[0, 239], [22.8, 239], [24.6, 170], [25.4, 170], [26.4, 125], [26.7, 125], [26.8, 480], [27.4, 480], [29.6, 310], [121, 310]]));
+E.vis(lisa.g, [[0, 26.8], [27.4, 121]]); E.vis(mom.g, [[0, 26.8], [27.4, 121]]);
+E.vis(valya.g, [[22.8, 26.8], [27.4, 121]]);
+
+// the echo: chasing, then waiting in the flat, getting weaker with every line it repeats
+E.at(thing, [...T, [22.5, -150, 346, 1.25], [25.6, 40, 346, 1.25], [26.7, 40], [26.8, 70, Y, 1.0], [33, 70, Y, 1.0], [58.4, 70], [59.5, 112, Y, 1.0], [62, 112, Y, 1.0], [66, 112, Y, 1.0], [74.5, 112, Y, .9], [87, 112, Y, .82], [91, 112, Y, .82], [97.2, 112, Y, .64], [103.3, 112, Y, .46], [108, 112, Y, .4], [121, 112, Y, .4]]);
+E.opacity(thing.g, [[0, 1], [26.7, 1], [26.9, 0], [33, 0], [34.2, .78], [62, .78], [74, .66], [87, .52], [97, .4], [103.3, .3], [108.8, 0], [121, 0]]);
+
+E.face(lisa, [[0, 33, 'scared', 1], [33, 56, 'scared', -1], [56, 61, 'grim', 0], [61, 104, 'worry', -1], [104, 113, 'cry', 0], [113, 121, 'smile', 0]]);
+E.face(mom, [[0, 33, 'scared', 1], [33, 58, 'worry', -1], [58, 104, 'grim', -1], [104, 113, 'cry', 0], [113, 121, 'smile', 0]]);
+E.face(valya, [[22.8, 52, 'scared', -1], [52, 104, 'worry', -1], [104, 121, 'cry', 0]]);
+
+/* ---------- props: boombox (carried, then on the sofa), cassette ---------- */
+const bb = E.G(E.layers.actors); E.boombox(bb);
+E.move(bb, [[0, 211, 300, 1], [22.8, 211, 300], [24.6, 142], [25.4, 142], [26.4, 97], [26.7, 97], [26.8, 450, 300], [27.4, 450, 300], [29.6, 282, 300], [51.0, 282, 300], [53.5, 150, 292, 1.3], [121, 150, 292, 1.3]]);
+E.vis(bb, [[22.8, 26.8], [27.4, 121]]);
+const casW = E.G(E.layers.ui);
+E.move(casW, [[0, 215, 250, 1.8], [56.6, 215, 250, 1.8], [59.4, 150, 282, 1.0], [121, 150, 282, 1.0]]);
+E.pop(E.cassette(casW), 56.6, 60.4);
+E.placed(E.layers.ui, '<circle cx="0" cy="0" r="3.4" fill="#66ff88"/><circle cx="0" cy="0" r="9" fill="#66ff88" opacity=".25"/>', 168, 276, 1, 61.0, 106);
+
+/* ---------- speech bubbles ---------- */
+E.bubble(42.6, 46.0, { x: 262, y: 172, w: 96, tx: 310, lines: [{ text: 'Господи…' }] });
+E.bubble(44.2, 48.2, { x: 2, y: 138, w: 130, tx: 70, red: true, lines: [{ text: '— Господи…' }] });
+E.bubble(46.2, 50.0, { x: 222, y: 172, w: 80, tx: 262, lines: [{ text: 'Лиза!' }] });
+E.bubble(48.5, 52.2, { x: 2, y: 138, w: 100, tx: 70, red: true, lines: [{ text: '— Лиза!' }] });
+E.bubble(59.5, 62.0, { x: 196, y: 172, w: 104, tx: 243, lines: [{ text: 'Нажимай!' }] });
+// the tape (white, right) and the echo repeating (red, left)
+const nina = (a, b, lines) => E.bubble(a, b, { x: 158, y: 56, w: 200, tx: 190, lines: lines.map(t => ({ text: t })) });
+const echo = (a, b, lines) => E.bubble(a, b, { x: 2, y: lines.length > 1 ? 112 : 134, w: 158, tx: 100, red: true, lines: lines.map(t => ({ text: t })) });
+nina(62.0, 66.0, ['— Дочка. Это мама.']);
+echo(65.0, 69.0, ['— Дочка. Это мама.']);
+nina(68.2, 74.6, ['— Если ты слышишь', 'запись, значит, я всё', 'ещё тебя пугаю.']);
+echo(74.6, 78.6, ['— …я всё ещё', 'тебя пугаю.']);
+nina(79.2, 86.8, ['— Прости меня. Я так', 'боялась тебя потерять,', 'что не давала тебе жить.']);
+echo(87.2, 91.2, ['— …не давала', 'тебе жить.']);
+nina(92.0, 97.0, ['— Я больше не буду', 'просить тебя запираться.']);
+echo(97.4, 101.2, ['— …не буду', 'просить…']);
+nina(100.6, 104.6, ['— Ты свободна.', 'Выходи.']);
+echo(103.4, 107.0, ['— Выходи…']);
+E.rings(44.2, 48.4, 70, 200, '#ff5d5d', 2); E.rings(48.5, 52.2, 70, 200, '#ff5d5d', 2);
+[65.0, 74.6, 87.2, 97.4, 103.4].forEach(t => E.rings(t, t + 3.2, 112, 210, '#ff7a7a', 2));
+E.rings(61.6, 104.4, 150, 270, '#e8f4ff', 2);
+E.particles(104.6, 109.0, [112, 250], [318, 230], 28);
+
+/* ---------- text, effects ---------- */
+E.card(0, 4.6, [{ text: 'СООБЩЕНИЕ ОТ МАМЫ', size: 24, y: 252 }, { text: 'СЕРИЯ 6', size: 52, y: 318, color: '#e03131' }, { text: 'финал', size: 15, y: 362, color: '#94a3b8', weight: 400 }]);
+E.card(118.2, 124, [{ text: 'КОНЕЦ', size: 34, y: 304, color: '#ffd23f' }, { text: 'Спасибо, что дошли до конца.', size: 15, y: 346, color: '#cbd5e1', weight: 400 }], '#000');
+E.tag(4.8, 14, 'Бегом наверх');
+E.tag(14.2, 26.7, 'За окном светает');
+E.tag(27.6, 40, 'Квартира 47. Рассвет.');
+E.tag(61.0, 106, 'Кассета: «Для дочки. Последнее»');
+E.dim([[0, 0], [27, 0], [27.3, .15], [33, .2], [61, .25], [100, .2], [104.5, 0], [121, 0]]);
+E.vignette([[0, 0], [4.6, .5], [22, .45], [27.3, .25], [60, .45], [100, .3], [105, 0], [121, 0]]);
+E.flash(104.6, '#fff6d0', 1.2, .55);
+E.chat(113.0, 119.8, 'Мама', '#d97aa0', [[113.5, 'L', 'Лиза, я рядом.', 0, 'warm'], [115.6, 'L', 'Дверь можно не запирать.', 1, 'warm']], null);
+
+window.TOTAL = E.TOTAL;
+window.seek = t => document.getAnimations().forEach(a => { a.pause(); a.currentTime = t * 1000; });
+</script>
+</body>
+</html>
