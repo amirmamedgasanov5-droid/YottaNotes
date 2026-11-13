@@ -80,6 +80,23 @@ const LAT = 'ABEKMHOPCTYX';                // буквы, допустимые �
 const CYR = {A:'А',B:'В',E:'Е',K:'К',M:'М',H:'Н',O:'О',P:'Р',C:'С',T:'Т',Y:'У',X:'Х'};
 const TO_DIGIT = {O:'0',B:'8',A:'4',S:'5',Z:'2',I:'1',L:'1',T:'7',G:'6',Q:'0',D:'0'};
 const TO_LETTER = {'0':'O','8':'B','4':'A','5':'C','2':'Y','1':'X','7':'T','6':'C'};
+const AZ_RE = /^\d{2}[A-Z]{2}\d{3}$/;
+const AZ_L = {'0':'O','8':'B','1':'I','5':'S','2':'Z','6':'G','4':'A','7':'T'};
+const AZ_REGIONS = {'10':'Баку','77':'Баку','90':'Баку','99':'Баку','85':'Баку'};
+function fixAZ(raw){
+  const s = raw.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  for(let off=0; off+7<=s.length; off++){
+    const w = s.slice(off,off+7); let out='';
+    for(let i=0;i<7;i++){
+      let ch=w[i];
+      if(i===2||i===3){ if(!/[A-Z]/.test(ch)) ch=AZ_L[ch]||ch; if(!/[A-Z]/.test(ch)){out=null;break;} }
+      else { if(!/\d/.test(ch)) ch=TO_DIGIT[ch]||ch; if(!/\d/.test(ch)){out=null;break;} }
+      out+=ch;
+    }
+    if(out && AZ_RE.test(out)) return out;
+  }
+  return null;
+}
 const PLATE_RE = new RegExp('^['+LAT+']\\d{3}['+LAT+']{2}\\d{2,3}$');
 
 const REGIONS = {
@@ -117,10 +134,16 @@ function fixPlate(raw){
       if(out && PLATE_RE.test(out)) return out;
     }
   }
-  return null;
+  return fixAZ(raw);
 }
 const toCyr = p => p.split('').map(c=>CYR[c]||c).join('');
-function regionOf(p){ const r = p.slice(6); return REGIONS[r] ? `${r} — ${REGIONS[r]}` : `регион ${r}`; }
+const isAZ = p => AZ_RE.test(p);
+const fmtPlate = p => isAZ(p) ? `${p.slice(0,2)}-${p.slice(2,4)}-${p.slice(4)}` : toCyr(p);
+function regionOf(p){
+  if(isAZ(p)){ const r=p.slice(0,2); return '🇦🇿 Азербайджан · ' + (AZ_REGIONS[r] ? `${r} — ${AZ_REGIONS[r]}` : `код региона ${r}`); }
+  return '🇷🇺 ' + regionOfRU(p);
+}
+function regionOfRU(p){ const r = p.slice(6); return REGIONS[r] ? `${r} — ${REGIONS[r]}` : `регион ${r}`; }
 const norm = p => p.toUpperCase().replace(/[^A-Z0-9А-Я]/g,'').split('').map(c=>({'А':'A','В':'B','Е':'E','К':'K','М':'M','Н':'H','О':'O','Р':'P','С':'C','Т':'T','У':'Y','Х':'X'}[c]||c)).join('');
 
 /* ---------- Хранилище ---------- */
@@ -151,7 +174,7 @@ let lastSeen = {};                         // plate -> timestamp (чтобы н�
 function onPlate(p, img){
   const now = Date.now();
   const match = watch.find(w => norm(w.plate) === p);
-  $('nPlate').textContent = toCyr(p);
+  $('nPlate').textContent = fmtPlate(p);
   $('nMeta').innerHTML = `<b>${regionOf(p)}</b><br>${match ? '⚠ <b style="color:var(--bad)">'+(match.kind||'В базе')+': '+(match.note||'')+'</b>' : 'В базе розыска не значится'}`;
   frame.classList.add('hit'); setTimeout(()=>frame.classList.remove('hit'),600);
   if(lastSeen[p] && now - lastSeen[p] < 15000){ lastSeen[p] = now; return; }
@@ -160,7 +183,7 @@ function onPlate(p, img){
   log = log.slice(0,40); store.set('yc_log', log);
   if(match){
     frame.classList.add('alert');
-    $('aPlate').textContent = toCyr(p);
+    $('aPlate').textContent = fmtPlate(p);
     $('aInfo').textContent = `${match.kind||'В базе'} — ${match.note||''}`;
     $('alert').classList.add('show');
     beep(true); if(navigator.vibrate) navigator.vibrate([400,150,400,150,400]);
@@ -180,17 +203,17 @@ function render(){
   if(tab==='log'){
     b.innerHTML = log.length ? log.map(e=>`<div class="row ${e.hit?'bad':''}">
       ${e.img?`<img src="${e.img}">`:''}
-      <div class="grow"><span class="plate" style="font-size:16px;padding:4px 8px">${toCyr(e.plate)}</span>
+      <div class="grow"><span class="plate" style="font-size:16px;padding:4px 8px">${fmtPlate(e.plate)}</span>
       <small>${fmt(e.t)} · ${regionOf(e.plate)}${e.hit?' · ⚠ '+esc(e.note||e.kind):''}</small></div></div>`).join('')
       + `<button class="btn g" style="margin-top:10px;width:100%" onclick="clearLog()">Очистить журнал</button>`
       : '<div class="meta" style="padding:14px 4px">Пока ничего не распознано. Наведи камеру на номер.</div>';
   } else if(tab==='list'){
     b.innerHTML = `<div class="add">
-      <input id="wp" placeholder="Номер (А123ВС77)" autocapitalize="characters">
+      <input id="wp" placeholder="Номер (А123ВС77 / 10-AB-123)" autocapitalize="characters">
       <input id="wn" placeholder="Заметка">
       <select id="wk"><option>Розыск</option><option>Угон</option><option>Штрафы</option><option>Свой</option></select>
       <button class="btn" onclick="addWatch()">+</button></div>` +
-      watch.map((w,i)=>`<div class="row"><span class="plate" style="font-size:16px;padding:4px 8px">${esc(toCyr(norm(w.plate)))}</span>
+      watch.map((w,i)=>`<div class="row"><span class="plate" style="font-size:16px;padding:4px 8px">${esc(fmtPlate(norm(w.plate)))}</span>
         <div class="grow"><small>${esc(w.kind||'')} · ${esc(w.note||'')}</small></div><button class="x" onclick="delWatch(${i})">×</button></div>`).join('');
   } else {
     b.innerHTML = `<div class="add"><input id="mp" placeholder="Введи номер для проверки" autocapitalize="characters">
@@ -206,7 +229,7 @@ function delWatch(i){ watch.splice(i,1); store.set('yc_watch',watch); render(); 
 function clearLog(){ log=[]; lastSeen={}; store.set('yc_log',log); render(); }
 function manual(){
   const p = fixPlate(norm($('mp').value));
-  if(!p){ $('mp').value=''; $('mp').placeholder='Не похоже на номер РФ'; return; }
+  if(!p){ $('mp').value=''; $('mp').placeholder='Не похоже на номер РФ или AZ'; return; }
   lastSeen[p]=0; onPlate(p,null);
 }
 
@@ -227,7 +250,7 @@ async function startCam(){
 async function startOCR(){
   if(!window.Tesseract){ setSt('OCR недоступен'); $('msg').textContent='Не загрузился модуль распознавания (нужен интернет при первом запуске).'; return false; }
   worker = await Tesseract.createWorker('eng');
-  await worker.setParameters({tessedit_char_whitelist: LAT+'0123456789', tessedit_pageseg_mode: '7'});
+  await worker.setParameters({tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', tessedit_pageseg_mode: '7'});
   return true;
 }
 function grabFrame(){
