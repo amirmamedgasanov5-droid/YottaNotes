@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yotta Console — диспетчерская</title>
+<meta name="theme-color" content="#0a0e14">
+<style>
+:root{--bg:#070a0f;--p:#0e141d;--p2:#131b27;--line:#1f2b3b;--tx:#d6e2f0;--sec:#6f8196;--blue:#3d8bff;--ok:#2ee59d;--warn:#ffc53d;--bad:#ff4d4f}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:14px/1.4 ui-monospace,Menlo,Consolas,monospace}
+header{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--p);flex-wrap:wrap}
+header h1{margin:0;font-size:16px;letter-spacing:2px;color:var(--blue)}
+.stat{padding:4px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;color:var(--sec)}
+.stat b{color:var(--tx);font-size:15px}
+.stat.bad b{color:var(--bad)}
+#clock{margin-left:auto;color:var(--ok);font-size:15px}
+a.lnk{color:var(--blue);text-decoration:none;font-size:12px;border:1px solid var(--line);padding:5px 10px;border-radius:6px}
+main{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:10px;padding:10px;height:calc(100% - 56px)}
+section{background:var(--p);border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;min-height:0}
+section>h2{margin:0;padding:10px 12px;font-size:12px;letter-spacing:2px;color:var(--sec);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.scroll{overflow-y:auto;flex:1;padding:8px;display:flex;flex-direction:column;gap:6px}
+.card{background:var(--p2);border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:8px;padding:9px 10px}
+.card.p3{border-left-color:var(--bad)}.card.p2{border-left-color:var(--warn)}.card.p1{border-left-color:var(--blue)}
+.card.crit{border-left-color:var(--bad)}.card.warn{border-left-color:var(--warn)}
+.card.hit{background:#2a1214;animation:blink 1s 3}
+@keyframes blink{50%{background:#5a1a1d}}
+.pl{display:inline-block;background:#fff;color:#000;border:2px solid #000;border-radius:5px;padding:2px 8px;font-weight:700;font-size:17px;letter-spacing:2px}
+.row1{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tag{font-size:11px;padding:2px 7px;border-radius:99px;background:#ffffff12}
+.tag.r{background:#ff4d4f33;color:#ff8a8c}.tag.y{background:#ffc53d33;color:#ffd66e}.tag.g{background:#2ee59d22;color:var(--ok)}
+.sm{color:var(--sec);font-size:12px;margin-top:4px}
+.x{margin-left:auto;background:none;border:0;color:var(--sec);cursor:pointer;font-size:18px}
+input,select,textarea,button{font:inherit;color:var(--tx);background:#0a1018;border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0}
+button{cursor:pointer;background:var(--blue);border:0;color:#fff}
+button.g{background:#1a2535}
+form{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px;border-top:1px solid var(--line)}
+form .w{grid-column:1/-1}
+.empty{color:var(--sec);padding:14px;text-align:center}
+@media(max-width:980px){main{grid-template-columns:1fr;height:auto}section{max-height:70vh}html,body{overflow:auto}}
+</style>
+</head>
+<body>
+<header>
+  <h1>▣ YOTTA CONSOLE</h1>
+  <div class="stat">В базе: <b id="sW">0</b></div>
+  <div class="stat bad">Срабатываний: <b id="sH">0</b></div>
+  <div class="stat">Проверено: <b id="sL">0</b></div>
+  <div class="stat">Ориентировок: <b id="sB">0</b></div>
+  <a class="lnk" href="camera.html">📷 Камера</a>
+  <button class="g" onclick="seed()">Демо-данные</button>
+  <div id="clock"></div>
+</header>
+
+<main>
+  <!-- Номера в розыске -->
+  <section>
+    <h2>НОМЕРА В РОЗЫСКЕ <input id="q" placeholder="поиск…" style="width:120px" oninput="render()"></h2>
+    <div class="scroll" id="wl"></div>
+    <form onsubmit="addW(event)">
+      <input id="wp" placeholder="Номер (А123ВС77 / 10-AB-123)" required>
+      <select id="wk"><option>Розыск</option><option>Угон</option><option>Ориентировка</option><option>Штрафы</option><option>Свой</option></select>
+      <input id="wc" placeholder="Авто (марка, цвет)">
+      <select id="wpr"><option value="3">Приоритет: высокий</option><option value="2" selected>Приоритет: средний</option><option value="1">Приоритет: низкий</option></select>
+      <input class="w" id="wn" placeholder="Причина / что сообщает полиция">
+      <button class="w">Добавить в базу</button>
+    </form>
+  </section>
+
+  <!-- Живые срабатывания -->
+  <section>
+    <h2>ЖУРНАЛ КАМЕРЫ <span style="display:flex;gap:6px"><button class="g" onclick="onlyHit=!onlyHit;render()" id="bh">только совпадения</button></span></h2>
+    <div class="scroll" id="lg"></div>
+  </section>
+
+  <!-- Сообщения полиции -->
+  <section>
+    <h2>СООБЩЕНИЯ ПОЛИЦИИ</h2>
+    <div class="scroll" id="bl"></div>
+    <form onsubmit="addB(event)">
+      <select id="bv"><option value="info">Информация</option><option value="warn">Внимание</option><option value="crit">СРОЧНО</option></select>
+      <input id="bp" placeholder="Номер (необязательно)">
+      <textarea class="w" id="bt" rows="2" placeholder="Текст сообщения / ориентировки" required></textarea>
+      <button class="w">Опубликовать</button>
+    </form>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const get = (k,d) => { try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d} };
+const set = (k,v) => { try{localStorage.setItem(k,JSON.stringify(v))}catch(e){} };
+const CYR = {A:'А',B:'В',E:'Е',K:'К',M:'М',H:'Н',O:'О',P:'Р',C:'С',T:'Т',Y:'У',X:'Х'};
+const RAW = {'А':'A','В':'B','Е':'E','К':'K','М':'M','Н':'H','О':'O','Р':'P','С':'C','Т':'T','У':'Y','Х':'X'};
+const norm = p => String(p).toUpperCase().replace(/[^A-ZА-Я0-9]/g,'').split('').map(c=>RAW[c]||c).join('');
+const isAZ = p => /^\d{2}[A-Z]{2}\d{3}$/.test(p);
+const fmt = p => { p=norm(p); return isAZ(p) ? `${p.slice(0,2)}-${p.slice(2,4)}-${p.slice(4)}` : p.split('').map(c=>CYR[c]||c).join(''); };
+const time = t => new Date(t).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+let watch = get('yc_watch',[]), log = get('yc_log',[]), bull = get('yc_bull',[]), onlyHit = false, lastHit = 0;
+function reload(){
+  watch = get('yc_watch',[]); log = get('yc_log',[]); bull = get('yc_bull',[]);
+}
+const PR = {3:['ВЫСОКИЙ','r'],2:['СРЕДНИЙ','y'],1:['НИЗКИЙ','g']};
+
+function render(){
+  const q = norm($('q').value||'');
+  const wl = watch.filter(w => !q || norm(w.plate).includes(q) || (w.note||'').toUpperCase().includes($('q').value.toUpperCase()))
+                  .sort((a,b)=>(b.prio||2)-(a.prio||2));
+  $('wl').innerHTML = wl.length ? wl.map(w=>{
+    const i = watch.indexOf(w), p = PR[w.prio||2];
+    const seen = log.filter(l=>norm(l.plate)===norm(w.plate));
+    return `<div class="card p${w.prio||2}">
+      <div class="row1"><span class="pl">${fmt(w.plate)}</span><span class="tag ${p[1]}">${p[0]}</span><span class="tag">${esc(w.kind||'Розыск')}</span>
+      <button class="x" onclick="delW(${i})">×</button></div>
+      <div class="sm">${w.car?'🚗 '+esc(w.car)+' · ':''}${esc(w.note||'причина не указана')}</div>
+      <div class="sm">${seen.length ? '👁 Замечен '+seen.length+' р., последний раз '+time(seen[0].t) : 'Не замечен камерой'}${w.demo?' · ДЕМО':''}</div></div>`;
+  }).join('') : '<div class="empty">База пуста. Добавь номер ниже или нажми «Демо-данные».</div>';
+
+  const lg = log.filter(l=>!onlyHit||l.hit);
+  $('lg').innerHTML = lg.length ? lg.map(l=>`<div class="card ${l.hit?'hit p3':''}">
+    <div class="row1">${l.img?`<img src="${l.img}" style="height:30px;border-radius:4px">`:''}<span class="pl">${fmt(l.plate)}</span>
+    ${l.hit?`<span class="tag r">⚠ ${esc(l.kind||'СОВПАДЕНИЕ')}</span>`:'<span class="tag g">чисто</span>'}</div>
+    <div class="sm">${time(l.t)}${l.hit&&l.note?' · '+esc(l.note):''}</div></div>`).join('')
+    : '<div class="empty">Камера пока ничего не распознала.</div>';
+
+  $('bl').innerHTML = bull.length ? bull.map((b,i)=>`<div class="card ${b.level}">
+    <div class="row1"><span class="tag ${b.level==='crit'?'r':b.level==='warn'?'y':'g'}">${{info:'ИНФО',warn:'ВНИМАНИЕ',crit:'СРОЧНО'}[b.level]}</span>
+    ${b.plate?`<span class="pl" style="font-size:13px">${fmt(b.plate)}</span>`:''}<span class="sm" style="margin:0">${time(b.t)}</span>
+    <button class="x" onclick="delB(${i})">×</button></div>
+    <div style="margin-top:5px">${esc(b.text)}</div>${b.demo?'<div class="sm">ДЕМО</div>':''}</div>`).join('')
+    : '<div class="empty">Сообщений нет.</div>';
+
+  $('sW').textContent = watch.length;
+  $('sL').textContent = log.length;
+  $('sH').textContent = log.filter(l=>l.hit).length;
+  $('sB').textContent = bull.length;
+  $('bh').style.background = onlyHit ? 'var(--bad)' : '';
+}
+
+function addW(e){
+  e.preventDefault();
+  const p = norm($('wp').value); if(p.length<6) return;
+  watch = watch.filter(w=>norm(w.plate)!==p);
+  watch.unshift({plate:p,kind:$('wk').value,car:$('wc').value.trim(),prio:+$('wpr').value,note:$('wn').value.trim(),t:Date.now()});
+  set('yc_watch',watch); e.target.reset(); render();
+}
+function delW(i){ watch.splice(i,1); set('yc_watch',watch); render(); }
+function addB(e){
+  e.preventDefault();
+  const p = norm($('bp').value);
+  bull.unshift({level:$('bv').value,plate:p.length>=6?p:'',text:$('bt').value.trim(),t:Date.now()});
+  set('yc_bull',bull); e.target.reset(); render();
+}
+function delB(i){ bull.splice(i,1); set('yc_bull',bull); render(); }
+
+// Демо-данные: ВЫМЫШЛЕННЫЕ номера, не реальные
+function seed(){
+  const w = [
+    {plate:'A777AA77',kind:'Угон',car:'Чёрный седан',prio:3,note:'Угнан со стоянки. Не останавливать самостоятельно, сообщить дежурному.'},
+    {plate:'B123OP78',kind:'Розыск',car:'Белый минивэн',prio:3,note:'Скрылся с места ДТП.'},
+    {plate:'10AB123',kind:'Ориентировка',car:'Серый хэтчбек',prio:2,note:'Возможное нарушение, проверить документы.'},
+    {plate:'90KX007',kind:'Штрафы',car:'Синий кроссовер',prio:1,note:'Неоплаченные штрафы.'}
+  ].map(x=>({...x,t:Date.now(),demo:true}));
+  const b = [
+    {level:'crit',plate:'A777AA77',text:'Всем постам: ориентировка на чёрный седан, угон. Направление — МКАД, внешнее кольцо.',t:Date.now()-120000,demo:true},
+    {level:'warn',plate:'',text:'Ограничение движения на центральной улице до 18:00. Объезд по параллельной.',t:Date.now()-900000,demo:true},
+    {level:'info',plate:'',text:'Смена дежурства в 20:00. Проверить заряд и связь.',t:Date.now()-3600000,demo:true}
+  ];
+  const have = new Set(watch.map(x=>norm(x.plate)));
+  watch = [...w.filter(x=>!have.has(x.plate)),...watch];
+  bull = [...b,...bull];
+  set('yc_watch',watch); set('yc_bull',bull); render();
+}
+
+setInterval(()=>{ $('clock').textContent = new Date().toLocaleTimeString('ru-RU'); },1000);
+$('clock').textContent = new Date().toLocaleTimeString('ru-RU');
+// живое обновление: камера на другой вкладке пишет в тот же localStorage
+window.addEventListener('storage', ()=>{ reload(); render(); });
+setInterval(()=>{ reload(); render(); },3000);
+render();
+</script>
+</body>
+</html>
