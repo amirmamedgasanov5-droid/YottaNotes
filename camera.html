@@ -53,6 +53,9 @@ input,select{background:#ffffff14;border:0;border-radius:12px;color:var(--text);
   <video id="v" playsinline muted autoplay></video>
   <div id="frame"><span>Наведи номер в рамку</span></div>
   <div class="top"><b>Yotta Cam</b><span><a href="console.html" class="pill" style="color:#fff;text-decoration:none;margin-right:6px">Консоль</a><span id="st" class="pill">загрузка…</span></span></div>
+  <div id="hud" style="position:absolute;left:16px;top:calc(env(safe-area-inset-top) + 52px);font-size:13px;background:#0008;padding:6px 10px;border-radius:10px;backdrop-filter:blur(10px)"></div>
+  <button id="pol" onclick="police()" style="position:absolute;right:16px;top:calc(env(safe-area-inset-top) + 52px);border:0;border-radius:99px;background:#3d8bff;color:#fff;font-size:15px;padding:9px 14px">🚓 +50</button>
+  <div id="toast" style="position:absolute;left:0;right:0;top:20%;text-align:center;font-size:20px;font-weight:700;text-shadow:0 2px 8px #000;pointer-events:none"></div>
   <div id="msg"></div>
 </div>
 
@@ -61,6 +64,7 @@ input,select{background:#ffffff14;border:0;border-radius:12px;color:var(--text);
   <div class="tabs">
     <button class="tab act" data-t="log">Журнал</button>
     <button class="tab" data-t="list">База розыска</button>
+    <button class="tab" data-t="game">Игра</button>
     <button class="tab" data-t="man">Вручную</button>
   </div>
   <div class="body" id="body"></div>
@@ -167,6 +171,34 @@ function beep(bad){
 }
 function closeAlert(){ document.getElementById('alert').classList.remove('show'); frame.classList.remove('alert'); }
 
+/* ---------- Игра ---------- */
+let game = store.get('yc_game', {score:0, regions:{}, plates:{}, police:0});
+function regCode(p){ return isAZ(p) ? 'AZ'+p.slice(0,2) : 'RU'+p.slice(6); }
+function digitsOf(p){ return isAZ(p) ? p.slice(4) : p.slice(1,4); }
+function rarity(p){
+  const d = digitsOf(p);
+  if(/^(\d)\1\1$/.test(d)) return [100,'Три одинаковых '+d+'!'];
+  if(d==='001'||d==='007'||d==='100'||d==='123'||d==='321'||d==='999') return [60,'Красивый номер '+d];
+  if(d[0]===d[2]) return [25,'Зеркальный '+d];
+  return [0,''];
+}
+function toast(t){ const e=$('toast'); e.textContent=t; clearTimeout(toast.h); toast.h=setTimeout(()=>e.textContent='',2200); }
+function save(){ store.set('yc_game',game); hud(); }
+function hud(){
+  const lvl = Math.floor(Math.sqrt(game.score/50))+1;
+  $('hud').innerHTML = `⭐ <b>${game.score}</b> · ур. ${lvl}<br>🗺 регионов: ${Object.keys(game.regions).length} · 🚓 ${game.police}`;
+}
+function police(){ game.police++; game.score+=50; save(); toast('🚓 Патруль замечен! +50'); beep(false); if(tab==='game') render(); }
+function gameScore(p){
+  if(game.plates[p]){ game.plates[p]++; save(); return; }
+  game.plates[p] = 1;
+  let pts = 10, msg = '+10 новый номер';
+  const rc = regCode(p);
+  if(!game.regions[rc]){ game.regions[rc] = 1; pts += 30; msg += ' · новый регион +30'; } else game.regions[rc]++;
+  const r = rarity(p); if(r[0]){ pts += r[0]; msg = r[1]+' +'+r[0]+' · '+msg; }
+  game.score += pts; save(); toast('⭐ '+msg);
+}
+
 /* ---------- Обработка найденного номера ---------- */
 const frame = document.getElementById('frame');
 const $ = id => document.getElementById(id);
@@ -181,6 +213,7 @@ function onPlate(p, img){
   lastSeen[p] = now;
   log.unshift({plate:p, t:now, hit:!!match, note:match?match.note:'', kind:match?match.kind:'', img});
   log = log.slice(0,40); store.set('yc_log', log);
+  gameScore(p);
   if(match){
     frame.classList.add('alert');
     $('aPlate').textContent = fmtPlate(p);
@@ -215,6 +248,14 @@ function render(){
       <button class="btn" onclick="addWatch()">+</button></div>` +
       watch.map((w,i)=>`<div class="row"><span class="plate" style="font-size:16px;padding:4px 8px">${esc(fmtPlate(norm(w.plate)))}</span>
         <div class="grow"><small>${esc(w.kind||'')} · ${esc(w.note||'')}</small></div><button class="x" onclick="delWatch(${i})">×</button></div>`).join('');
+  } else if(tab==='game'){
+    const regs = Object.keys(game.regions);
+    const rare = Object.keys(game.plates).filter(p=>rarity(p)[0]).map(p=>fmtPlate(p)+' ('+rarity(p)[1]+')');
+    b.innerHTML = `<div class="meta"><b style="font-size:20px">⭐ ${game.score}</b> очков · номеров: <b>${Object.keys(game.plates).length}</b> · патрулей: <b>${game.police}</b></div>
+      <div class="meta" style="margin-top:10px"><b>Коллекция регионов (${regs.length}):</b><br>${regs.length ? regs.map(r=>`<span class="pill" style="display:inline-block;margin:2px">${r.startsWith('AZ')?'🇦🇿':'🇷🇺'} ${r.slice(2)}</span>`).join('') : 'пока пусто'}</div>
+      <div class="meta" style="margin-top:10px"><b>Редкие номера:</b><br>${rare.length ? rare.map(esc).join('<br>') : 'пока нет'}</div>
+      <div class="meta" style="margin-top:10px">Очки: новый номер +10, новый регион +30, красивый номер до +100, патруль +50 (кнопка 🚓).</div>
+      <button class="btn g" style="margin-top:10px;width:100%" onclick="if(confirm('Сбросить игру?')){game={score:0,regions:{},plates:{},police:0};save();render()}">Сбросить игру</button>`;
   } else {
     b.innerHTML = `<div class="add"><input id="mp" placeholder="Введи номер для проверки" autocapitalize="characters">
       <button class="btn" onclick="manual()">Проверить</button></div>
@@ -294,7 +335,7 @@ async function loop(){
 }
 
 (async function init(){
-  render();
+  hud(); render();
   const cam = await startCam();
   setSt('распознавание…');
   const ocr = await startOCR();
