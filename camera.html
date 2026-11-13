@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Yotta Cam — патрульная камера</title>
+<meta name="theme-color" content="#8a3ffc">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+:root{--bg:#0b0b0e;--card:#1c1c20;--text:#fff;--sec:#8e8e93;--accent:#8a3ffc;--ok:#30d158;--bad:#ff453a;--warn:#ffd60a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+#stage{position:fixed;inset:0;background:#000}
+video{width:100%;height:100%;object-fit:cover}
+#frame{position:absolute;left:8%;right:8%;top:30%;height:18%;border:3px solid var(--accent);border-radius:14px;box-shadow:0 0 0 100vmax rgba(0,0,0,.45);transition:border-color .2s}
+#frame.hit{border-color:var(--ok)}
+#frame.alert{border-color:var(--bad)}
+#frame span{position:absolute;top:-26px;left:0;font-size:12px;color:#fff;opacity:.85}
+.top{position:absolute;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top) + 12px) 16px 8px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(#000a,transparent)}
+.top b{font-size:17px}
+.pill{font-size:12px;padding:5px 10px;border-radius:99px;background:#ffffff22;backdrop-filter:blur(10px)}
+.pill.on{background:var(--ok);color:#000}
+.panel{position:absolute;left:0;right:0;bottom:0;max-height:52%;background:var(--card);border-radius:28px 28px 0 0;padding:14px 16px calc(env(safe-area-inset-bottom) + 14px);display:flex;flex-direction:column;gap:10px}
+.tabs{display:flex;gap:8px}
+.tab{flex:1;padding:9px;border-radius:12px;border:0;background:#ffffff14;color:var(--text);font-size:14px}
+.tab.act{background:var(--accent)}
+.body{overflow-y:auto;flex:1;min-height:90px}
+#now{display:flex;align-items:center;gap:12px;padding:10px;border-radius:16px;background:#ffffff0d}
+.plate{font:700 24px/1 ui-monospace,Menlo,monospace;background:#fff;color:#000;padding:8px 12px;border-radius:8px;border:2px solid #000;letter-spacing:2px;white-space:nowrap}
+.meta{font-size:13px;color:var(--sec);line-height:1.35}
+.meta b{color:var(--text)}
+.row{display:flex;gap:10px;align-items:center;padding:9px 4px;border-bottom:1px solid #ffffff14;font-size:14px}
+.row img{width:54px;height:30px;object-fit:cover;border-radius:6px}
+.row .grow{flex:1;min-width:0}
+.row.bad .plate{background:var(--bad);color:#fff;border-color:var(--bad)}
+.row small{color:var(--sec);display:block}
+input,select{background:#ffffff14;border:0;border-radius:12px;color:var(--text);padding:11px;font-size:15px;min-width:0}
+.add{display:flex;gap:8px;flex-wrap:wrap}
+.add input{flex:1 1 110px}
+.btn{border:0;border-radius:12px;background:var(--accent);color:#fff;padding:11px 14px;font-size:15px}
+.btn.g{background:#ffffff14}
+.x{background:none;border:0;color:var(--sec);font-size:20px}
+#alert{position:fixed;inset:0;background:#ff453aee;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:10;text-align:center;padding:24px}
+#alert.show{display:flex;animation:fl .5s infinite alternate}
+@keyframes fl{to{background:#7a0d08ee}}
+#alert h1{margin:0;font-size:30px}
+#alert .plate{font-size:40px}
+#msg{position:absolute;left:0;right:0;top:46%;text-align:center;padding:0 24px;color:#fff;font-size:15px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <video id="v" playsinline muted autoplay></video>
+  <div id="frame"><span>Наведи номер в рамку</span></div>
+  <div class="top"><b>Yotta Cam</b><span id="st" class="pill">загрузка…</span></div>
+  <div id="msg"></div>
+</div>
+
+<div class="panel">
+  <div id="now"><div class="plate" id="nPlate">— — —</div><div class="meta" id="nMeta">Ожидание номера…</div></div>
+  <div class="tabs">
+    <button class="tab act" data-t="log">Журнал</button>
+    <button class="tab" data-t="list">База розыска</button>
+    <button class="tab" data-t="man">Вручную</button>
+  </div>
+  <div class="body" id="body"></div>
+</div>
+
+<div id="alert">
+  <h1>⚠ СОВПАДЕНИЕ С БАЗОЙ</h1>
+  <div class="plate" id="aPlate"></div>
+  <div id="aInfo" style="font-size:18px"></div>
+  <button class="btn" style="background:#fff;color:#000" onclick="closeAlert()">Принято</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script>
+/* ---------- Номер: разбор, исправление, регион ---------- */
+const LAT = 'ABEKMHOPCTYX';                // буквы, допустимые на рос. номерах (латиница-двойники)
+const CYR = {A:'А',B:'В',E:'Е',K:'К',M:'М',H:'Н',O:'О',P:'Р',C:'С',T:'Т',Y:'У',X:'Х'};
+const TO_DIGIT = {O:'0',B:'8',A:'4',S:'5',Z:'2',I:'1',L:'1',T:'7',G:'6',Q:'0',D:'0'};
+const TO_LETTER = {'0':'O','8':'B','4':'A','5':'C','2':'Y','1':'X','7':'T','6':'C'};
+const PLATE_RE = new RegExp('^['+LAT+']\\d{3}['+LAT+']{2}\\d{2,3}$');
+
+const REGIONS = {
+ '01':'Адыгея','02':'Башкортостан','03':'Бурятия','04':'Алтай','05':'Дагестан','06':'Ингушетия','07':'Кабардино-Балкария',
+ '08':'Калмыкия','09':'Карачаево-Черкесия','10':'Карелия','11':'Коми','12':'Марий Эл','13':'Мордовия','14':'Якутия','15':'Северная Осетия',
+ '16':'Татарстан','17':'Тыва','18':'Удмуртия','19':'Хакасия','21':'Чувашия','22':'Алтайский край','23':'Краснодарский край',
+ '24':'Красноярский край','25':'Приморский край','26':'Ставропольский край','27':'Хабаровский край','28':'Амурская обл.','29':'Архангельская обл.',
+ '30':'Астраханская обл.','31':'Белгородская обл.','32':'Брянская обл.','33':'Владимирская обл.','34':'Волгоградская обл.','35':'Вологодская обл.',
+ '36':'Воронежская обл.','37':'Ивановская обл.','38':'Иркутская обл.','39':'Калининградская обл.','40':'Калужская обл.','41':'Камчатка',
+ '42':'Кемеровская обл.','43':'Кировская обл.','44':'Костромская обл.','45':'Курганская обл.','46':'Курская обл.','47':'Ленинградская обл.',
+ '48':'Липецкая обл.','49':'Магаданская обл.','50':'Московская обл.','51':'Мурманская обл.','52':'Нижегородская обл.','53':'Новгородская обл.',
+ '54':'Новосибирская обл.','55':'Омская обл.','56':'Оренбургская обл.','57':'Орловская обл.','58':'Пензенская обл.','59':'Пермский край',
+ '60':'Псковская обл.','61':'Ростовская обл.','62':'Рязанская обл.','63':'Самарская обл.','64':'Саратовская обл.','65':'Сахалинская обл.',
+ '66':'Свердловская обл.','67':'Смоленская обл.','68':'Тамбовская обл.','69':'Тверская обл.','70':'Томская обл.','71':'Тульская обл.',
+ '72':'Тюменская обл.','73':'Ульяновская обл.','74':'Челябинская обл.','75':'Забайкальский край','76':'Ярославская обл.','77':'Москва',
+ '78':'Санкт-Петербург','79':'Еврейская АО','82':'Крым','83':'Ненецкий АО','86':'ХМАО','87':'Чукотка','89':'Ямал','92':'Севастополь','93':'Краснодарский край',
+ '95':'Чечня','96':'Свердловская обл.','97':'Москва','99':'Москва','102':'Башкортостан','116':'Татарстан','123':'Краснодарский край','124':'Красноярский край',
+ '134':'Волгоградская обл.','136':'Воронежская обл.','150':'Московская обл.','152':'Нижегородская обл.','154':'Новосибирская обл.','161':'Ростовская обл.',
+ '163':'Самарская обл.','174':'Челябинская обл.','177':'Москва','178':'Санкт-Петербург','190':'Московская обл.','193':'Краснодарский край','197':'Москва',
+ '199':'Москва','277':'Москва','299':'Москва','777':'Москва','799':'Москва','750':'Московская обл.','790':'Московская обл.','716':'Татарстан','702':'Башкортостан'
+};
+function fixPlate(raw){
+  let s = raw.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  for(const len of [9,8]){                 // 9 = с трёхзначным регионом, 8 = с двузначным
+    for(let off=0; off+len<=s.length; off++){
+      const w = s.slice(off,off+len);
+      let out = '';
+      for(let i=0;i<len;i++){
+        const needLetter = (i===0 || i===4 || i===5);
+        let ch = w[i];
+        if(needLetter){ if(!LAT.includes(ch)) ch = TO_LETTER[ch]||ch; if(!LAT.includes(ch)) {out=null;break;} }
+        else { if(!/\d/.test(ch)) ch = TO_DIGIT[ch]||ch; if(!/\d/.test(ch)){out=null;break;} }
+        out += ch;
+      }
+      if(out && PLATE_RE.test(out)) return out;
+    }
+  }
+  return null;
+}
+const toCyr = p => p.split('').map(c=>CYR[c]||c).join('');
+function regionOf(p){ const r = p.slice(6); return REGIONS[r] ? `${r} — ${REGIONS[r]}` : `регион ${r}`; }
+const norm = p => p.toUpperCase().replace(/[^A-Z0-9А-Я]/g,'').split('').map(c=>({'А':'A','В':'B','Е':'E','К':'K','М':'M','Н':'H','О':'O','Р':'P','С':'C','Т':'T','У':'Y','Х':'X'}[c]||c)).join('');
+
+/* ---------- Хранилище ---------- */
+const store = {
+  get(k,d){ try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d} },
+  set(k,v){ try{localStorage.setItem(k,JSON.stringify(v))}catch(e){} }
+};
+let watch = store.get('yc_watch', []);   // [{plate, note, kind}]
+let log   = store.get('yc_log', []);     // [{plate, t, hit, note, img}]
+
+/* ---------- Звук / тревога ---------- */
+let actx;
+function beep(bad){
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.connect(g); g.connect(actx.destination);
+    o.type = bad ? 'square' : 'sine'; o.frequency.value = bad ? 880 : 1200;
+    g.gain.value = .15; o.start(); o.stop(actx.currentTime + (bad?.7:.12));
+  }catch(e){}
+}
+function closeAlert(){ document.getElementById('alert').classList.remove('show'); frame.classList.remove('alert'); }
+
+/* ---------- Обработка найденного номера ---------- */
+const frame = document.getElementById('frame');
+const $ = id => document.getElementById(id);
+let lastSeen = {};                         // plate -> timestamp (чтобы не дублировать)
+function onPlate(p, img){
+  const now = Date.now();
+  const match = watch.find(w => norm(w.plate) === p);
+  $('nPlate').textContent = toCyr(p);
+  $('nMeta').innerHTML = `<b>${regionOf(p)}</b><br>${match ? '⚠ <b style="color:var(--bad)">'+(match.kind||'В базе')+': '+(match.note||'')+'</b>' : 'В базе розыска не значится'}`;
+  frame.classList.add('hit'); setTimeout(()=>frame.classList.remove('hit'),600);
+  if(lastSeen[p] && now - lastSeen[p] < 15000){ lastSeen[p] = now; return; }
+  lastSeen[p] = now;
+  log.unshift({plate:p, t:now, hit:!!match, note:match?match.note:'', kind:match?match.kind:'', img});
+  log = log.slice(0,40); store.set('yc_log', log);
+  if(match){
+    frame.classList.add('alert');
+    $('aPlate').textContent = toCyr(p);
+    $('aInfo').textContent = `${match.kind||'В базе'} — ${match.note||''}`;
+    $('alert').classList.add('show');
+    beep(true); if(navigator.vibrate) navigator.vibrate([400,150,400,150,400]);
+  } else { beep(false); if(navigator.vibrate) navigator.vibrate(60); }
+  render();
+}
+
+/* ---------- UI вкладок ---------- */
+let tab = 'log';
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
+  tab = b.dataset.t; document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('act',x===b)); render();
+});
+const fmt = t => new Date(t).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function render(){
+  const b = $('body');
+  if(tab==='log'){
+    b.innerHTML = log.length ? log.map(e=>`<div class="row ${e.hit?'bad':''}">
+      ${e.img?`<img src="${e.img}">`:''}
+      <div class="grow"><span class="plate" style="font-size:16px;padding:4px 8px">${toCyr(e.plate)}</span>
+      <small>${fmt(e.t)} · ${regionOf(e.plate)}${e.hit?' · ⚠ '+esc(e.note||e.kind):''}</small></div></div>`).join('')
+      + `<button class="btn g" style="margin-top:10px;width:100%" onclick="clearLog()">Очистить журнал</button>`
+      : '<div class="meta" style="padding:14px 4px">Пока ничего не распознано. Наведи камеру на номер.</div>';
+  } else if(tab==='list'){
+    b.innerHTML = `<div class="add">
+      <input id="wp" placeholder="Номер (А123ВС77)" autocapitalize="characters">
+      <input id="wn" placeholder="Заметка">
+      <select id="wk"><option>Розыск</option><option>Угон</option><option>Штрафы</option><option>Свой</option></select>
+      <button class="btn" onclick="addWatch()">+</button></div>` +
+      watch.map((w,i)=>`<div class="row"><span class="plate" style="font-size:16px;padding:4px 8px">${esc(toCyr(norm(w.plate)))}</span>
+        <div class="grow"><small>${esc(w.kind||'')} · ${esc(w.note||'')}</small></div><button class="x" onclick="delWatch(${i})">×</button></div>`).join('');
+  } else {
+    b.innerHTML = `<div class="add"><input id="mp" placeholder="Введи номер для проверки" autocapitalize="characters">
+      <button class="btn" onclick="manual()">Проверить</button></div>
+      <div class="meta" style="padding-top:10px">Ручная проверка — без камеры. Полезно для теста базы розыска.</div>`;
+  }
+}
+function addWatch(){
+  const p = norm($('wp').value); if(p.length<6) return;
+  watch.unshift({plate:p, note:$('wn').value.trim(), kind:$('wk').value}); store.set('yc_watch',watch); render();
+}
+function delWatch(i){ watch.splice(i,1); store.set('yc_watch',watch); render(); }
+function clearLog(){ log=[]; lastSeen={}; store.set('yc_log',log); render(); }
+function manual(){
+  const p = fixPlate(norm($('mp').value));
+  if(!p){ $('mp').value=''; $('mp').placeholder='Не похоже на номер РФ'; return; }
+  lastSeen[p]=0; onPlate(p,null);
+}
+
+/* ---------- Камера + OCR ---------- */
+const v = $('v'), cv = document.createElement('canvas'), cx = cv.getContext('2d',{willReadFrequently:true});
+let worker, busy = false, votes = [];
+function setSt(t,on){ const e=$('st'); e.textContent=t; e.classList.toggle('on',!!on); }
+
+async function startCam(){
+  try{
+    const s = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}},audio:false});
+    v.srcObject = s; await v.play();
+  }catch(e){
+    $('msg').textContent = 'Нет доступа к камере. Разреши камеру в настройках браузера или проверь номер вручную.'; setSt('без камеры'); tab='man'; render(); return false;
+  }
+  return true;
+}
+async function startOCR(){
+  if(!window.Tesseract){ setSt('OCR недоступен'); $('msg').textContent='Не загрузился модуль распознавания (нужен интернет при первом запуске).'; return false; }
+  worker = await Tesseract.createWorker('eng');
+  await worker.setParameters({tessedit_char_whitelist: LAT+'0123456789', tessedit_pageseg_mode: '7'});
+  return true;
+}
+function grabFrame(){
+  const vw = v.videoWidth, vh = v.videoHeight; if(!vw) return null;
+  // рамка в координатах видео (object-fit: cover)
+  const r = frame.getBoundingClientRect(), W = innerWidth, H = innerHeight;
+  const sc = Math.max(W/vw, H/vh), ox = (vw*sc - W)/2, oy = (vh*sc - H)/2;
+  const sx = (r.left+ox)/sc, sy = (r.top+oy)/sc, sw = r.width/sc, sh = r.height/sc;
+  cv.width = Math.round(Math.min(sw*1.0, 700)); cv.height = Math.round(cv.width*sh/sw);
+  cx.drawImage(v, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
+  // серый + контраст (растяжение гистограммы)
+  const d = cx.getImageData(0,0,cv.width,cv.height), a = d.data; let lo=255, hi=0;
+  for(let i=0;i<a.length;i+=4){ const g=(a[i]*.3+a[i+1]*.59+a[i+2]*.11)|0; a[i]=a[i+1]=a[i+2]=g; if(g<lo)lo=g; if(g>hi)hi=g; }
+  const k = 255/Math.max(1,hi-lo);
+  for(let i=0;i<a.length;i+=4){ const g=Math.max(0,Math.min(255,(a[i]-lo)*k)); a[i]=a[i+1]=a[i+2]=g; }
+  cx.putImageData(d,0,0);
+  return cv;
+}
+async function loop(){
+  if(!busy && worker && v.videoWidth){
+    busy = true;
+    try{
+      const c = grabFrame();
+      if(c){
+        const { data } = await worker.recognize(c);
+        const p = fixPlate(data.text || '');
+        votes.push(p); votes = votes.slice(-3);
+        // подтверждаем, если один и тот же номер увидели 2 раза из последних 3
+        const cnt = {}; votes.forEach(x=>{ if(x) cnt[x]=(cnt[x]||0)+1; });
+        const best = Object.keys(cnt).find(k=>cnt[k]>=2);
+        if(best){
+          const t = document.createElement('canvas'); t.width=120; t.height=Math.round(120*c.height/c.width);
+          t.getContext('2d').drawImage(c,0,0,t.width,t.height);
+          onPlate(best, t.toDataURL('image/jpeg',.5)); votes = [];
+        }
+      }
+    }catch(e){}
+    busy = false;
+  }
+  setTimeout(loop, 350);
+}
+
+(async function init(){
+  render();
+  const cam = await startCam();
+  setSt('распознавание…');
+  const ocr = await startOCR();
+  if(cam && ocr){ setSt('● сканирую', true); loop(); }
+})();
+if('serviceWorker' in navigator){} // офлайн-кеш можно добавить позже
+</script>
+</body>
+</html>
