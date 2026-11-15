@@ -1,0 +1,16 @@
+name: Build Yotta FC APK
+on:
+  push:
+    paths: ['YottaFC/**']
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install toolchain
+        run: sudo apt-get update && sudo apt-get install -y aapt apksigner zipalign dalvik-exchange libandroid-23-java openjdk-17-jdk-headless
+      - name: Build
+        run: cd YottaFC && ./build.sh
+      - uses: actions/upload-artifact@v4
+        with: { name: YottaFC26-apk, path: YottaFC/build/YottaFC26.apk }
