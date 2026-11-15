@@ -303,7 +303,7 @@ final class Ui {
 
     /** Bust portrait of a player. */
     void face(Player p, float cx, float cy, float r, int shirt) {
-        int skin = Renderer.SKIN[p.skin], hair = Renderer.HAIR[p.hairColor];
+        int skin = Scene3.SKIN[p.skin], hair = Scene3.HAIR[p.hairColor];
         c.save();
         rc.set(cx - r, cy - r, cx + r, cy + r);
         path.reset(); path.addCircle(cx, cy, r, Path.Direction.CW);

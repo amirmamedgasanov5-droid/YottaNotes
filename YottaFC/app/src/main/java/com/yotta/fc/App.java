@@ -5,6 +5,9 @@ import java.util.ArrayList;
 
 /** Application state machine: screens, match flow, input routing. */
 final class App implements Ui.Listener {
+    interface SceneSink { void push(SceneData d); void setMatchActive(boolean a); }
+    SceneSink sink;
+    boolean lastActive;
     interface Host { void vibrate(int ms); void save(String name, String data); String load(String name); void quit(); }
 
     static final class Settings {
@@ -105,6 +108,8 @@ final class App implements Ui.Listener {
         c.save();
         c.scale(s, s);
         ui.begin(c, vw, vh, time, dt);
+        boolean act = screen == S_MATCH;
+        if (sink != null && act != lastActive) { lastActive = act; sink.setMatchActive(act); }
         if (!sfxInit) { sfxInit = true; applySettings(); }
         switch (screen) {
             case S_MATCH: matchFrame(c, dt); break;
@@ -125,7 +130,6 @@ final class App implements Ui.Listener {
         match.weatherRain = rain ? 1 : 0;
         rend.setup(vw, vh, match, tod, rain);
         rend.camZoomMul = new float[]{0.9f, 1.05f, 1.3f}[set.zoom];
-        rend.zoom = rend.camZoomMul;
         hud.layout(vw, vh);
         applySettings();
         paused = false; replaying = false; replayDone = false; resultReady = false; pauseTab = 0; quitConfirm = false; wentHalf = false;
@@ -167,15 +171,15 @@ final class App implements Ui.Listener {
         }
         // camera & draw
         rend.updateCamera(m, dt, replaying);
-        rend.drawScene(c, m, time);
-        // controlled markers
-        rend.figs.marked = m.humanSide >= 0 && !m.autoPlay ? m.S[m.humanSide].ctl : null;
+        if (sink != null) sink.push(rend.snapshot(m, time));
+        rend.marked = m.humanSide >= 0 && !m.autoPlay ? m.S[m.humanSide].ctl : null;
         passPreview = null;
         if (!replaying && !paused && m.mode == Match.M_PLAY && m.owner != null && m.owner.side == m.humanSide && m.owner.role != Player.GK) {
             Input in = m.in;
             passPreview = Ctl.pickTarget(m, m.owner, in.sx, in.sy, Match.K_GROUND);
         }
-        rend.figs.target = passPreview;
+        rend.target = passPreview;
+        rend.drawOverlay(c, m);
         if (!replaying) hud.draw(c, m, dt, passPreview);
         else scr.replayOverlay(c);
         if (m.mode == Match.M_FULL && !resultReady) { }
@@ -190,7 +194,7 @@ final class App implements Ui.Listener {
         repEnd = m.repCount - 1;
         repStart = Math.max(0, repEnd - 36 - 30 * 7);
         repPos = repStart;
-        rend.camX = m.bx;
+        rend.cam.tx = m.bx;
     }
 
     void updateReplay(float dt) {

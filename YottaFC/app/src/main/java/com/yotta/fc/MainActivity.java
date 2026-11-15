@@ -5,7 +5,9 @@ import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.opengl.GLSurfaceView;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.view.Window;
 import android.view.WindowManager;
 import java.io.ByteArrayOutputStream;
@@ -16,6 +18,8 @@ import java.io.FileOutputStream;
 public class MainActivity extends Activity implements App.Host {
     App app;
     GameView view;
+    GLSurfaceView glView;
+    GlGfx gfx;
     Vibrator vib;
 
     @Override protected void onCreate(Bundle b) {
@@ -25,8 +29,24 @@ public class MainActivity extends Activity implements App.Host {
         try { vib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE); } catch (Throwable t) { }
         app = new App(this);
         app.sfx.init(this);
+        gfx = new GlGfx();
+        glView = new GLSurfaceView(this);
+        glView.setEGLContextClientVersion(2);
+        glView.setEGLConfigChooser(new GlGfx.Chooser());
+        glView.setPreserveEGLContextOnPause(true);
+        glView.setRenderer(gfx);
+        glView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        app.sink = new App.SceneSink() {
+            public void push(SceneData d) { gfx.data = d; }
+            public void setMatchActive(final boolean a) {
+                runOnUiThread(new Runnable() { public void run() { glView.setRenderMode(a ? GLSurfaceView.RENDERMODE_CONTINUOUSLY : GLSurfaceView.RENDERMODE_WHEN_DIRTY); } });
+            }
+        };
         view = new GameView(this, app);
-        setContentView(view);
+        FrameLayout root = new FrameLayout(this);
+        root.addView(glView, new FrameLayout.LayoutParams(-1, -1));
+        root.addView(view, new FrameLayout.LayoutParams(-1, -1));
+        setContentView(root);
         immersive();
     }
 
@@ -45,8 +65,8 @@ public class MainActivity extends Activity implements App.Host {
     }
 
     @Override public void onWindowFocusChanged(boolean f) { super.onWindowFocusChanged(f); if (f) immersive(); }
-    @Override protected void onPause() { super.onPause(); app.saveCareer(); app.sfx.stopAmbient(); if (app.screen == App.S_MATCH && !app.paused && app.match != null && !app.match.halfPending) { app.paused = true; app.pauseTab = 0; app.hud.releaseAll(app.match); } }
-    @Override protected void onResume() { super.onResume(); if (app.screen == App.S_MATCH && app.match != null && !app.paused) app.sfx.startAmbient(); }
+    @Override protected void onPause() { super.onPause(); glView.onPause(); app.saveCareer(); app.sfx.stopAmbient(); if (app.screen == App.S_MATCH && !app.paused && app.match != null && !app.match.halfPending) { app.paused = true; app.pauseTab = 0; app.hud.releaseAll(app.match); } }
+    @Override protected void onResume() { super.onResume(); glView.onResume(); if (app.screen == App.S_MATCH && app.match != null && !app.paused) app.sfx.startAmbient(); }
     @Override protected void onDestroy() { super.onDestroy(); app.saveCareer(); app.sfx.release(); }
     @Override public void onBackPressed() { app.onBack(); }
 
