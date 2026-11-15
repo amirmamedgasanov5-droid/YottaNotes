@@ -159,7 +159,7 @@ final class Ctl {
         Pawn car = m.owner;
         float d = U.dist(c.x, c.y, car.x, car.y);
         if (in.shootP && c.tackleCd <= 0) {
-            if (d < 2.0f) {
+            if (d < 2.6f) {
                 c.fx = (car.x - c.x) / Math.max(0.1f, d); c.fy = (car.y - c.y) / Math.max(0.1f, d);
                 m.tackle(c, car, false);
             } else { c.tackleCd = 0.4f; }

@@ -118,7 +118,7 @@ final class Figures {
 
     // =============================================================== ball
     void drawBall(Canvas c, Match m) {
-        float rad = 0.30f;
+        float rad = 0.36f;
         R.proj(m.bx, m.by, m.bz + 0.11f);
         float cx = R.px, cy = R.py, r = Math.max(5f, R.ps * rad);
         // trail
@@ -154,9 +154,10 @@ final class Figures {
                 c.drawOval(rc, p);
             }
         }
-        R.stroke.setColor(0x55000000);
-        R.stroke.setStrokeWidth(1.2f);
+        R.stroke.setColor(0xAA000000);
+        R.stroke.setStrokeWidth(2f);
         c.drawCircle(cx, cy, r, R.stroke);
+        if (m.bz < 0.5f) { R.stroke.setColor(0x88FFD54A); R.stroke.setStrokeWidth(3f); c.drawCircle(cx, cy, r * 1.55f, R.stroke); }
     }
 
     // =============================================================== pawn

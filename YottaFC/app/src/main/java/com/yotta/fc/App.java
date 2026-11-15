@@ -124,7 +124,7 @@ final class App implements Ui.Listener {
         boolean rain = set.rain == 2 || (set.rain == 1 && U.chance(0.2f));
         match.weatherRain = rain ? 1 : 0;
         rend.setup(vw, vh, match, tod, rain);
-        rend.camZoomMul = new float[]{1.0f, 1.2f, 1.42f}[set.zoom];
+        rend.camZoomMul = new float[]{0.95f, 1.15f, 1.4f}[set.zoom];
         rend.zoom = rend.camZoomMul;
         hud.layout(vw, vh);
         applySettings();
@@ -375,7 +375,7 @@ final class App implements Ui.Listener {
             default: break;
         }
         saveSettings();
-        if (match != null && screen == S_MATCH) { rend.camZoomMul = new float[]{1.0f, 1.2f, 1.42f}[set.zoom]; }
+        if (match != null && screen == S_MATCH) { rend.camZoomMul = new float[]{0.95f, 1.15f, 1.4f}[set.zoom]; }
     }
 
     void doBid() {

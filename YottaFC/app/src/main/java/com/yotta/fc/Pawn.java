@@ -43,7 +43,7 @@ final class Pawn {
     }
 
     float maxSpeed() {
-        float s = 5.4f + (pl.pac - 40) * 0.0625f;
+        float s = 6.2f + (pl.pac - 40) * 0.072f;
         if (role == Player.GK) s = Math.min(s, 6.6f);
         return Math.max(4.8f, s);
     }

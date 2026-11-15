@@ -16,7 +16,7 @@ final class AI {
     static float topSpeed(Match m, Pawn p, boolean sprint) {
         float ms = p.maxSpeed();
         float stamF = 0.82f + 0.18f * p.stamina;
-        float top = ms * stamF * (sprint ? 1f : 0.76f);
+        float top = ms * stamF * (sprint ? 1f : 0.84f);
         if (m.owner == p) top *= 0.94f + p.pl.dri * 0.0006f;
         return top;
     }
@@ -370,7 +370,7 @@ final class AI {
                 break;
             }
             default: {
-                float v0 = U.clamp(7.5f + d * 0.78f, 9, 25) * (0.88f + 0.24f * power);
+                float v0 = U.clamp(10f + d * 0.95f, 12, 30) * (0.9f + 0.22f * power);
                 float tt = d / (v0 * 0.85f);
                 ax = t.x + t.vx * tt * 0.9f; ay = t.y + t.vy * tt * 0.9f;
                 v = v0;

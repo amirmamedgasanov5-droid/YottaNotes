@@ -454,7 +454,7 @@ final class Match {
         }
         // normal movement
         float stamF = 0.82f + 0.18f * p.stamina;
-        float top = ms * stamF * (p.wantSprint ? 1f : 0.76f);
+        float top = ms * stamF * (p.wantSprint ? 1f : 0.84f);
         if (owner == p) top *= 0.94f + p.pl.dri * 0.0006f;
         if (p.side != humanSide && !autoPlay) top *= new float[]{0.95f, 0.99f, 1.01f, 1.03f}[diff];
         float wl = U.len(p.wvx, p.wvy);
@@ -462,8 +462,8 @@ final class Match {
         if (wl > top) { wx *= top / wl; wy *= top / wl; wl = top; }
         float dvx = wx - p.vx, dvy = wy - p.vy;
         float dl = U.len(dvx, dvy);
-        float acc = 6.2f + p.pl.pac * 0.045f;
-        if (wl < U.len(p.vx, p.vy)) acc *= 1.5f;
+        float acc = 13f + p.pl.pac * 0.07f;
+        if (wl < U.len(p.vx, p.vy)) acc *= 1.9f;
         float maxd = acc * dt;
         if (dl > maxd) { dvx *= maxd / dl; dvy *= maxd / dl; }
         p.vx += dvx; p.vy += dvy;
@@ -477,7 +477,7 @@ final class Match {
         if (owner == p && sp < 1.5f && aw < 0.2f) { /* keep */ }
         float ang = (float) Math.atan2(p.fy, p.fx), tang = (float) Math.atan2(tfy, tfx);
         float da = U.angDiff(ang, tang);
-        float turn = (9f - sp * 0.5f) * dt;
+        float turn = (16f - sp * 0.5f) * dt;
         if (p.st == Pawn.CELEB) turn = 12 * dt;
         ang += U.clamp(da, -turn, turn);
         p.fx = (float) Math.cos(ang); p.fy = (float) Math.sin(ang);

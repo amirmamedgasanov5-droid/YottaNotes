@@ -22,7 +22,7 @@ final class Renderer {
     int vw, vh;
     // camera
     float camX = L / 2, camY = 34, zoom = 1f, camZoomMul = 1f;
-    float phi = 0.42f, D = 200f, fl = 8000f, hy = 0.72f;
+    float phi = 0.50f, D = 140f, fl = 8000f, hy = 0.68f;
     float cosP, sinP;
     float px, py, ps; // last projection result
     float time;
