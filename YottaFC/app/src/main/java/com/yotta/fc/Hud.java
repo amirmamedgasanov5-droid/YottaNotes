@@ -119,7 +119,7 @@ final class Hud {
             if (m.owner.role == Player.GK) return new String[]{"ДАЛЬНИЙ", "КОРОТК.", "ДАЛЬНИЙ", "ДАЛЬНИЙ"};
             return new String[]{"УДАР", "ПАС", "НАВЕС", "ПРОРЕЗ"};
         }
-        if (m.owner != null) return new String[]{"ОТБОР", "СМЕНА", "ПОДКАТ", "ПРЕСС"};
+        if (m.owner != null) return new String[]{"ПРЕСС", "СМЕНА", "ПОДКАТ", "ПОМОЩЬ"};
         return new String[]{"СМЕНА", "СМЕНА", "ПОДКАТ", "ПРЕСС"};
     }
 

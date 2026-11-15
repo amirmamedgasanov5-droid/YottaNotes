@@ -8,7 +8,7 @@ final class App implements Ui.Listener {
     interface Host { void vibrate(int ms); void save(String name, String data); String load(String name); void quit(); }
 
     static final class Settings {
-        int matchMin = 6, diff = 1, weather = 0, rain = 0, zoom = 1;
+        int matchMin = 6, diff = 1, weather = 0, rain = 0, zoom = 0;
         boolean sound = true, vibr = true, radar = true, replays = true;
         float ctlScale = 1f, ctlOpacity = 1f;
         String serialize() { return matchMin + "," + diff + "," + weather + "," + rain + "," + zoom + "," + (sound ? 1 : 0) + "," + (vibr ? 1 : 0) + "," + (radar ? 1 : 0) + "," + (replays ? 1 : 0) + "," + ctlScale + "," + ctlOpacity; }
@@ -124,7 +124,7 @@ final class App implements Ui.Listener {
         boolean rain = set.rain == 2 || (set.rain == 1 && U.chance(0.2f));
         match.weatherRain = rain ? 1 : 0;
         rend.setup(vw, vh, match, tod, rain);
-        rend.camZoomMul = new float[]{0.95f, 1.15f, 1.4f}[set.zoom];
+        rend.camZoomMul = new float[]{0.9f, 1.05f, 1.3f}[set.zoom];
         rend.zoom = rend.camZoomMul;
         hud.layout(vw, vh);
         applySettings();
@@ -375,7 +375,7 @@ final class App implements Ui.Listener {
             default: break;
         }
         saveSettings();
-        if (match != null && screen == S_MATCH) { rend.camZoomMul = new float[]{0.95f, 1.15f, 1.4f}[set.zoom]; }
+        if (match != null && screen == S_MATCH) { rend.camZoomMul = new float[]{0.9f, 1.05f, 1.3f}[set.zoom]; }
     }
 
     void doBid() {

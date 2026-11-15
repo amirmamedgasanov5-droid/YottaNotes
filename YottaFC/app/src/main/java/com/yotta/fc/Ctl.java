@@ -27,7 +27,16 @@ final class Ctl {
             in.shootHeld = in.shoot ? in.shootHeld + dt : 0;
             move(m, c, in);
             if (m.owner == c) attackButtons(m, sd, c, in);
-            else if (m.owner != null && m.owner.side != c.side) defendButtons(m, sd, c, in);
+            else if (m.owner != null && m.owner.side != c.side) {
+                defendButtons(m, sd, c, in);
+                // hold PRESS: assisted pressure like eFootball (auto-jockey + challenge), stick still nudges
+                if (in.shoot && in.shootHeld > 0.2f && c.st == Pawn.N) {
+                    float sx0 = in.sx, sy0 = in.sy;
+                    AI.pressCarrier(m, c, m.owner, sd, dt);
+                    c.wvx += sx0 * 2.0f; c.wvy += sy0 * 2.0f;
+                    c.wantSprint = in.sprint || U.dist(c.x, c.y, m.owner.x, m.owner.y) > 6;
+                }
+            }
             else looseButtons(m, sd, c, in);
             // keeper distribution
             if (m.owner != null && m.owner.side == si && m.owner.role == Player.GK) {
@@ -158,7 +167,7 @@ final class Ctl {
     static void defendButtons(Match m, Match.Side sd, Pawn c, Input in) {
         Pawn car = m.owner;
         float d = U.dist(c.x, c.y, car.x, car.y);
-        if (in.shootP && c.tackleCd <= 0) {
+        if (in.shootR && in.shootHeld < 0.2f && c.tackleCd <= 0) {
             if (d < 2.6f) {
                 c.fx = (car.x - c.x) / Math.max(0.1f, d); c.fy = (car.y - c.y) / Math.max(0.1f, d);
                 m.tackle(c, car, false);
