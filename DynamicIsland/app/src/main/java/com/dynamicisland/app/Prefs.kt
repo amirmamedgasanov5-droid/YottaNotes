@@ -24,4 +24,16 @@ class Prefs(c: Context) {
     var offX: Int get() = i("offx", 0); set(v) = putI("offx", v)
     var offY: Int get() = i("offy", 0); set(v) = putI("offy", v)
     var pad: Int get() = i("pad", 2); set(v) = putI("pad", v)
+
+    /** Ручная калибровка камеры: [cx‰ от ширины, top×10 dp, w×10 dp, h×10 dp], отдельно для портрета и ландшафта. */
+    fun cal(land: Boolean): IntArray? {
+        val k = if (land) "l" else "p"
+        if (!sp.contains("cal_cx_$k")) return null
+        return intArrayOf(sp.getInt("cal_cx_$k", 500), sp.getInt("cal_t_$k", 0), sp.getInt("cal_w_$k", 200), sp.getInt("cal_h_$k", 200))
+    }
+
+    fun setCal(land: Boolean, cx: Int, t: Int, w: Int, h: Int) {
+        val k = if (land) "l" else "p"
+        sp.edit().putInt("cal_cx_$k", cx).putInt("cal_t_$k", t).putInt("cal_w_$k", w).putInt("cal_h_$k", h).apply()
+    }
 }

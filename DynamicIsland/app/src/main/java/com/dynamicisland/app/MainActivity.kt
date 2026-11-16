@@ -123,6 +123,14 @@ class MainActivity : Activity() {
         } else IslandBus.post { demo(kind) }
     }
 
+    private fun calibrate() {
+        if (!hasOverlay()) { openOverlaySettings(); return }
+        if (!IslandBus.running) {
+            prefs.enabled = true; startIsland()
+            window.decorView.postDelayed({ IslandBus.post { startCalibration() }; refresh() }, 1000)
+        } else IslandBus.post { startCalibration() }
+    }
+
     private fun settingsChanged(preview: Boolean = true) = IslandBus.post { onSettingsChanged(preview) }
 
     // ------------------------------------------------------------ UI
@@ -249,8 +257,8 @@ class MainActivity : Activity() {
         root.addView(header("Положение камеры"))
         val pos = cardView()
         val chips = LinearLayout(this)
-        listOf("Авто", "Слева", "Центр", "Справа").forEachIndexed { i, name ->
-            val t = tv(this, name, 14f, WHITE, true).apply {
+        listOf("Авто", "Слева", "Центр", "Справа", "Вручную").forEachIndexed { i, name ->
+            val t = tv(this, name, 12.5f, WHITE, true).apply {
                 gravity = Gravity.CENTER; setPadding(0, dpi(10f), 0, dpi(10f))
                 setOnClickListener { prefs.posMode = i; styleChips(); settingsChanged(); refreshSoon() }
             }
@@ -258,6 +266,11 @@ class MainActivity : Activity() {
             chips.addView(t, LinearLayout.LayoutParams(0, -2, 1f).apply { setMargins(dpi(3f), 0, dpi(3f), 0) })
         }
         pos.addView(chips)
+        pos.addView(tv(this, "🎯 Подогнать под камеру вручную", 15f, WHITE, true).apply {
+            gravity = Gravity.CENTER; setPadding(0, dpi(13f), 0, dpi(13f))
+            background = GradientDrawable().apply { setColor(blue); cornerRadius = dp(14f) }
+            setOnClickListener { calibrate() }
+        }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dpi(10f) })
         pos.addView(tv(this, "«Авто» ищет вырез камеры через систему. Если камера на рамке (нет выреза) — рисуется виртуальный остров по центру, как на iPhone. Остальное — ручной режим.",
             12f, 0xFF8E8E93.toInt(), false, 5).apply { setPadding(0, dpi(10f), 0, 0) })
         slider(pos, "Сдвиг по горизонтали, dp", -80, 80, prefs.offX) { prefs.offX = it; settingsChanged() }

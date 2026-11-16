@@ -107,6 +107,7 @@ class IslandController(private val ctx: Context) {
 
     fun onConfig() {
         landscape = ctx.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        geo = buildGeo()
         render()
     }
 
@@ -125,24 +126,31 @@ class IslandController(private val ctx: Context) {
         if (sw <= 0f) return null
         val co = cutout
         val mode = prefs.posMode
-        val cam: RectF
+        var cam: RectF? = null
         var real = false
         var attached = false
-        if (mode == 0 && co != null) {
+        if (mode == 4) {
+            prefs.cal(landscape)?.let {
+                val cx = it[0] / 1000f * sw
+                val top = it[1] / 10f * d
+                cam = RectF(cx - it[2] / 20f * d, top, cx + it[2] / 20f * d, top + it[3] / 10f * d)
+                real = true; attached = top <= 1.5f
+            }
+        } else if (mode == 0 && co != null) {
             cam = RectF(co); real = true; attached = co.top <= 1.5f
-        } else {
-            cam = when (mode) {
-                1 -> dot(sw * 0.14f)
-                3 -> dot(sw * 0.86f)
-                else -> { // «рамка»: виртуальный остров как на iPhone 14 Pro
-                    val w = sw * 0.32f
-                    val top = sw * 0.028f
-                    RectF(sw / 2 - w / 2, top, sw / 2 + w / 2, top + w * 0.294f)
-                }
+        }
+        val c: RectF = cam ?: when (mode) {
+            1 -> dot(sw * 0.14f)
+            3 -> dot(sw * 0.86f)
+            else -> { // «рамка»: виртуальный остров как на iPhone 14 Pro
+                val w = min(sw * 0.32f, 140 * d)
+                val top = min(sw * 0.028f, 12 * d)
+                RectF(sw / 2 - w / 2, top, sw / 2 + w / 2, top + w * 0.294f)
             }
         }
-        cam.offset(prefs.offX * d, prefs.offY * d)
-        return Geometry(sw, cam, d, attached, if (real || mode in 1..3) prefs.pad * d else 0f, real)
+        c.offset(prefs.offX * d, prefs.offY * d)
+        val pad = if (mode == 4 && real) 0f else if (real || mode in 1..3) prefs.pad * d else 0f
+        return Geometry(sw, c, d, attached, pad, real)
     }
 
     private fun dot(cx: Float) = RectF(cx - 11 * d, 14 * d, cx + 11 * d, 36 * d)
@@ -161,6 +169,36 @@ class IslandController(private val ctx: Context) {
             previewUntil = SystemClock.uptimeMillis() + 2500
             h.removeCallbacks(renderR); h.postDelayed(renderR, 2600)
         }
+        render()
+    }
+
+    // ------------------------------------------------------------ ручная калибровка
+
+    private var calView: CalView? = null
+
+    fun startCalibration() {
+        val g = geo ?: return
+        if (calView != null) return
+        val lp = baseLp().apply {
+            width = WindowManager.LayoutParams.MATCH_PARENT; height = (340 * d).toInt()
+            x = 0; y = 0; title = "IslandCalibrate"
+        }
+        val v = CalView(ctx, g.cam, screenW.toFloat()) { r ->
+            try { wm.removeViewImmediate(calView) } catch (_: Exception) {}
+            calView = null
+            if (r != null) {
+                prefs.setCal(landscape, Math.round(r.centerX() / screenW * 1000), Math.round(r.top / d * 10),
+                    Math.round(r.width() / d * 10), Math.round(r.height() / d * 10))
+                prefs.posMode = 4
+                prefs.offX = 0; prefs.offY = 0
+            }
+            geo = buildGeo()
+            previewUntil = SystemClock.uptimeMillis() + 2500
+            h.removeCallbacks(renderR); h.postDelayed(renderR, 2600)
+            render()
+        }
+        calView = v
+        try { wm.addView(v, lp) } catch (_: Exception) { calView = null }
         render()
     }
 
@@ -265,8 +303,10 @@ class IslandController(private val ctx: Context) {
         val g = geo ?: return
         val persistent: Item? = call ?: media
         val cur = current
+        val tablet = ctx.resources.configuration.smallestScreenWidthDp >= 600
+        val hideLand = landscape && !tablet && !(prefs.posMode == 4 && prefs.cal(true) != null)
         val spec = when {
-            landscape -> hiddenSpec(g)
+            calView != null || hideLand -> hiddenSpec(g)
             cur != null -> expandedSpec(g, cur)
             persistent != null && (userExpanded || call?.ringing == true) -> expandedSpec(g, persistent)
             persistent != null -> compactSpec(g, persistent)
