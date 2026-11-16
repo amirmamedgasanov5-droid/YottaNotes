@@ -215,9 +215,9 @@ fun Exp.populate(f: FrameLayout, lead: View?, trail: View?, body: View?) {
     }
     body?.let {
         it.tag = "body"
-        f.addView(it, FrameLayout.LayoutParams((rect.width() - ctx.dp(32f)).toInt(),
+        f.addView(it, FrameLayout.LayoutParams((rect.width() - ctx.dp(SIDE * 2)).toInt(),
             if (bodyH > 0f) bodyH.toInt() else WRAP, Gravity.TOP or Gravity.START).apply {
-            leftMargin = ctx.dpi(16f); topMargin = bodyTop.toInt()
+            leftMargin = ctx.dpi(SIDE); topMargin = bodyTop.toInt()
         })
     }
 }

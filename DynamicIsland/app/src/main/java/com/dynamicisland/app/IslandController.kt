@@ -533,37 +533,55 @@ class IslandController(
         val cached = expCache[key]
         val e: Exp = if (cached != null && cached.first == geoVer) cached.second else {
             val e0 = g.expanded(0f, maxW)
-            val bh = max(make(e0).bodyHeight((e0.rect.width() - 32 * d).toInt()).toFloat(), 40 * d)
+            val bh = max(make(e0).bodyHeight((e0.rect.width() - 2 * SIDE * d).toInt()).toFloat(), 40 * d)
             g.expanded(bh, maxW).also { if (expCache.size > 20) expCache.clear(); expCache[key] = geoVer to it }
         }
         val upd: ((View) -> Unit)? = if (p is MediaItem) { v -> (v as Bindable).bind(p) } else null
         return Spec(key, e.rect, e.radius, true, g.camRect(), true, { make(e) }, upd)
     }
 
-    private fun present(s: Spec) {
-        lastSpec = s
-        val u = RectF(s.rect)
-        s.bubble?.let { u.union(it) }
-        if (islandAttached) { u.union(island.bounds()); island.bubbleBounds()?.let { u.union(it) } }
-        if (s.visible) u.union(s.origin)
-        u.inset(-26 * d, -26 * d)
-        setWindow(u, s.touchable)
-        island.present(s)
-    }
-
-    /** Когда пружины успокоились — ужимаем окно до размера острова, чтобы не перехватывать касания. */
-    fun onSettled() {
-        val s = lastSpec ?: return
+    private var winRect: RectF? = null
+    private var winTouch = false
+    private var presentPending: Runnable? = null
+    private val shrinkR = Runnable {
+        val s = lastSpec ?: return@Runnable
         val r = RectF(s.rect)
         s.bubble?.let { if (s.visible) r.union(it) }
         if (s.visible) r.inset(-4 * d, -4 * d)
         setWindow(r, s.touchable)
     }
 
+    private fun present(s: Spec) {
+        lastSpec = s
+        h.removeCallbacks(shrinkR)
+        presentPending?.let { h.removeCallbacks(it) }
+        val u = RectF(s.rect)
+        s.bubble?.let { u.union(it) }
+        if (islandAttached) { u.union(island.bounds()); island.bubbleBounds()?.let { u.union(it) } }
+        if (s.visible) u.union(s.origin)
+        u.inset(-22 * d, -22 * d)
+        val w = winRect
+        val fits = islandAttached && w != null && w.left <= max(0f, u.left) + 1 && w.top <= max(0f, u.top) + 1 &&
+            w.right >= min(screenW.toFloat(), u.right) - 1 && w.bottom >= u.bottom - 1 && winTouch == s.touchable
+        if (fits) { island.present(s); return }
+        setWindow(u, s.touchable)
+        // даём системе применить новый размер окна и только потом запускаем пружины — без обрезанных первых кадров
+        val run = Runnable { presentPending = null; island.present(s) }
+        presentPending = run
+        h.postDelayed(run, 48)
+    }
+
+    /** Когда пружины успокоились — ужимаем окно до размера острова, чтобы не перехватывать касания. */
+    fun onSettled() {
+        h.removeCallbacks(shrinkR)
+        h.postDelayed(shrinkR, 350)
+    }
+
     private fun setWindow(r: RectF, touchable: Boolean) {
         val sw = screenW.toFloat()
         val l = max(0f, r.left); val t = max(0f, r.top)
         val rr = min(sw, r.right); val b = max(t + 2f, r.bottom)
+        winRect = RectF(l, t, rr, b); winTouch = touchable
         islandLp.x = floor(l).toInt(); islandLp.y = floor(t).toInt()
         islandLp.width = max(2, ceil(rr - l).toInt()); islandLp.height = max(2, ceil(b - t).toInt())
         val base = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or

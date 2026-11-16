@@ -6,6 +6,8 @@ import kotlin.math.min
 
 enum class Side { LEFT, CENTER, RIGHT }
 
+const val SIDE = 20f
+
 class Compact(
     val rect: RectF, val radius: Float,
     val leadX: Float, val trailX: Float, val rowCy: Float,
@@ -41,8 +43,10 @@ class Geometry(
 
     private val camL = cam.left - pad
     private val camR = cam.right + pad
-    private val pillH = max(cam.height() + 2 * pad, 34 * d)
-    val pillTop = if (attached) -44 * d else max(2 * d, cy - pillH / 2)
+    private val rawH = max(cam.height() + 2 * pad, 32 * d)
+    // капсула строго по центру камеры; если камера у самого края — симметрично ужимаем высоту
+    private val pillH = if (attached) rawH else min(rawH, 2 * (cy - 2 * d)).coerceAtLeast(max(cam.height(), 22 * d))
+    val pillTop = if (attached) -44 * d else cy - pillH / 2
     val pillBottom = if (attached) max(cam.bottom + pad, 34 * d) else pillTop + pillH
 
     fun camRect() = RectF(cam)
@@ -62,8 +66,10 @@ class Geometry(
         val trailX: Float
         when (side) {
             Side.CENTER -> {
-                left = camL - gap - slotL - inn
-                right = camR + gap + slotT + inn
+                // симметрично вокруг камеры: обе половины одинаковой ширины
+                val flank = max(slotL, slotT)
+                left = camL - gap - flank - inn
+                right = camR + gap + flank + inn
                 leadX = inn
                 trailX = (right - left) - inn - slotT
             }
@@ -87,10 +93,10 @@ class Geometry(
     fun expanded(bodyH: Float, maxW: Float): Exp {
         val w = min(sw - 2 * margin, maxW)
         val left = (cx - w / 2).coerceIn(margin, sw - margin - w)
-        val bottom = pillBottom + 4 * d + bodyH + 16 * d
+        val bottom = pillBottom + 4 * d + bodyH + 22 * d
         val r = RectF(left, pillTop, left + w, bottom)
         val gap = 8 * d
-        val side18 = 18 * d
+        val side18 = SIDE * d
         val leadStart: Float
         val trailEnd: Float
         val leadMax: Float
@@ -109,7 +115,7 @@ class Geometry(
             }
         }
         return Exp(
-            r, min((bottom - pillTop) / 2, 42 * d), leadStart, trailEnd,
+            r, min((bottom - pillTop) / 2, 38 * d), leadStart, trailEnd,
             cy - pillTop, pillBottom - pillTop + 4 * d, bodyH, max(leadMax, 60 * d),
         )
     }

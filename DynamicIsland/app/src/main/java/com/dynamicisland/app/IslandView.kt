@@ -105,7 +105,7 @@ class IslandView(ctx: Context, private val ctl: IslandController) : FrameLayout(
         if (s.visible && alphaV < 0.03f) snap(s.origin)
         val cur = bounds()
         val grow = s.rect.width() * s.rect.height() > cur.width() * cur.height()
-        zeta = if (grow) 0.60f else 0.80f
+        zeta = if (grow) 0.74f else 0.90f
         sl.target = s.rect.left; st.target = s.rect.top
         sr.target = s.rect.right; sb.target = s.rect.bottom
         rad.target = s.radius
@@ -160,20 +160,10 @@ class IslandView(ctx: Context, private val ctl: IslandController) : FrameLayout(
         val h = ceil(s.rect.height()).toInt()
         addView(v, LayoutParams(w, h))
         v.pivotX = w / 2f; v.pivotY = min(h / 2f, 70 * d)
-        v.alpha = 0f; v.scaleX = 0.85f; v.scaleY = 0.85f
+        v.alpha = 0f; v.scaleX = 0.92f; v.scaleY = 0.92f
         v.animate().alpha(1f).scaleX(1f).scaleY(1f)
-            .setStartDelay(100).setDuration(280)
+            .setStartDelay(130).setDuration(240)
             .setInterpolator(DecelerateInterpolator(1.6f)).start()
-        if (Build.VERSION.SDK_INT >= 31) {
-            ValueAnimator.ofFloat(18f, 0f).apply {
-                startDelay = 100; duration = 300
-                addUpdateListener {
-                    val b = it.animatedValue as Float
-                    v.setRenderEffect(if (b < 0.6f) null else RenderEffect.createBlurEffect(b, b, Shader.TileMode.CLAMP))
-                }
-                start()
-            }
-        }
         val l = Layer(v, RectF(s.rect))
         layers.add(l); layer = l; layerKey = s.key
     }
@@ -194,12 +184,12 @@ class IslandView(ctx: Context, private val ctl: IslandController) : FrameLayout(
         override fun doFrame(ns: Long) {
             val dt = if (last == 0L) 1f / 60f else ((ns - last) / 1e9f).coerceIn(0.001f, 0.05f)
             last = ns
-            sl.step(dt, 0.40f, zeta); sr.step(dt, 0.40f, zeta)
-            st.step(dt, 0.44f, zeta); sb.step(dt, 0.50f, zeta)
-            rad.step(dt, 0.38f, 0.85f)
-            bl.step(dt, 0.42f, 0.62f); br.step(dt, 0.42f, 0.62f)
-            bt.step(dt, 0.42f, 0.62f); bb.step(dt, 0.42f, 0.62f)
-            press.step(dt, 0.28f, 0.55f)
+            sl.step(dt, 0.42f, zeta); sr.step(dt, 0.42f, zeta)
+            st.step(dt, 0.42f, zeta); sb.step(dt, 0.42f, zeta)
+            rad.snap(rad.target)
+            bl.step(dt, 0.40f, 0.70f); br.step(dt, 0.40f, 0.70f)
+            bt.step(dt, 0.40f, 0.70f); bb.step(dt, 0.40f, 0.70f)
+            press.step(dt, 0.26f, 0.62f)
             alphaV += (alphaT - alphaV) * min(1f, dt * 16f)
             if (abs(alphaT - alphaV) < 0.01f) alphaV = alphaT
             bAlpha += (bTarget - bAlpha) * min(1f, dt * 14f)
@@ -224,7 +214,7 @@ class IslandView(ctx: Context, private val ctl: IslandController) : FrameLayout(
             val l = sl.v - loc[0]; val t = st.v - loc[1]
             val r = max(sr.v - loc[0], l + 2f); val b = max(sb.v - loc[1], t + 2f)
             rf.set(l, t, r, b)
-            val rr = min(max(rad.v, 0f), min(rf.width(), rf.height()) / 2)
+            val rr = min(max(rad.target, 0f), min(rf.width(), rf.height()) / 2)
             path.rewind(); path.addRoundRect(rf, rr, rr, Path.Direction.CW)
             paint.alpha = (255 * alphaV).toInt()
             c.drawPath(path, paint)
