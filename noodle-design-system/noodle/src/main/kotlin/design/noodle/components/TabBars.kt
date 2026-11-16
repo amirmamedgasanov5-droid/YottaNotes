@@ -64,18 +64,15 @@ class NoodleTabItem(
     val badge: Int? = null,
 )
 
-/** Движущаяся «нить»: индикатор активной вкладки — тонкая волна, которая скользит пружиной. */
+/** Нить-индикатор активной вкладки: в покое — прямая, при переходе — волнится и успокаивается. */
 @Composable
-private fun ThreadIndicator(modifier: Modifier = Modifier, color: Color) {
-    val t = rememberInfiniteTransition(label = "thread")
-    val phase by t.animateFloat(
-        initialValue = 0f,
-        targetValue = (2 * PI).toFloat(),
-        animationSpec = infiniteRepeatable(tween(2200, easing = LinearEasing)),
-        label = "phase",
-    )
-    Canvas(modifier.width(22.dp).height(6.dp)) {
-        squiggle(color, 1.8.dp.toPx(), 1.8.dp.toPx(), 11.dp.toPx(), -phase, x0 = 1.dp.toPx(), x1 = size.width - 1.dp.toPx())
+private fun ThreadIndicator(modifier: Modifier = Modifier, color: Color, amp: Float) {
+    val phase by rememberThreadPhase(1500)
+    Canvas(modifier.width(24.dp).height(10.dp)) {
+        squiggle(
+            color, 1.8.dp.toPx(), amp * 3.4.dp.toPx(), 12.dp.toPx(), -phase,
+            y = size.height / 2f, x0 = 2.dp.toPx(), x1 = size.width - 2.dp.toPx(),
+        )
     }
 }
 
@@ -112,9 +109,10 @@ fun NoodleFloatingTabBar(
             val x by androidx.compose.animation.core.animateDpAsState(
                 tabW * selectedIndex + (tabW - 22.dp) / 2, spring(dampingRatio = 0.62f, stiffness = 420f), label = "threadX",
             )
+            val pulse by rememberPulse(selectedIndex)
             ThreadIndicator(
-                Modifier.align(Alignment.BottomStart).offset { IntOffset(x.roundToPx(), -4.dp.roundToPx()) },
-                colors.primary,
+                Modifier.align(Alignment.BottomStart).offset { IntOffset(x.roundToPx(), -3.dp.roundToPx()) },
+                colors.primary, pulse,
             )
             Row(Modifier.fillMaxSize()) {
                 items.forEachIndexed { i, item ->
@@ -195,7 +193,8 @@ fun NoodleTabBar(
             val x by androidx.compose.animation.core.animateDpAsState(
                 tabW * selectedIndex + (tabW - 22.dp) / 2, spring(dampingRatio = 0.62f, stiffness = 420f), label = "threadX",
             )
-            ThreadIndicator(Modifier.align(Alignment.TopStart).offset { IntOffset(x.roundToPx(), 0) }, colors.primary)
+            val pulse by rememberPulse(selectedIndex)
+            ThreadIndicator(Modifier.align(Alignment.TopStart).offset { IntOffset(x.roundToPx(), 0) }, colors.primary, pulse)
             Row(Modifier.fillMaxSize()) {
                 items.forEachIndexed { i, item ->
                     Box(
@@ -225,13 +224,8 @@ fun NoodleScrollableTabs(
     val target = bounds[selectedIndex]
     val x by animateFloatAsState(target?.first ?: 0f, spring(dampingRatio = 0.8f, stiffness = 500f), label = "underlineX")
     val w by animateFloatAsState(target?.second ?: 0f, spring(dampingRatio = 0.8f, stiffness = 500f), label = "underlineW")
-    val t = rememberInfiniteTransition(label = "tabThread")
-    val phase by t.animateFloat(
-        initialValue = 0f,
-        targetValue = (2 * PI).toFloat(),
-        animationSpec = infiniteRepeatable(tween(2200, easing = LinearEasing)),
-        label = "phase",
-    )
+    val phase by rememberThreadPhase(1500)
+    val pulse by rememberPulse(selectedIndex)
 
     Box(
         modifier
@@ -242,8 +236,8 @@ fun NoodleScrollableTabs(
                     squiggle(
                         color = colors.primary,
                         stroke = 1.8.dp.toPx(),
-                        amplitude = 1.6.dp.toPx(),
-                        wavelength = 10.dp.toPx(),
+                        amplitude = pulse * 3.dp.toPx(),
+                        wavelength = 12.dp.toPx(),
                         phase = -phase,
                         y = size.height - 4.dp.toPx(),
                         x0 = x + 14.dp.toPx(),

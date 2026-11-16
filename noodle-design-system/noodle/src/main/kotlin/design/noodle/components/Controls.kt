@@ -174,7 +174,10 @@ fun NoodleSegmentedControl(
     }
 }
 
-/** Слайдер: толстая чернильная дорожка, заливка цветом, бегунок с жёсткой тенью. */
+/**
+ * Слайдер-нить: в покое — тонкая прямая линия с бусиной, при перетаскивании
+ * пройденная часть оживает волной, а отпустили — пружиной выпрямляется.
+ */
 @Composable
 fun NoodleSlider(
     value: Float,
@@ -186,12 +189,14 @@ fun NoodleSlider(
 ) {
     val colors = NoodleTheme.colors
     val haptics = rememberNoodleHaptics()
-    val thumbPx = with(LocalDensity.current) { 28.dp.toPx() }
+    val thumbPx = with(LocalDensity.current) { 20.dp.toPx() }
     var width by remember { mutableIntStateOf(0) }
     var dragging by remember { mutableStateOf(false) }
     val span = valueRange.endInclusive - valueRange.start
     val fraction = ((value - valueRange.start) / span).coerceIn(0f, 1f)
-    val lift by animateFloatAsState(if (dragging) 1f else 0f, spring(0.5f, 700f), label = "lift")
+    val amp = remember { Animatable(0f) }
+    LaunchedEffect(dragging) { amp.animateTo(if (dragging) 1f else 0f, spring(dampingRatio = 0.4f, stiffness = 120f)) }
+    val phase by rememberThreadPhase(1300)
     val currentOnChange by rememberUpdatedState(onValueChange)
     val lastStep = remember { mutableIntStateOf(-1) }
 
@@ -211,10 +216,10 @@ fun NoodleSlider(
         currentOnChange(v)
     }
 
-    Box(
+    Canvas(
         modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(44.dp)
             .graphicsLayer { alpha = if (enabled) 1f else 0.45f }
             .onSizeChanged { width = it.width }
             .pointerInput(enabled, steps) { if (enabled) detectTapGestures { emit(it.x) } }
@@ -227,23 +232,19 @@ fun NoodleSlider(
                 ) { change, _ -> change.consume(); emit(change.position.x) }
             },
     ) {
-        val density = LocalDensity.current
-        val fillDp = with(density) { (thumbPx / 2f + fraction * (width - thumbPx)).toDp() }
-        Box(Modifier.align(Alignment.CenterStart).fillMaxWidth().height(4.dp).clip(NoodleShapes.Capsule).background(colors.fillSecondary)) {
-            Box(Modifier.fillMaxHeight().width(fillDp).background(colors.label))
-        }
-        Box(
-            Modifier
-                .align(Alignment.CenterStart)
-                .offset { IntOffset((fraction * (width - thumbPx)).roundToInt(), 0) }
-                .size(28.dp)
-                .graphicsLayer {
-                    scaleX = 1f + 0.12f * lift
-                    scaleY = 1f + 0.12f * lift
-                }
-                .shadow(4.dp, CircleShape, ambientColor = Color.Black.copy(0.25f), spotColor = Color.Black.copy(0.25f))
-                .ink(CircleShape, colors.controlThumb, border = 1.dp, outline = colors.outline),
-        )
+        val cy = size.height / 2f
+        val r = thumbPx / 2f
+        val x = r + fraction * (size.width - thumbPx)
+        val sw = 2.dp.toPx()
+        val wl = 16.dp.toPx()
+        val a = amp.value * 5.dp.toPx()
+        val x0 = sw
+        drawLine(colors.fill, Offset(x, cy), Offset(size.width - sw, cy), sw, StrokeCap.Round)
+        squiggle(colors.label, sw, a, wl, -phase, y = cy, x0 = x0, x1 = x)
+        val ty = cy + a * kotlin.math.sin(((x - x0) / wl) * 2f * Math.PI.toFloat() - phase)
+        val grow = 1f + 0.22f * amp.value.coerceIn(0f, 1f)
+        drawCircle(colors.label, r * grow, Offset(x, ty))
+        drawCircle(colors.background, r * 0.34f * grow, Offset(x, ty))
     }
 }
 

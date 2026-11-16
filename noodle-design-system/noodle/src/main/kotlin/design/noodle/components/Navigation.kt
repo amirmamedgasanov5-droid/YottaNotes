@@ -52,13 +52,26 @@ fun NoodleNavigationBar(
     trailing: @Composable RowScope.() -> Unit = {},
 ) {
     val colors = NoodleTheme.colors
+    val phase by rememberThreadPhase(2600)
     Box(
         modifier
             .fillMaxWidth()
             .drawBehind {
                 drawRect(colors.background.copy(alpha = 0.96f * backgroundAlpha))
-                val h = 1.dp.toPx()
-                drawRect(colors.separator.copy(alpha = backgroundAlpha), Offset(0f, size.height - h), Size(size.width, h))
+                // «Натяжение»: наверху страницы нить живая и волнистая, при прокрутке — натягивается в линию.
+                val slack = 1f - backgroundAlpha
+                val amp = slack * 2.6.dp.toPx()
+                val color = androidx.compose.ui.graphics.lerp(colors.primary.copy(alpha = 0.8f), colors.separator, backgroundAlpha)
+                squiggle(
+                    color = color,
+                    stroke = (1.3f - 0.3f * backgroundAlpha).dp.toPx(),
+                    amplitude = amp,
+                    wavelength = 26.dp.toPx(),
+                    phase = -phase,
+                    y = size.height - 2.dp.toPx() - amp,
+                    x0 = 20.dp.toPx() * slack,
+                    x1 = size.width - 20.dp.toPx() * slack,
+                )
             }
             .statusBarsPadding()
             .height(44.dp)

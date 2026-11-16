@@ -262,7 +262,7 @@ fun NoodleSwipeToDelete(
 @Composable
 fun NoodleSectionTitle(text: String, modifier: Modifier = Modifier, action: String? = null, onAction: () -> Unit = {}) {
     Row(modifier.fillMaxWidth().padding(horizontal = 20.dp), verticalAlignment = Alignment.Bottom) {
-        NoodleText(text, Modifier.weight(1f), style = NoodleTheme.typography.title3)
+        NoodleText(text, Modifier.weight(1f), style = NoodleTheme.typography.title2)
         if (action != null) {
             NoodleTextButton(action, onAction)
         }

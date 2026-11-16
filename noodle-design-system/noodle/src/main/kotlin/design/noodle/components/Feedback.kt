@@ -100,18 +100,25 @@ fun NoodleSpinner(
     }
 }
 
-/** Линейный прогресс: тонкая дорожка. */
+/** Линейный прогресс-нить: пока значение меняется — волнится, на месте — ровная линия. */
 @Composable
 fun NoodleProgressBar(
     progress: Float,
     modifier: Modifier = Modifier,
-    height: Dp = 4.dp,
+    height: Dp = 14.dp,
     brush: Brush = NoodleTheme.colors.gradient,
 ) {
     val colors = NoodleTheme.colors
-    val p by animateFloatAsState(progress.coerceIn(0f, 1f), spring(0.8f, 200f), label = "bar")
-    Box(modifier.fillMaxWidth().height(height).clip(NoodleShapes.Capsule).background(colors.fillSecondary)) {
-        Box(Modifier.fillMaxHeight().fillMaxWidth(p.coerceAtLeast(0.001f)).clip(NoodleShapes.Capsule).background(brush))
+    val target = progress.coerceIn(0f, 1f)
+    val p by animateFloatAsState(target, spring(0.75f, 90f), label = "bar")
+    val phase by rememberThreadPhase(1100)
+    Canvas(modifier.fillMaxWidth().height(height)) {
+        val cy = size.height / 2f
+        val sw = 2.4.dp.toPx()
+        val x = sw + (size.width - sw * 2f) * p
+        drawLine(colors.fill, Offset(x, cy), Offset(size.width - sw, cy), sw, StrokeCap.Round)
+        val a = (kotlin.math.abs(target - p) * 40f).coerceAtMost(1f) * 3.dp.toPx()
+        if (p > 0.001f) squiggle(colors.primary, sw, a, 14.dp.toPx(), -phase, y = cy, x0 = sw, x1 = x)
     }
 }
 
