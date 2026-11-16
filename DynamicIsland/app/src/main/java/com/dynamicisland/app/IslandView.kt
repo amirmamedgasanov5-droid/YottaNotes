@@ -44,6 +44,12 @@ class Spec(
 class IslandView(ctx: Context, private val ctl: IslandController) : FrameLayout(ctx) {
     private val d = ctx.resources.displayMetrics.density
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK }
+    private val rimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = d * 1.1f }
+    private fun rim(c: Canvas, p: Path, a: Float) {
+        if (!ctl.prefs.outline) return
+        rimPaint.color = Color.argb((46 * a).toInt(), 255, 255, 255)
+        c.drawPath(p, rimPaint)
+    }
 
     // Четыре края + радиус — каждый на своей пружине: форма «желейно» деформируется как в iOS.
     private val sl = Spring(); private val st = Spring(); private val sr = Spring(); private val sb = Spring()
@@ -215,9 +221,10 @@ class IslandView(ctx: Context, private val ctl: IslandController) : FrameLayout(
             val r = max(sr.v - loc[0], l + 2f); val b = max(sb.v - loc[1], t + 2f)
             rf.set(l, t, r, b)
             val rr = min(max(rad.target, 0f), min(rf.width(), rf.height()) / 2)
-            path.rewind(); path.addRoundRect(rf, rr, rr, Path.Direction.CW)
+            path.smoothRoundRect(rf.left, rf.top, rf.right, rf.bottom, rr)
             paint.alpha = (255 * alphaV).toInt()
             c.drawPath(path, paint)
+            rim(c, path, alphaV)
             for (ly in layers) {
                 ly.view.translationX = ly.rect.left - loc[0]
                 ly.view.translationY = ly.rect.top - loc[1]
@@ -231,9 +238,10 @@ class IslandView(ctx: Context, private val ctl: IslandController) : FrameLayout(
             val r = max(br.v - loc[0], l + 2f); val b = max(bb.v - loc[1], t + 2f)
             brf.set(l, t, r, b)
             val rr = min(brf.width(), brf.height()) / 2
-            bpath.rewind(); bpath.addRoundRect(brf, rr, rr, Path.Direction.CW)
+            bpath.smoothRoundRect(brf.left, brf.top, brf.right, brf.bottom, rr)
             paint.alpha = (255 * bAlpha).toInt()
             c.drawPath(bpath, paint)
+            rim(c, bpath, bAlpha)
             val ic = bIcon
             if (ic != null) {
                 c.save(); c.clipPath(bpath)

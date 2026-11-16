@@ -93,7 +93,9 @@ class MainActivity : Activity() {
         val on = prefs.enabled && canRun()
         mainBtn.text = if (on) "Выключить Dynamic Island" else "Включить Dynamic Island"
         mainBtn.background = GradientDrawable().apply { setColor(if (on) 0xFF3A3A3C.toInt() else blue); cornerRadius = dp(18f) }
-        camText.text = IslandBus.controller?.describe() ?: phone.describe()
+        camText.text = (IslandBus.controller?.describe() ?: phone.describe()) + "\n" +
+            if (hasA11y()) "Режим: специальные возможности ✓ (нажатия работают)"
+            else "⚠ Режим: только оверлей — нажатия на остров могут не работать. Включите «Специальные возможности»."
     }
 
     private fun startIsland() {
@@ -278,6 +280,7 @@ class MainActivity : Activity() {
         switchRow(st, "Звук, наушники, разблокировка", prefs.system) { prefs.system = it }
         switchRow(st, "Зарядка и низкий заряд", prefs.charging) { prefs.charging = it }
         switchRow(st, "Вибро-отклик", prefs.haptics) { prefs.haptics = it }
+        switchRow(st, "Тонкий контур (видно на чёрном фоне)", prefs.outline) { prefs.outline = it }
         switchRow(st, "Всегда показывать капсулу", prefs.idleAlways) { prefs.idleAlways = it; settingsChanged(false) }
         root.addView(st)
 

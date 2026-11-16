@@ -43,7 +43,7 @@ class NotifListener : NotificationListenerService() {
             try { n.smallIcon?.loadDrawable(this) } catch (_: Exception) { null }
         }
         val avatar: Drawable? = try { n.getLargeIcon()?.loadDrawable(this) } catch (_: Exception) { null }
-        val open: (() -> Unit)? = n.contentIntent?.let { pi -> { send(pi) } }
+        val open: (() -> Unit)? = { Launch.send(applicationContext, n.contentIntent, sbn.packageName) }
 
         // ---- звонки
         val callType = ex.getInt("android.callType", 0) // 1 входящий, 2 исходящий/идёт, 3 скрининг
@@ -54,7 +54,7 @@ class NotifListener : NotificationListenerService() {
             val declineRe = Regex("decl|reject|hang|end|dismiss|отклон|сброс|заверш|откл", RegexOption.IGNORE_CASE)
             val decline = acts.firstOrNull { declineRe.containsMatchIn(it.title) } ?: if (acts.size > 1) acts.first() else null
             val answer = acts.firstOrNull { it !== decline }
-            fun act(a: Notification.Action?) = a?.let { x -> Act(x.title) { send(x.actionIntent) } }
+            fun act(a: Notification.Action?) = a?.let { x -> Act(x.title) { Launch.send(applicationContext, x.actionIntent, null) } }
             val item = CallItem(sbn.key, title.ifEmpty { appName }, appIcon, avatar, ringing,
                 if (n.`when` > 0) n.`when` else System.currentTimeMillis(), act(answer), act(decline), open)
             IslandBus.post { setLive(item) }
@@ -64,7 +64,7 @@ class NotifListener : NotificationListenerService() {
         // ---- будильник
         if (n.category == Notification.CATEGORY_ALARM) {
             val acts = (n.actions ?: emptyArray()).filter { it?.actionIntent != null }.take(2)
-                .map { x -> Act(x.title) { send(x.actionIntent) } }
+                .map { x -> Act(x.title) { Launch.send(applicationContext, x.actionIntent, null) } }
             val item = AlertItem(sbn.key, title.ifEmpty { appName }, text, appIcon, acts, open)
             IslandBus.post { setLive(item) }
             return
@@ -75,7 +75,7 @@ class NotifListener : NotificationListenerService() {
             val whenMs = if (n.`when` > 0) n.`when` else System.currentTimeMillis()
             val base = android.os.SystemClock.elapsedRealtime() + (whenMs - System.currentTimeMillis())
             val acts = (n.actions ?: emptyArray()).filter { it?.actionIntent != null }.take(2)
-                .map { x -> Act(x.title) { send(x.actionIntent) } }
+                .map { x -> Act(x.title) { Launch.send(applicationContext, x.actionIntent, null) } }
             val item = LiveItem(sbn.key, appName, title.ifEmpty { appName }, text, appIcon, base,
                 ex.getBoolean("android.chronometerCountDown", false), acts, open)
             IslandBus.post { setLive(item) }

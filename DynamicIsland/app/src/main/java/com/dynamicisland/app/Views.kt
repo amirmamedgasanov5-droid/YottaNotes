@@ -257,7 +257,7 @@ fun pillButton(ctx: Context, label: String, bg: Int, ic: Int, onClick: () -> Uni
 class NotifView(ctx: Context, e: Exp, n: NotifItem) : FrameLayout(ctx), Bindable {
     init {
         val lead = row(ctx, roundImg(ctx, n.appIcon, 18f, 5f), tv(ctx, n.app, 12f, SEC, true).apply {
-            setPadding(ctx.dpi(6f), 0, 0, 0); maxWidth = e.leadMax.toInt()
+            setPadding(ctx.dpi(6f), 0, 0, 0); maxWidth = (e.leadMax - ctx.dp(30f)).toInt().coerceAtLeast(ctx.dpi(40f))
         })
         val trail = row(ctx, tv(ctx, "сейчас", 12f, SEC))
         val col = LinearLayout(ctx).apply {
@@ -332,7 +332,7 @@ class MediaExpandedView(ctx: Context, e: Exp, private var m: MediaItem) : FrameL
     }
 
     init {
-        val lead = row(ctx, tv(ctx, m.app, 12f, SEC, true).apply { maxWidth = e.leadMax.toInt() })
+        val lead = row(ctx, tv(ctx, m.app, 12f, SEC, true).apply { maxWidth = (e.leadMax - ctx.dp(30f)).toInt().coerceAtLeast(ctx.dpi(40f)) })
         val trail = row(ctx, eq.apply { layoutParams = LinearLayout.LayoutParams(ctx.dpi(22f), ctx.dpi(18f)) })
 
         val info = LinearLayout(ctx).apply {
@@ -401,7 +401,7 @@ class MediaExpandedView(ctx: Context, e: Exp, private var m: MediaItem) : FrameL
 
 class CallCompactView(ctx: Context, c: Compact, private var call: CallItem) : FrameLayout(ctx), Bindable {
     init {
-        val lead = icon(ctx, R.drawable.ic_call, GREEN, 18f).apply { layoutParams = null }
+        val lead = icon(ctx, R.drawable.ic_call, GREEN, 18f)
         val chrono = Chronometer(ctx).apply {
             setTextColor(GREEN); setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
             typeface = Typeface.create(Typeface.create("sans-serif", Typeface.NORMAL), 600, false)
@@ -417,8 +417,8 @@ class CallCompactView(ctx: Context, c: Compact, private var call: CallItem) : Fr
 class CallExpandedView(ctx: Context, e: Exp, private var call: CallItem) : FrameLayout(ctx), Bindable {
     init {
         val lead = row(ctx, icon(ctx, R.drawable.ic_call, GREEN, 16f),
-            tv(ctx, if (call.ringing) "Входящий звонок" else "Разговор", 12f, SEC, true).apply {
-                setPadding(ctx.dpi(5f), 0, 0, 0); maxWidth = e.leadMax.toInt()
+            tv(ctx, if (call.ringing) "Телефон" else "Разговор", 12f, SEC, true).apply {
+                setPadding(ctx.dpi(5f), 0, 0, 0); maxWidth = (e.leadMax - ctx.dp(30f)).toInt().coerceAtLeast(ctx.dpi(40f))
             })
         val trail = row(ctx, EqualizerView(ctx, GREEN).apply { layoutParams = LinearLayout.LayoutParams(ctx.dpi(22f), ctx.dpi(18f)) })
         val sub: View = if (call.ringing) tv(ctx, "Мобильный", 14f, SEC) else Chronometer(ctx).apply {
@@ -559,7 +559,7 @@ class LiveExpandedView(ctx: Context, e: Exp, item: LiveItem) : FrameLayout(ctx),
     init {
         val orange = 0xFFFF9F0A.toInt()
         val lead = row(ctx, roundImg(ctx, item.appIcon, 18f, 5f, orange, R.drawable.ic_timer),
-            tv(ctx, item.app, 12f, SEC, true).apply { setPadding(ctx.dpi(6f), 0, 0, 0); maxWidth = e.leadMax.toInt() })
+            tv(ctx, item.app, 12f, SEC, true).apply { setPadding(ctx.dpi(6f), 0, 0, 0); maxWidth = (e.leadMax - ctx.dp(30f)).toInt().coerceAtLeast(ctx.dpi(40f)) })
         val col = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_VERTICAL
             addView(tv(ctx, item.title, 16f, WHITE, true))
@@ -584,7 +584,7 @@ class AlertView(ctx: Context, e: Exp, item: AlertItem) : FrameLayout(ctx), Binda
     init {
         val orange = 0xFFFF9F0A.toInt()
         val lead = row(ctx, icon(ctx, R.drawable.ic_bell, orange, 16f),
-            tv(ctx, "Будильник", 12f, SEC, true).apply { setPadding(ctx.dpi(5f), 0, 0, 0); maxWidth = e.leadMax.toInt() })
+            tv(ctx, "Будильник", 12f, SEC, true).apply { setPadding(ctx.dpi(5f), 0, 0, 0); maxWidth = (e.leadMax - ctx.dp(30f)).toInt().coerceAtLeast(ctx.dpi(40f)) })
         val trail = row(ctx, EqualizerView(ctx, orange).apply { layoutParams = LinearLayout.LayoutParams(ctx.dpi(22f), ctx.dpi(18f)) })
         val body = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL

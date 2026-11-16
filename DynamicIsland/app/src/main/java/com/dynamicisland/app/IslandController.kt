@@ -49,7 +49,6 @@ class IslandController(
     private var cutout: RectF? = null
     private var screenW = 0
     private var geo: Geometry? = null
-    private var geoVer = 0
     private var landscape = false
     private var lastSpec: Spec? = null
     private var previewUntil = 0L
@@ -69,6 +68,7 @@ class IslandController(
     private var fullShown = true
     private var chargeInit = false
 
+    private val sb = SpecBuilder(ctx, d)
     private val mediaWatcher = MediaWatcher(ctx) { m -> onMedia(m) }
 
     private val dismissR = Runnable { dismissCurrent() }
@@ -139,7 +139,7 @@ class IslandController(
 
     fun onConfig() {
         landscape = ctx.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        geo = buildGeo(); geoVer++
+        geo = buildGeo(); sb.geoVer++
         render()
     }
 
@@ -150,7 +150,7 @@ class IslandController(
     private fun onCutout(r: RectF?, w: Int) {
         if (r == cutout && w == screenW) return
         cutout = r; screenW = w
-        h.post { geo = buildGeo(); geoVer++; render() }
+        h.post { geo = buildGeo(); sb.geoVer++; render() }
     }
 
     private fun buildGeo(): Geometry? {
@@ -196,7 +196,7 @@ class IslandController(
     }
 
     fun onSettingsChanged(preview: Boolean) {
-        geo = buildGeo(); geoVer++
+        geo = buildGeo(); sb.geoVer++
         if (preview) {
             previewUntil = SystemClock.uptimeMillis() + 2500
             h.removeCallbacks(renderR); h.postDelayed(renderR, 2600)
@@ -224,7 +224,7 @@ class IslandController(
                 prefs.posMode = 4
                 prefs.offX = 0; prefs.offY = 0
             }
-            geo = buildGeo(); geoVer++
+            geo = buildGeo(); sb.geoVer++
             previewUntil = SystemClock.uptimeMillis() + 2500
             h.removeCallbacks(renderR); h.postDelayed(renderR, 2600)
             render()
@@ -387,10 +387,6 @@ class IslandController(
         val c = current
         if (c != null) { if (c is NotifItem) openItem(c); dismissCurrent(); return }
         val p = primary() ?: return
-        if ((p is MediaItem && p.open == null) || (p is LiveItem && p.open == null)) {
-            if (!p.urgent) { expandedId = if (expandedId == p.id) null else p.id; buzz(); render(); armTimers() }
-            return
-        }
         openItem(p)
         if (!p.urgent && expandedId == p.id) { expandedId = null; render(); armTimers() }
     }
@@ -438,106 +434,14 @@ class IslandController(
         val tablet = ctx.resources.configuration.smallestScreenWidthDp >= 600
         val hideLand = landscape && !tablet && !(prefs.posMode == 4 && prefs.cal(true) != null)
         val spec = when {
-            !prefs.enabled || calView != null || hideLand -> hiddenSpec(g)
-            cur != null -> transientSpec(g, cur)
-            p != null && (p.urgent || expandedId == p.id) -> expandedSpec(g, p)
-            p != null -> compactSpec(g, p, list.firstOrNull { it !== p })
-            prefs.idleAlways || SystemClock.uptimeMillis() < previewUntil -> idleSpec(g)
-            else -> hiddenSpec(g)
+            !prefs.enabled || calView != null || hideLand -> sb.hidden(g)
+            cur != null -> sb.transient(g, cur)
+            p != null && (p.urgent || expandedId == p.id) -> sb.expanded(g, p)
+            p != null -> sb.compact(g, p, list.firstOrNull { it !== p })
+            prefs.idleAlways || SystemClock.uptimeMillis() < previewUntil -> sb.idle(g)
+            else -> sb.hidden(g)
         }
         present(spec)
-    }
-
-    private fun hiddenSpec(g: Geometry) = Spec("hidden", g.camRect(), g.camRadius(), false, g.camRect(), false)
-
-    private fun idleSpec(g: Geometry): Spec {
-        val r = g.idle()
-        return Spec("idle", r, g.pillRadius(r), true, g.camRect(), false)
-    }
-
-    private fun textW(s: String, sp: Float): Float {
-        val t = TextView(ctx).apply {
-            setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, sp)
-            typeface = android.graphics.Typeface.create(android.graphics.Typeface.create("sans-serif", android.graphics.Typeface.NORMAL), 600, false)
-            text = s
-        }
-        t.measure(0, 0)
-        return t.measuredWidth.toFloat()
-    }
-
-    private fun glyph(res: Int, color: Int): Drawable = ctx.getDrawable(res)!!.mutate().apply { setTint(color) }
-
-    private fun bubbleOf(g: Geometry, c: Compact, sec: Item?): Triple<RectF, Drawable?, Boolean>? {
-        sec ?: return null
-        val dia = if (g.attached) 34 * d else c.rect.height()
-        val gap = 8 * d
-        val cy = g.cy
-        val rightOk = g.sw - g.margin - c.rect.right >= dia + gap
-        val leftOk = c.rect.left - g.margin >= dia + gap
-        val toLeft = (g.side == Side.RIGHT && leftOk) || (!rightOk && leftOk)
-        if (!rightOk && !leftOk) return null
-        val x = if (toLeft) c.rect.left - gap - dia else c.rect.right + gap
-        val r = RectF(x, cy - dia / 2, x + dia, cy + dia / 2)
-        return when (sec) {
-            is MediaItem -> Triple(r, sec.art?.let { BitmapDrawable(ctx.resources, it) } ?: glyph(R.drawable.ic_music, sec.color), sec.art != null)
-            is CallItem -> Triple(r, glyph(R.drawable.ic_call, GREEN), false)
-            is LiveItem -> Triple(r, sec.appIcon?.constantState?.newDrawable()?.mutate() ?: glyph(R.drawable.ic_timer, 0xFFFF9F0A.toInt()), sec.appIcon != null)
-            is AlertItem -> Triple(r, glyph(R.drawable.ic_bell, 0xFFFF9F0A.toInt()), false)
-            else -> null
-        }
-    }
-
-    private fun compactSpec(g: Geometry, p: Item, sec: Item?): Spec {
-        val c = g.compact(24 * d, if (p is CallItem || p is LiveItem) 46 * d else 24 * d)
-        val b = bubbleOf(g, c, sec)
-        val bk = sec?.id
-        return when (p) {
-            is MediaItem -> Spec("media:c", c.rect, c.radius, true, g.camRect(), true,
-                { MediaCompactView(ctx, c, p) }, { (it as Bindable).bind(p) }, b?.first, b?.second, b?.third ?: false, bk)
-            is CallItem -> Spec("call:c:${p.id}", c.rect, c.radius, true, g.camRect(), true,
-                { CallCompactView(ctx, c, p) }, { (it as Bindable).bind(p) }, b?.first, b?.second, b?.third ?: false, bk)
-            is LiveItem -> Spec("live:c:${p.id}", c.rect, c.radius, true, g.camRect(), true,
-                { LiveCompactView(ctx, c, p) }, null, b?.first, b?.second, b?.third ?: false, bk)
-            else -> idleSpec(g)
-        }
-    }
-
-    private fun transientSpec(g: Geometry, p: Item): Spec = when (p) {
-        is NotifItem -> expandedSpec(g, p)
-        is ChargeItem -> {
-            val c = g.compact(34 * d, textW("${p.level}%", 14f) + 6 * d)
-            Spec("charge:${p.kind}:${p.level}", c.rect, c.radius, true, g.camRect(), true, { MiniView(ctx, c, p) })
-        }
-        is MiniItem -> {
-            val c = g.compact(26 * d, if (p.text.isEmpty()) 0f else textW(p.text, 14f) + 6 * d)
-            Spec("mini:${p.id}:${p.text}", c.rect, c.radius, true, g.camRect(), true, { MiniView(ctx, c, p) })
-        }
-        else -> expandedSpec(g, p)
-    }
-
-    private val expCache = HashMap<String, Pair<Int, Exp>>()
-
-    /** Раскрытый вид; высота считается по реальному содержимому, поэтому ничего не обрезается. */
-    private fun expandedSpec(g: Geometry, p: Item): Spec {
-        val maxW = 400 * d
-        val make: (Exp) -> FrameLayout
-        val key: String
-        when (p) {
-            is NotifItem -> { key = "n:${p.id}:${(p.title.toString() + p.text).hashCode()}"; make = { NotifView(ctx, it, p) } }
-            is MediaItem -> { key = "media:e"; make = { MediaExpandedView(ctx, it, p) } }
-            is CallItem -> { key = "call:e:${p.id}:${p.ringing}"; make = { CallExpandedView(ctx, it, p) } }
-            is LiveItem -> { key = "live:e:${p.id}"; make = { LiveExpandedView(ctx, it, p) } }
-            is AlertItem -> { key = "alert:${p.id}"; make = { AlertView(ctx, it, p) } }
-            else -> return idleSpec(g)
-        }
-        val cached = expCache[key]
-        val e: Exp = if (cached != null && cached.first == geoVer) cached.second else {
-            val e0 = g.expanded(0f, maxW)
-            val bh = max(make(e0).bodyHeight((e0.rect.width() - 2 * SIDE * d).toInt()).toFloat(), 40 * d)
-            g.expanded(bh, maxW).also { if (expCache.size > 20) expCache.clear(); expCache[key] = geoVer to it }
-        }
-        val upd: ((View) -> Unit)? = if (p is MediaItem) { v -> (v as Bindable).bind(p) } else null
-        return Spec(key, e.rect, e.radius, true, g.camRect(), true, { make(e) }, upd)
     }
 
     private var winRect: RectF? = null
@@ -622,7 +526,8 @@ class IslandController(
             "notif" -> showNotification(NotifItem(
                 "demo:" + SystemClock.uptimeMillis(), "Сообщения", appIcon,
                 letterAvatar(ctx, "А", 0xFF0A84FF.toInt()), "Алекс",
-                "Ты уже видел новый Dynamic Island? Выглядит огонь 🔥 Давай попробуем на твоём телефоне, там вообще всё очень плавно.", null))
+                "Ты уже видел новый Dynamic Island? Выглядит огонь 🔥 Давай попробуем на твоём телефоне, там вообще всё очень плавно.",
+                { Launch.send(ctx, null, ctx.packageName) }))
             "charge" -> enqueue(ChargeItem(batteryLevel().coerceIn(1, 100), 0))
             "low" -> enqueue(ChargeItem(14, 1))
             "ringer" -> enqueue(MiniItem("ringer", 0, "Без звука", orange, R.drawable.ic_bell, true))
@@ -649,6 +554,7 @@ class IslandController(
         }
         m.onToggle = { }
         m.onSeek = { }
+        m.open = { Launch.send(ctx, null, ctx.packageName) }
         onMedia(m)
         h.removeCallbacks(clearDemoMedia); h.postDelayed(clearDemoMedia, 60_000)
     }
