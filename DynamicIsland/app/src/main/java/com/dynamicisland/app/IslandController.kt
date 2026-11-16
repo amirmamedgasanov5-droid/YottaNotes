@@ -384,6 +384,7 @@ class IslandController(
 
     /** Нажатие: открыть приложение (раскрытое или свёрнутое — как на iPhone). */
     fun onTap() {
+        buzz()
         val c = current
         if (c != null) { if (c is NotifItem) openItem(c); dismissCurrent(); return }
         val p = primary() ?: return
@@ -456,13 +457,19 @@ class IslandController(
     }
 
     private fun present(s: Spec) {
+        val prev = lastSpec
         lastSpec = s
+        // геометрия не изменилась (например, обновилась только музыка) — окно не трогаем, чтобы ничего не мерцало
+        if (prev != null && islandAttached && prev.visible == s.visible && prev.rect == s.rect &&
+            prev.bubble == s.bubble && prev.touchable == s.touchable) {
+            island.present(s); return
+        }
         h.removeCallbacks(shrinkR)
         presentPending?.let { h.removeCallbacks(it) }
         val u = RectF(s.rect)
         s.bubble?.let { u.union(it) }
         if (islandAttached) { u.union(island.bounds()); island.bubbleBounds()?.let { u.union(it) } }
-        if (s.visible) u.union(s.origin)
+        if (s.visible && prev?.visible != true) u.union(s.origin)
         u.inset(-22 * d, -22 * d)
         val w = winRect
         val fits = islandAttached && w != null && w.left <= max(0f, u.left) + 1 && w.top <= max(0f, u.top) + 1 &&
@@ -527,7 +534,7 @@ class IslandController(
                 "demo:" + SystemClock.uptimeMillis(), "Сообщения", appIcon,
                 letterAvatar(ctx, "А", 0xFF0A84FF.toInt()), "Алекс",
                 "Ты уже видел новый Dynamic Island? Выглядит огонь 🔥 Давай попробуем на твоём телефоне, там вообще всё очень плавно.",
-                { Launch.send(ctx, null, ctx.packageName) }))
+                { android.widget.Toast.makeText(ctx, "Здесь откроется приложение, приславшее уведомление", android.widget.Toast.LENGTH_SHORT).show() }))
             "charge" -> enqueue(ChargeItem(batteryLevel().coerceIn(1, 100), 0))
             "low" -> enqueue(ChargeItem(14, 1))
             "ringer" -> enqueue(MiniItem("ringer", 0, "Без звука", orange, R.drawable.ic_bell, true))
@@ -554,7 +561,7 @@ class IslandController(
         }
         m.onToggle = { }
         m.onSeek = { }
-        m.open = { Launch.send(ctx, null, ctx.packageName) }
+        m.open = { android.widget.Toast.makeText(ctx, "Здесь откроется музыкальный плеер", android.widget.Toast.LENGTH_SHORT).show() }
         onMedia(m)
         h.removeCallbacks(clearDemoMedia); h.postDelayed(clearDemoMedia, 60_000)
     }

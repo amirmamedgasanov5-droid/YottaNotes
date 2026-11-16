@@ -231,7 +231,7 @@ fun FrameLayout.bodyHeight(widthPx: Int): Int {
 
 fun Compact.populate(f: FrameLayout, lead: View?, trail: View?) {
     val ctx = f.context
-    val h = ctx.dp(24f)
+    val h = ctx.dp(SLOT)
     lead?.let {
         f.addView(it, FrameLayout.LayoutParams(slotL.toInt(), h.toInt(), Gravity.TOP or Gravity.START).apply {
             leftMargin = leadX.toInt(); topMargin = (rowCy - h / 2).toInt()
@@ -300,18 +300,26 @@ class ChargeView(ctx: Context, e: Exp, c: ChargeItem) : FrameLayout(ctx), Bindab
 }
 
 class MediaCompactView(ctx: Context, c: Compact, private var m: MediaItem) : FrameLayout(ctx), Bindable {
-    private val art = roundImg(ctx, null, 24f, 7f)
+    private val art = roundImg(ctx, null, 22f, 6.5f)
     private val eq = EqualizerView(ctx, m.color)
     private val holder = FrameLayout(ctx)
     init {
         c.populate(this, holder.also { it.addView(art) }, eq)
         bind(m)
     }
+    private var shownArt: Bitmap? = null
+    private var shownColor = 0
+    private var built = false
+
     override fun bind(item: Item) {
         m = item as MediaItem
-        holder.removeAllViews()
-        holder.addView(roundImg(context, m.art?.let { BitmapDrawable(resources, it) }, 24f, 7f, m.color, R.drawable.ic_music))
-        eq.color = m.color; eq.active = m.playing
+        if (!built || shownArt !== m.art || shownColor != m.color) {
+            built = true; shownArt = m.art; shownColor = m.color
+            holder.removeAllViews()
+            holder.addView(roundImg(context, m.art?.let { BitmapDrawable(resources, it) }, 22f, 6.5f, m.color, R.drawable.ic_music))
+        }
+        if (eq.color != m.color) eq.color = m.color
+        if (eq.active != m.playing) eq.active = m.playing
     }
 }
 
@@ -388,13 +396,27 @@ class MediaExpandedView(ctx: Context, e: Exp, private var m: MediaItem) : FrameL
 
     override fun onAttachedToWindow() { super.onAttachedToWindow(); post(tick) }
 
+    private var shownArt: Bitmap? = null
+    private var shownColor = 0
+    private var built = false
+    private var shownPlaying: Boolean? = null
+
     override fun bind(item: Item) {
         m = item as MediaItem
-        title.text = m.title.ifEmpty { "Без названия" }; artist.text = m.artist
-        artHolder.removeAllViews()
-        artHolder.addView(roundImg(context, m.art?.let { BitmapDrawable(resources, it) }, 50f, 11f, m.color, R.drawable.ic_music))
-        eq.color = m.color; eq.active = m.playing
-        play.setImageResource(if (m.playing) R.drawable.ic_pause else R.drawable.ic_play)
+        val t = m.title.ifEmpty { "Без названия" }
+        if (title.text.toString() != t.toString()) title.text = t
+        if (artist.text.toString() != m.artist.toString()) artist.text = m.artist
+        if (!built || shownArt !== m.art || shownColor != m.color) {
+            built = true; shownArt = m.art; shownColor = m.color
+            artHolder.removeAllViews()
+            artHolder.addView(roundImg(context, m.art?.let { BitmapDrawable(resources, it) }, 50f, 11f, m.color, R.drawable.ic_music))
+        }
+        if (eq.color != m.color) eq.color = m.color
+        if (eq.active != m.playing) eq.active = m.playing
+        if (shownPlaying != m.playing) {
+            shownPlaying = m.playing
+            play.setImageResource(if (m.playing) R.drawable.ic_pause else R.drawable.ic_play)
+        }
         updateProgress()
     }
 }

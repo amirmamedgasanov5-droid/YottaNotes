@@ -7,6 +7,7 @@ import kotlin.math.min
 enum class Side { LEFT, CENTER, RIGHT }
 
 const val SIDE = 20f
+const val SLOT = 22f
 
 class Compact(
     val rect: RectF, val radius: Float,
@@ -43,11 +44,11 @@ class Geometry(
 
     private val camL = cam.left - pad
     private val camR = cam.right + pad
-    private val rawH = max(cam.height() + 2 * pad, 32 * d)
+    private val rawH = max(cam.height() + 2 * pad, 34 * d)
     // капсула строго по центру камеры; если камера у самого края — симметрично ужимаем высоту
     private val pillH = if (attached) rawH else min(rawH, 2 * (cy - 2 * d)).coerceAtLeast(max(cam.height(), 22 * d))
     val pillTop = if (attached) -44 * d else cy - pillH / 2
-    val pillBottom = if (attached) max(cam.bottom + pad, 34 * d) else pillTop + pillH
+    val pillBottom = if (attached) max(cam.bottom + pad, 36 * d) else pillTop + pillH
 
     fun camRect() = RectF(cam)
     fun camRadius() = min(cam.width(), cam.height()) / 2
@@ -58,8 +59,8 @@ class Geometry(
         if (attached) min((r.bottom - r.top) / 2, 18 * d) else (r.bottom - r.top) / 2
 
     fun compact(slotL: Float, slotT: Float): Compact {
-        val gap = 5 * d
-        val inn = 5 * d
+        val gap = 6 * d
+        val inn = 10 * d
         val left: Float
         val right: Float
         val leadX: Float

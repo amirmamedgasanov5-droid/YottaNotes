@@ -25,6 +25,7 @@ class MainActivity : Activity() {
     private lateinit var rowListener: PermRow
     private lateinit var rowPost: PermRow
     private lateinit var rowA11y: PermRow
+    private lateinit var rowBg: PermRow
     private val modeChips = ArrayList<TextView>()
     private val bg = 0xFF000000.toInt()
     private val card = 0xFF1C1C1E.toInt()
@@ -77,6 +78,17 @@ class MainActivity : Activity() {
         if (need.isNotEmpty()) requestPermissions(need.toTypedArray(), 1)
     }
 
+    private fun hasBg() = getSystemService(android.os.PowerManager::class.java).isIgnoringBatteryOptimizations(packageName)
+
+    private fun requestBg() {
+        try {
+            startActivity(Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:$packageName")))
+        } catch (_: Exception) {
+            startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
+        }
+        Toast.makeText(this, "Если есть пункт «Автозапуск» — тоже включите его", Toast.LENGTH_LONG).show()
+    }
+
     private fun hasA11y() = IslandAccessibility.instance != null ||
         (Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES) ?: "").contains(packageName)
 
@@ -89,7 +101,7 @@ class MainActivity : Activity() {
     private fun hasPost() = Build.VERSION.SDK_INT < 33 || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
 
     private fun refresh() {
-        rowOverlay.set(hasOverlay()); rowListener.set(hasListener()); rowPost.set(hasPost()); rowA11y.set(hasA11y())
+        rowOverlay.set(hasOverlay()); rowListener.set(hasListener()); rowPost.set(hasPost()); rowA11y.set(hasA11y()); rowBg.set(hasBg())
         val on = prefs.enabled && canRun()
         mainBtn.text = if (on) "Выключить Dynamic Island" else "Включить Dynamic Island"
         mainBtn.background = GradientDrawable().apply { setColor(if (on) 0xFF3A3A3C.toInt() else blue); cornerRadius = dp(18f) }
@@ -247,8 +259,10 @@ class MainActivity : Activity() {
         rowOverlay = PermRow("Поверх других окон", "Запасной вариант, если специальные возможности не включены (нажатия в зоне статус-бара могут не работать)") { openOverlaySettings() }
         rowListener = PermRow("Доступ к уведомлениям",
             "Сообщения, звонки и музыка. Если переключатель серый: Настройки → Приложения → Dynamic Island → ⋮ → «Разрешить ограниченные настройки»") { openListenerSettings() }
+        rowBg = PermRow("Работа после закрытия",
+            "Чтобы остров не выключался, когда вы смахнули приложение. Разрешите без ограничений батареи и включите «Автозапуск» (Realme, Xiaomi, Oppo)") { requestBg() }
         rowPost = PermRow("Уведомления и Bluetooth", "Значок службы и показ подключения наушников (Android 12–13+)") { requestRuntimePerms() }
-        addPermRow(perms, rowA11y, false); addPermRow(perms, rowOverlay, false); addPermRow(perms, rowListener, false); addPermRow(perms, rowPost, true)
+        addPermRow(perms, rowA11y, false); addPermRow(perms, rowOverlay, false); addPermRow(perms, rowListener, false); addPermRow(perms, rowBg, false); addPermRow(perms, rowPost, true)
         root.addView(perms)
 
         // --- демо

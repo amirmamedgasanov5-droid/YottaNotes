@@ -55,7 +55,7 @@ class SpecBuilder(private val ctx: Context, private val d: Float) {
     }
 
     fun compact(g: Geometry, p: Item, sec: Item?): Spec {
-        val c = g.compact(24 * d, if (p is CallItem || p is LiveItem) 46 * d else 24 * d)
+        val c = g.compact(SLOT * d, if (p is CallItem || p is LiveItem) 46 * d else SLOT * d)
         val b = bubbleOf(g, c, sec)
         val bk = sec?.id
         return when (p) {
