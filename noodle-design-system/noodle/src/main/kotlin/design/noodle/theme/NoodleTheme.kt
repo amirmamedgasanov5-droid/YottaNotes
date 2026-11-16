@@ -77,4 +77,6 @@ private fun animateNoodleColors(t: NoodleColors): NoodleColors = NoodleColors(
     glassBorder = c(t.glassBorder),
     scrim = c(t.scrim),
     shadow = c(t.shadow),
+    outline = c(t.outline),
+    hardShadow = c(t.hardShadow),
 )

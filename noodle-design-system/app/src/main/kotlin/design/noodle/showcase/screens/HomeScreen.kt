@@ -48,6 +48,8 @@ import design.noodle.components.NoodleText
 import design.noodle.components.NoodleToastTone
 import design.noodle.components.NoodleWaves
 import design.noodle.foundation.SquircleShape
+import design.noodle.foundation.ink
+import androidx.compose.ui.unit.sp
 import design.noodle.showcase.ShowcaseState
 import design.noodle.theme.NoodlePalette
 import design.noodle.theme.NoodleTheme
@@ -112,60 +114,54 @@ private fun Hero(onTry: () -> Unit, onToast: () -> Unit) {
     val colors = NoodleTheme.colors
     val type = NoodleTheme.typography
     val shape = SquircleShape(30.dp)
-    Box(
-        Modifier
-            .padding(horizontal = 16.dp)
-            .fillMaxWidth()
-            .clip(shape)
-            .background(colors.gradient),
-    ) {
-        NoodleWaves(Modifier.matchParentSize().padding(top = 70.dp), amplitude = 14.dp, strands = 5)
-        Column(Modifier.padding(22.dp)) {
-            NoodleLogo(diameter = 64.dp, onClick = onToast)
-            Spacer(Modifier.height(18.dp))
-            NoodleText("Noodle\nDesign System", style = type.title1.copy(fontWeight = FontWeight.ExtraBold), color = Color.White)
-            Spacer(Modifier.height(8.dp))
-            NoodleText(
-                "Тёплый, упругий, живой. Компоненты в духе Apple с собственным характером.",
-                style = type.callout,
-                color = Color.White.copy(alpha = 0.92f),
+    Box(Modifier.padding(start = 16.dp, end = 21.dp).fillMaxWidth().ink(shape, colors.primarySecondary, elevation = 6.dp, border = 2.5.dp)) {
+        Box(Modifier.matchParentSize().clip(shape)) {
+            NoodleWaves(
+                Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(84.dp),
+                color = colors.primary, amplitude = 9.dp, strands = 3, strokeWidth = 5.dp, alpha = 1f,
             )
-            Spacer(Modifier.height(20.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.clip(androidx.compose.foundation.shape.RoundedCornerShape(50)).background(Color.White)) {
-                    NoodleButton(
-                        "Смотреть",
-                        onClick = onTry,
-                        style = NoodleButtonStyle.Plain,
-                        size = NoodleButtonSize.Medium,
-                        icon = Icons.Rounded.PlayArrow,
-                    )
-                }
-                NoodleTag("40+ компонентов", color = Color.White)
+        }
+        Column(Modifier.padding(22.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                NoodleLogo(diameter = 60.dp, onClick = onToast)
+                Spacer(Modifier.width(14.dp))
+                NoodleTag("v1.0", color = Color.White)
             }
-            Spacer(Modifier.height(36.dp))
+            Spacer(Modifier.height(20.dp))
+            NoodleText("Noodle\nDesign\nSystem", style = type.largeTitle.copy(fontSize = 44.sp, lineHeight = 46.sp), color = colors.onPrimary)
+            Spacer(Modifier.height(10.dp))
+            NoodleText(
+                "Плоские цвета, жирные контуры и упругие кнопки, которые вдавливаются в тень.",
+                style = type.callout.copy(fontWeight = FontWeight.Bold),
+                color = colors.onPrimary,
+            )
+            Spacer(Modifier.height(22.dp))
+            NoodleButton("Смотреть компоненты", onClick = onTry, icon = Icons.Rounded.PlayArrow, modifier = Modifier.padding(end = 5.dp))
+            Spacer(Modifier.height(64.dp))
         }
     }
 }
 
-private class Swatch(val name: String, val a: Color, val b: Color)
+private class Swatch(val name: String, val color: Color)
 
 @Composable
 private fun Palette() {
     val swatches = listOf(
-        Swatch("Chili", NoodlePalette.Chili, NoodlePalette.Yolk),
-        Swatch("Naruto", NoodlePalette.Naruto, Color(0xFFFFAA6B)),
-        Swatch("Scallion", NoodlePalette.Scallion, Color(0xFFA6E36B)),
-        Swatch("Sky", NoodlePalette.Sky, Color(0xFF5ED6FF)),
-        Swatch("Plum", NoodlePalette.Plum, Color(0xFFFF8AD8)),
-        Swatch("Soy", NoodlePalette.Soy, Color(0xFF5A4034)),
+        Swatch("Chili", NoodlePalette.Chili),
+        Swatch("Yolk", NoodlePalette.Yolk),
+        Swatch("Mint", NoodlePalette.Mint),
+        Swatch("Sky", NoodlePalette.Sky),
+        Swatch("Bubble", NoodlePalette.Bubble),
+        Swatch("Grape", NoodlePalette.Grape),
+        Swatch("Ink", NoodlePalette.Ink),
     )
-    LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    LazyRow(contentPadding = PaddingValues(start = 16.dp, end = 21.dp, bottom = 6.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
         items(swatches) { s ->
-            NoodleCard(shape = SquircleShape(22.dp)) {
-                Column(Modifier.width(112.dp)) {
-                    Box(Modifier.fillMaxWidth().height(72.dp).background(Brush.linearGradient(listOf(s.b, s.a))))
-                    NoodleText(s.name, Modifier.padding(12.dp), style = NoodleTheme.typography.subhead.copy(fontWeight = FontWeight.SemiBold))
+            Column(Modifier.padding(end = 4.dp, bottom = 4.dp).ink(SquircleShape(20.dp), NoodleTheme.colors.surface, elevation = 4.dp)) {
+                Column(Modifier.clip(SquircleShape(18.dp))) {
+                    Box(Modifier.width(104.dp).height(76.dp).background(s.color))
+                    Box(Modifier.width(104.dp).height(2.dp).background(NoodleTheme.colors.outline))
+                    NoodleText(s.name, Modifier.padding(12.dp), style = NoodleTheme.typography.subhead.copy(fontWeight = FontWeight.Black))
                 }
             }
         }
@@ -189,7 +185,7 @@ private fun FeatureCarousel() {
         ) { page ->
             val (title, body, icon) = cards[page]
             NoodleCard(
-                Modifier.graphicsLayer {
+                Modifier.padding(bottom = 2.dp).graphicsLayer {
                     val off = ((pager.currentPage - page) + pager.currentPageOffsetFraction).absoluteValue.coerceIn(0f, 1f)
                     val s = lerp(1f, 0.92f, off)
                     scaleX = s
@@ -200,9 +196,9 @@ private fun FeatureCarousel() {
             ) {
                 Column(Modifier.fillMaxWidth().padding(20.dp)) {
                     Box(
-                        Modifier.size(44.dp).clip(SquircleShape(13.dp)).background(colors.gradient),
+                        Modifier.size(48.dp).ink(SquircleShape(15.dp), colors.primary, elevation = 3.dp),
                         contentAlignment = Alignment.Center,
-                    ) { design.noodle.components.NoodleIcon(icon, tint = Color.White, iconSize = 24.dp) }
+                    ) { design.noodle.components.NoodleIcon(icon, tint = colors.outline, iconSize = 26.dp) }
                     Spacer(Modifier.height(14.dp))
                     NoodleText(title, style = NoodleTheme.typography.title3)
                     Spacer(Modifier.height(4.dp))

@@ -4,28 +4,29 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
-/** Фирменные цвета Noodle — тёплые, «бульонные». */
+/** Палитра Noodle: плоские, насыщенные «уличные» цвета + чернила. */
 object NoodlePalette {
-    val Yolk = Color(0xFFFFB627)
-    val Chili = Color(0xFFFF5A2C)
-    val Scallion = Color(0xFF2FBF8F)
-    val Naruto = Color(0xFFFF4F8B)
-    val Sky = Color(0xFF3D8BFF)
-    val Plum = Color(0xFF8E5BFF)
-    val Soy = Color(0xFF1B1411)
-    val Cream = Color(0xFFF6F1E9)
+    val Ink = Color(0xFF1C1410)
+    val Paper = Color(0xFFFFF4DA)
+    val Yolk = Color(0xFFFFC62E)
+    val Chili = Color(0xFFFF5A36)
+    val Mint = Color(0xFF3DDBA4)
+    val Sky = Color(0xFF55B8FF)
+    val Bubble = Color(0xFFFF8AC4)
+    val Grape = Color(0xFFA78BFA)
+    val Soy = Color(0xFF1C1410)
 }
 
-/** Акцент: основной цвет + второй цвет градиента. */
+/** Акцент: основной цвет + второй (подсветка выбранного). */
 @Immutable
 class NoodleAccent(val name: String, val primary: Color, val secondary: Color) {
     companion object {
-        val Chili = NoodleAccent("Chili", Color(0xFFFF5A2C), Color(0xFFFFB627))
-        val Naruto = NoodleAccent("Naruto", Color(0xFFFF4F8B), Color(0xFFFFAA6B))
-        val Matcha = NoodleAccent("Matcha", Color(0xFF14A97A), Color(0xFFA6E36B))
-        val Ocean = NoodleAccent("Ocean", Color(0xFF2F7BFF), Color(0xFF5ED6FF))
-        val Plum = NoodleAccent("Plum", Color(0xFF8E5BFF), Color(0xFFFF8AD8))
-        val all = listOf(Chili, Naruto, Matcha, Ocean, Plum)
+        val Chili = NoodleAccent("Chili", Color(0xFFFF5A36), Color(0xFFFFC62E))
+        val Yolk = NoodleAccent("Yolk", Color(0xFFFFC62E), Color(0xFFFF8A5B))
+        val Mint = NoodleAccent("Mint", Color(0xFF3DDBA4), Color(0xFFFFE066))
+        val Sky = NoodleAccent("Sky", Color(0xFF55B8FF), Color(0xFFFFE066))
+        val Bubble = NoodleAccent("Bubble", Color(0xFFFF8AC4), Color(0xFFFFE066))
+        val all = listOf(Chili, Yolk, Mint, Sky, Bubble)
     }
 }
 
@@ -56,64 +57,72 @@ class NoodleColors(
     val glassBorder: Color,
     val scrim: Color,
     val shadow: Color,
+    /** Цвет чернильного контура. */
+    val outline: Color,
+    /** Цвет жёсткой смещённой тени. */
+    val hardShadow: Color,
 ) {
-    /** Фирменный градиент (вторичный → основной). */
-    val gradient: Brush = Brush.linearGradient(listOf(primarySecondary, primary))
-    val primaryContainer: Color get() = primary.copy(alpha = 0.14f)
+    /** Совместимость: «градиент» теперь плоский — стиль Noodle без градиентов. */
+    val gradient: Brush = Brush.linearGradient(listOf(primary, primary))
+    val primaryContainer: Color get() = primarySecondary
 }
 
 fun lightNoodleColors(accent: NoodleAccent = NoodleAccent.Chili) = NoodleColors(
     isDark = false,
-    background = Color(0xFFF6F1E9),
-    surface = Color(0xFFFFFFFF),
-    surfaceElevated = Color(0xFFFFFFFF),
-    label = Color(0xFF1E1713),
-    labelSecondary = Color(0x9E1E1713),
-    labelTertiary = Color(0x4D1E1713),
-    labelQuaternary = Color(0x2E1E1713),
-    separator = Color(0x261E1713),
-    fill = Color(0x331E1713),
-    fillSecondary = Color(0x291E1713),
-    fillTertiary = Color(0x1A1E1713),
+    background = Color(0xFFFFF4DA),
+    surface = Color(0xFFFFFCF3),
+    surfaceElevated = Color(0xFFFFFCF3),
+    label = Color(0xFF1C1410),
+    labelSecondary = Color(0xB31C1410),
+    labelTertiary = Color(0x661C1410),
+    labelQuaternary = Color(0x331C1410),
+    separator = Color(0xFF1C1410),
+    fill = Color(0xFFE6D5A8),
+    fillSecondary = Color(0xFFF0E2BC),
+    fillTertiary = Color(0xFFF7EBCB),
     controlThumb = Color(0xFFFFFFFF),
-    switchOff = Color(0x4D78707A),
+    switchOff = Color(0xFFE6D5A8),
     primary = accent.primary,
     primarySecondary = accent.secondary,
-    onPrimary = Color.White,
-    success = Color(0xFF2FBF8F),
-    warning = Color(0xFFFFB627),
-    danger = Color(0xFFFF3B30),
-    info = Color(0xFF3D8BFF),
-    glass = Color(0xE8FFFFFF),
-    glassBorder = Color(0x1A1E1713),
-    scrim = Color(0x66120C08),
-    shadow = Color(0xFF5A3A1E),
+    onPrimary = Color(0xFF1C1410),
+    success = Color(0xFF3DDBA4),
+    warning = Color(0xFFFFC62E),
+    danger = Color(0xFFFF4B4B),
+    info = Color(0xFF55B8FF),
+    glass = Color(0xFFFFFCF3),
+    glassBorder = Color(0xFF1C1410),
+    scrim = Color(0x801C1410),
+    shadow = Color(0xFF1C1410),
+    outline = Color(0xFF1C1410),
+    hardShadow = Color(0xFF1C1410),
 )
 
 fun darkNoodleColors(accent: NoodleAccent = NoodleAccent.Chili) = NoodleColors(
     isDark = true,
-    background = Color(0xFF0F0D0C),
-    surface = Color(0xFF1C1816),
-    surfaceElevated = Color(0xFF2A2523),
-    label = Color(0xFFF7F1E8),
-    labelSecondary = Color(0x99F7F1E8),
-    labelTertiary = Color(0x4DF7F1E8),
-    labelQuaternary = Color(0x2EF7F1E8),
-    separator = Color(0x33F7F1E8),
-    fill = Color(0x47F7F1E8),
-    fillSecondary = Color(0x38F7F1E8),
-    fillTertiary = Color(0x24F7F1E8),
-    controlThumb = Color(0xFF6A6360),
-    switchOff = Color(0x5C8A8290),
+    background = Color(0xFF17110D),
+    surface = Color(0xFF261D17),
+    surfaceElevated = Color(0xFF2F241C),
+    label = Color(0xFFFFF1D6),
+    labelSecondary = Color(0xB3FFF1D6),
+    labelTertiary = Color(0x66FFF1D6),
+    labelQuaternary = Color(0x33FFF1D6),
+    separator = Color(0xFFFFF1D6),
+    fill = Color(0xFF4C3D31),
+    fillSecondary = Color(0xFF3F3228),
+    fillTertiary = Color(0xFF33281F),
+    controlThumb = Color(0xFFFFF1D6),
+    switchOff = Color(0xFF4C3D31),
     primary = accent.primary,
     primarySecondary = accent.secondary,
-    onPrimary = Color.White,
-    success = Color(0xFF3ED6A3),
-    warning = Color(0xFFFFC24A),
-    danger = Color(0xFFFF5A4F),
-    info = Color(0xFF5B9DFF),
-    glass = Color(0xE62A2523),
-    glassBorder = Color(0x1FFFFFFF),
-    scrim = Color(0x99000000),
+    onPrimary = Color(0xFF1C1410),
+    success = Color(0xFF3DDBA4),
+    warning = Color(0xFFFFC62E),
+    danger = Color(0xFFFF5C5C),
+    info = Color(0xFF55B8FF),
+    glass = Color(0xFF261D17),
+    glassBorder = Color(0xFFFFF1D6),
+    scrim = Color(0xB3000000),
     shadow = Color(0xFF000000),
+    outline = Color(0xFFFFF1D6),
+    hardShadow = Color(0xFFFFF1D6).copy(alpha = 0.92f),
 )

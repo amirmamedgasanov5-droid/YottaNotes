@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -100,9 +101,9 @@ fun ShowcaseApp() {
 }
 
 @Composable
-private fun ShowcaseScaffold(ui: ShowcaseState) {
+internal fun ShowcaseScaffold(ui: ShowcaseState, initialTab: Int = 0) {
     val colors = NoodleTheme.colors
-    var tab by remember { mutableIntStateOf(0) }
+    var tab by remember { mutableIntStateOf(initialTab) }
     val listStates = List(5) { rememberLazyListState() }
     val bottomPad = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 108.dp
 
@@ -133,6 +134,13 @@ private fun ShowcaseScaffold(ui: ShowcaseState) {
             }
         }
 
+        Box(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(bottomPad)
+                .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(androidx.compose.ui.graphics.Color.Transparent, colors.background, colors.background))),
+        )
         NoodleFloatingTabBar(
             items = tabs,
             selectedIndex = tab,

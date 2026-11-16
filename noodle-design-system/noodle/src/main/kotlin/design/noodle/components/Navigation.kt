@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -34,7 +35,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import design.noodle.foundation.Hairline
 import design.noodle.foundation.noodleClickable
 import design.noodle.theme.NoodleTheme
 
@@ -56,9 +56,9 @@ fun NoodleNavigationBar(
         modifier
             .fillMaxWidth()
             .drawBehind {
-                drawRect(colors.glass.copy(alpha = colors.glass.alpha * backgroundAlpha))
-                val h = Hairline.toPx()
-                drawRect(colors.separator.copy(alpha = colors.separator.alpha * backgroundAlpha), Offset(0f, size.height - h), Size(size.width, h))
+                drawRect(colors.background.copy(alpha = backgroundAlpha))
+                val h = 2.dp.toPx()
+                drawRect(colors.outline.copy(alpha = backgroundAlpha), Offset(0f, size.height - h), Size(size.width, h))
             }
             .statusBarsPadding()
             .height(44.dp)
@@ -68,7 +68,7 @@ fun NoodleNavigationBar(
         NoodleText(
             title,
             Modifier.align(Alignment.Center).graphicsLayer { alpha = titleAlpha; translationY = (1f - titleAlpha) * 6.dp.toPx() },
-            style = NoodleTheme.typography.headline,
+            style = NoodleTheme.typography.title3.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Black),
             maxLines = 1,
         )
         Row(
@@ -88,8 +88,8 @@ fun NoodleBackButton(onClick: () -> Unit, modifier: Modifier = Modifier, label: 
         modifier.noodleClickable(pressedScale = 0.94f, onClick = onClick).padding(end = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        NoodleIcon(Icons.Rounded.KeyboardArrowLeft, tint = colors.primary, iconSize = 30.dp)
-        if (label != null) NoodleText(label, style = NoodleTheme.typography.body, color = colors.primary)
+        NoodleIcon(Icons.Rounded.KeyboardArrowLeft, tint = colors.label, iconSize = 30.dp)
+        if (label != null) NoodleText(label, style = NoodleTheme.typography.body.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold), color = colors.label)
     }
 }
 
@@ -126,14 +126,14 @@ fun NoodleLargeTitleList(
             contentPadding = PaddingValues(top = top, bottom = bottomPadding),
         ) {
             item(key = "__noodle_large_title") {
-                NoodleText(
-                    title,
+                Column(
                     Modifier
-                        .padding(start = 20.dp, end = 20.dp, top = 2.dp, bottom = 10.dp)
+                        .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 18.dp)
                         .graphicsLayer { alpha = 1f - smooth * 0.9f },
-                    style = NoodleTheme.typography.largeTitle,
-                    maxLines = 1,
-                )
+                ) {
+                    NoodleText(title, style = NoodleTheme.typography.largeTitle, maxLines = 1)
+                    NoodleSquiggle(Modifier.padding(top = 6.dp), color = colors.primary, width = 92.dp, thickness = 5.dp, amplitude = 4.dp, wavelength = 22.dp)
+                }
             }
             content()
         }

@@ -37,7 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
@@ -55,7 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
-import design.noodle.foundation.Hairline
+import design.noodle.foundation.ink
 import design.noodle.foundation.NoodleShapes
 import design.noodle.foundation.SquircleShape
 import design.noodle.foundation.noRippleClickable
@@ -125,9 +124,7 @@ fun NoodleBottomSheet(
                 .fillMaxWidth()
                 .onSizeChanged { sheetHeight = it.height }
                 .graphicsLayer { translationY = (1f - presence.progress.value) * sheetHeight + dragPx }
-                .shadow(24.dp, NoodleShapes.Sheet, ambientColor = Color.Black.copy(0.3f), spotColor = Color.Black.copy(0.3f))
-                .clip(NoodleShapes.Sheet)
-                .background(colors.surfaceElevated)
+                .ink(NoodleShapes.Sheet, colors.surface, elevation = 0.dp, border = 2.5.dp)
                 .draggable(
                     orientation = Orientation.Vertical,
                     state = rememberDraggableState { d -> dragPx = (dragPx + d).coerceAtLeast(0f) },
@@ -143,7 +140,7 @@ fun NoodleBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box(
-                Modifier.padding(top = 8.dp, bottom = 6.dp).width(38.dp).height(5.dp).clip(NoodleShapes.Capsule).background(colors.fill),
+                Modifier.padding(top = 10.dp, bottom = 8.dp).width(46.dp).height(8.dp).ink(NoodleShapes.Capsule, colors.primarySecondary, elevation = 0.dp, border = 2.dp),
             )
             content()
         }
@@ -173,7 +170,7 @@ fun NoodleAlert(
     if (!presence.mounted) return
     val colors = NoodleTheme.colors
     val type = NoodleTheme.typography
-    val shape = SquircleShape(22.dp)
+    val shape = SquircleShape(24.dp)
     BackHandler(enabled = visible, onBack = onDismissRequest)
 
     Box(Modifier.fillMaxSize()) {
@@ -189,28 +186,26 @@ fun NoodleAlert(
                     scaleY = s
                     alpha = (p * 2.2f).coerceIn(0f, 1f)
                 }
-                .shadow(28.dp, shape, ambientColor = Color.Black.copy(0.3f), spotColor = Color.Black.copy(0.3f))
-                .clip(shape)
-                .background(colors.surfaceElevated)
+                .ink(shape, colors.surface, elevation = 8.dp, border = 2.5.dp)
                 .pointerInput(Unit) { detectTapGestures { } },
         ) {
             Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                NoodleText(title, style = type.headline, textAlign = TextAlign.Center)
+                NoodleText(title, style = type.title3, textAlign = TextAlign.Center)
                 if (message != null) {
                     NoodleText(message, Modifier.padding(top = 4.dp), style = type.footnote, color = colors.labelSecondary, textAlign = TextAlign.Center)
                 }
             }
-            Box(Modifier.fillMaxWidth().height(Hairline).background(colors.separator))
+            Box(Modifier.fillMaxWidth().height(2.dp).background(colors.outline))
             if (actions.size == 2) {
                 Row(Modifier.fillMaxWidth().height(48.dp)) {
                     AlertButton(actions[0], Modifier.weight(1f), onDismissRequest)
-                    Box(Modifier.width(Hairline).height(48.dp).background(colors.separator))
+                    Box(Modifier.width(2.dp).height(48.dp).background(colors.outline))
                     AlertButton(actions[1], Modifier.weight(1f), onDismissRequest)
                 }
             } else {
                 actions.forEachIndexed { i, a ->
                     AlertButton(a, Modifier.fillMaxWidth(), onDismissRequest)
-                    if (i < actions.lastIndex) Box(Modifier.fillMaxWidth().height(Hairline).background(colors.separator))
+                    if (i < actions.lastIndex) Box(Modifier.fillMaxWidth().height(2.dp).background(colors.outline))
                 }
             }
         }
@@ -223,8 +218,8 @@ private fun AlertButton(action: NoodleAlertAction, modifier: Modifier, dismiss: 
     val haptics = rememberNoodleHaptics()
     val source = remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
-    val bg by animateColorAsState(if (pressed) colors.fillTertiary else Color.Transparent, tween(60), label = "alertBtn")
-    val color = if (action.style == NoodleAlertActionStyle.Destructive) colors.danger else colors.primary
+    val bg by animateColorAsState(if (pressed) colors.primarySecondary else Color.Transparent, tween(60), label = "alertBtn")
+    val color = if (action.style == NoodleAlertActionStyle.Destructive) colors.danger else colors.label
     Box(
         modifier
             .height(48.dp)
@@ -238,7 +233,7 @@ private fun AlertButton(action: NoodleAlertAction, modifier: Modifier, dismiss: 
     ) {
         NoodleText(
             action.label,
-            style = NoodleTheme.typography.body.copy(fontWeight = if (action.style == NoodleAlertActionStyle.Cancel) FontWeight.SemiBold else FontWeight.Normal),
+            style = NoodleTheme.typography.body.copy(fontWeight = if (action.style == NoodleAlertActionStyle.Cancel) FontWeight.Black else FontWeight.ExtraBold),
             color = color,
             maxLines = 1,
         )
@@ -259,7 +254,7 @@ fun NoodleActionSheet(
     if (!presence.mounted) return
     val colors = NoodleTheme.colors
     var h by remember { mutableIntStateOf(0) }
-    val shape = SquircleShape(20.dp)
+    val shape = SquircleShape(22.dp)
     BackHandler(enabled = visible, onBack = onDismissRequest)
 
     Box(Modifier.fillMaxSize()) {
@@ -274,7 +269,7 @@ fun NoodleActionSheet(
                 .padding(horizontal = 10.dp, vertical = 10.dp),
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
         ) {
-            Column(Modifier.fillMaxWidth().clip(shape).background(colors.surfaceElevated)) {
+            Column(Modifier.fillMaxWidth().padding(end = 5.dp, bottom = 5.dp).ink(shape, colors.surface, elevation = 5.dp, border = 2.5.dp).clip(shape)) {
                 if (title != null) {
                     NoodleText(
                         title,
@@ -283,14 +278,14 @@ fun NoodleActionSheet(
                         color = colors.labelSecondary,
                         textAlign = TextAlign.Center,
                     )
-                    Box(Modifier.fillMaxWidth().height(Hairline).background(colors.separator))
+                    Box(Modifier.fillMaxWidth().height(2.dp).background(colors.outline))
                 }
                 actions.forEachIndexed { i, a ->
                     AlertButton(a, Modifier.fillMaxWidth().height(56.dp), onDismissRequest)
-                    if (i < actions.lastIndex) Box(Modifier.fillMaxWidth().height(Hairline).background(colors.separator))
+                    if (i < actions.lastIndex) Box(Modifier.fillMaxWidth().height(2.dp).background(colors.outline))
                 }
             }
-            Box(Modifier.fillMaxWidth().clip(shape).background(colors.surfaceElevated)) {
+            Box(Modifier.fillMaxWidth().padding(end = 5.dp, bottom = 5.dp).ink(shape, colors.primarySecondary, elevation = 5.dp, border = 2.5.dp).clip(shape)) {
                 AlertButton(
                     NoodleAlertAction(cancelLabel, NoodleAlertActionStyle.Cancel),
                     Modifier.fillMaxWidth().height(56.dp),
@@ -355,15 +350,14 @@ fun NoodleMenu(
                     alpha = (p.value * 2f).coerceIn(0f, 1f)
                     transformOrigin = TransformOrigin(1f, 0f)
                 }
-                .shadow(22.dp, shape, ambientColor = Color.Black.copy(0.35f), spotColor = Color.Black.copy(0.35f))
-                .clip(shape)
-                .background(colors.surfaceElevated)
-                .width(224.dp),
+                .width(224.dp)
+                .ink(shape, colors.surface, elevation = 5.dp, border = 2.5.dp)
+                .clip(shape),
         ) {
             items.forEachIndexed { i, item ->
                 val source = remember { MutableInteractionSource() }
                 val pressed by source.collectIsPressedAsState()
-                val bg by animateColorAsState(if (pressed) colors.fillTertiary else Color.Transparent, tween(60), label = "menuBg")
+                val bg by animateColorAsState(if (pressed) colors.primarySecondary else Color.Transparent, tween(60), label = "menuBg")
                 val tint = if (item.destructive) colors.danger else colors.label
                 Row(
                     Modifier
@@ -378,10 +372,10 @@ fun NoodleMenu(
                         .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    NoodleText(item.label, Modifier.weight(1f), style = NoodleTheme.typography.body, color = tint, maxLines = 1)
+                    NoodleText(item.label, Modifier.weight(1f), style = NoodleTheme.typography.body.copy(fontWeight = FontWeight.ExtraBold), color = tint, maxLines = 1)
                     if (item.icon != null) NoodleIcon(item.icon, tint = tint, iconSize = 20.dp)
                 }
-                if (i < items.lastIndex) Box(Modifier.fillMaxWidth().height(Hairline).background(colors.separator))
+                if (i < items.lastIndex) Box(Modifier.fillMaxWidth().height(2.dp).background(colors.outline))
             }
         }
     }

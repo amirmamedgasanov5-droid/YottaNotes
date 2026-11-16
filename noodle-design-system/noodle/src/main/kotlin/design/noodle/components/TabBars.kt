@@ -45,11 +45,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import design.noodle.foundation.Hairline
+import design.noodle.foundation.ink
 import design.noodle.foundation.NoodleShapes
 import design.noodle.foundation.noRippleClickable
 import design.noodle.foundation.rememberNoodleHaptics
-import design.noodle.foundation.softShadow
 import design.noodle.theme.NoodleMotion
 import design.noodle.theme.NoodleTheme
 import kotlin.math.abs
@@ -80,23 +79,20 @@ fun NoodleFloatingTabBar(
         modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 18.dp, vertical = 10.dp),
+            .padding(start = 16.dp, end = 21.dp, top = 8.dp, bottom = 14.dp),
         contentAlignment = Alignment.Center,
     ) {
         BoxWithConstraints(
             Modifier
                 .widthIn(max = 520.dp)
                 .fillMaxWidth()
-                .height(66.dp)
-                .softShadow(if (colors.isDark) 0.dp else 20.dp, NoodleShapes.Capsule)
-                .clip(NoodleShapes.Capsule)
-                .background(colors.glass)
-                .border(0.5.dp, colors.glassBorder, NoodleShapes.Capsule)
-                .padding(5.dp),
+                .height(68.dp)
+                .ink(NoodleShapes.Capsule, colors.surface, elevation = 5.dp, border = 2.5.dp)
+                .padding(6.dp),
         ) {
             val tabW = maxWidth / items.size
             val targetX = tabW * selectedIndex
-            val x by animateDpAsState(targetX, spring(dampingRatio = 0.72f, stiffness = 420f), label = "pillX")
+            val x by animateDpAsState(targetX, spring(dampingRatio = 0.58f, stiffness = 380f), label = "pillX")
             val stretch = (abs((targetX - x).value) / tabW.value).coerceIn(0f, 1f)
 
             Box(
@@ -105,11 +101,10 @@ fun NoodleFloatingTabBar(
                     .width(tabW)
                     .fillMaxHeight()
                     .graphicsLayer {
-                        scaleX = 1f + stretch * 0.28f
-                        scaleY = 1f - stretch * 0.06f
+                        scaleX = 1f + stretch * 0.22f
+                        scaleY = 1f - stretch * 0.08f
                     }
-                    .clip(NoodleShapes.Capsule)
-                    .background(colors.primaryContainer),
+                    .ink(NoodleShapes.Capsule, colors.primarySecondary, elevation = 0.dp, border = 2.dp),
             )
             Row(Modifier.fillMaxSize()) {
                 items.forEachIndexed { i, item ->
@@ -135,12 +130,12 @@ fun NoodleFloatingTabBar(
 @Composable
 private fun TabCell(item: NoodleTabItem, selected: Boolean, modifier: Modifier) {
     val colors = NoodleTheme.colors
-    val tint by animateColorAsState(if (selected) colors.primary else colors.labelSecondary, tween(200), label = "tabTint")
+    val tint by animateColorAsState(if (selected) colors.onPrimary else colors.labelSecondary, tween(160), label = "tabTint")
     val pop = remember { Animatable(1f) }
     LaunchedEffect(selected) {
         if (selected) {
-            pop.snapTo(0.78f)
-            pop.animateTo(1f, spring(dampingRatio = 0.32f, stiffness = 520f))
+            pop.snapTo(0.7f)
+            pop.animateTo(1f, spring(dampingRatio = 0.3f, stiffness = 560f))
         }
     }
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
@@ -161,7 +156,7 @@ private fun TabCell(item: NoodleTabItem, selected: Boolean, modifier: Modifier) 
         NoodleText(
             item.label,
             Modifier.padding(top = 2.dp),
-            style = NoodleTheme.typography.caption2.copy(fontSize = 10.5.sp, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium),
+            style = NoodleTheme.typography.caption2.copy(fontSize = 9.5.sp, fontWeight = if (selected) FontWeight.Black else FontWeight.Bold),
             color = tint,
             maxLines = 1,
         )
@@ -181,9 +176,9 @@ fun NoodleTabBar(
     Column(
         modifier
             .fillMaxWidth()
-            .background(colors.glass)
+            .background(colors.surface)
             .drawBehind {
-                drawRect(colors.separator, Offset.Zero, Size(size.width, Hairline.toPx()))
+                drawRect(colors.outline, Offset.Zero, Size(size.width, 2.dp.toPx()))
             }
             .navigationBarsPadding(),
     ) {
@@ -228,13 +223,18 @@ fun NoodleScrollableTabs(
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
             .drawBehind {
-                val h = 3.dp.toPx()
-                drawRoundRect(
-                    color = colors.primary,
-                    topLeft = Offset(x, size.height - h),
-                    size = Size(w, h),
-                    cornerRadius = CornerRadius(h, h),
-                )
+                if (w > 0f) {
+                    squiggle(
+                        color = colors.primary,
+                        stroke = 4.dp.toPx(),
+                        amplitude = 2.5.dp.toPx(),
+                        wavelength = 13.dp.toPx(),
+                        phase = 0f,
+                        y = size.height - 5.dp.toPx(),
+                        x0 = x + 10.dp.toPx(),
+                        x1 = x + w - 10.dp.toPx(),
+                    )
+                }
             },
     ) {
         Row {
@@ -251,8 +251,8 @@ fun NoodleScrollableTabs(
                                 onSelect(i)
                             }
                         }
-                        .padding(horizontal = 14.dp, vertical = 12.dp),
-                    style = NoodleTheme.typography.callout.copy(fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium),
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    style = NoodleTheme.typography.callout.copy(fontWeight = if (selected) FontWeight.Black else FontWeight.Bold),
                     color = c,
                     maxLines = 1,
                 )

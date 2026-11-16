@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import design.noodle.foundation.SquircleShape
+import design.noodle.foundation.ink
 import design.noodle.foundation.rememberNoodleHaptics
 import design.noodle.theme.NoodleTheme
 import kotlin.math.abs
@@ -69,8 +70,7 @@ fun NoodleWheelPicker(
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp)
                 .height(itemHeight)
-                .clip(SquircleShape(10.dp))
-                .background(colors.fillTertiary),
+                .ink(SquircleShape(12.dp), colors.primarySecondary, elevation = 3.dp),
         )
         LazyColumn(
             state = state,
@@ -99,8 +99,8 @@ fun NoodleWheelPicker(
                 ) {
                     NoodleText(
                         text,
-                        style = NoodleTheme.typography.title3.copy(fontWeight = if (index == centered) FontWeight.SemiBold else FontWeight.Normal),
-                        color = if (index == centered) colors.label else colors.labelSecondary,
+                        style = NoodleTheme.typography.title3.copy(fontWeight = if (index == centered) FontWeight.Black else FontWeight.Bold),
+                        color = if (index == centered) colors.onPrimary else colors.labelSecondary,
                         maxLines = 1,
                     )
                 }

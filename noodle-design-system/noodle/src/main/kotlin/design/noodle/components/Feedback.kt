@@ -2,6 +2,7 @@ package design.noodle.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -21,6 +22,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -52,9 +55,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import design.noodle.foundation.NoodleShapes
-import design.noodle.foundation.softShadow
+import design.noodle.foundation.ink
 import design.noodle.theme.NoodleMotion
-import design.noodle.theme.NoodlePalette
 import design.noodle.theme.NoodleTheme
 import kotlinx.coroutines.delay
 import kotlin.math.cos
@@ -65,7 +67,7 @@ import kotlin.math.sin
 fun NoodleSpinner(
     modifier: Modifier = Modifier,
     diameter: Dp = 20.dp,
-    color: Color = NoodleTheme.colors.labelSecondary,
+    color: Color = NoodleTheme.colors.label,
 ) {
     val transition = rememberInfiniteTransition(label = "spinner")
     val phase by transition.animateFloat(
@@ -90,60 +92,77 @@ fun NoodleSpinner(
                 color = color.copy(alpha = color.alpha * alpha),
                 start = Offset(c.x + dx * inner, c.y + dy * inner),
                 end = Offset(c.x + dx * outer, c.y + dy * outer),
-                strokeWidth = outer * 0.18f,
+                strokeWidth = outer * 0.2f,
                 cap = StrokeCap.Round,
             )
         }
     }
 }
 
-/** Линейный прогресс с плавной анимацией значения. */
+/** Линейный прогресс: чернильная трубка, внутри — цветная лапша. */
 @Composable
 fun NoodleProgressBar(
     progress: Float,
     modifier: Modifier = Modifier,
-    height: Dp = 6.dp,
+    height: Dp = 18.dp,
     brush: Brush = NoodleTheme.colors.gradient,
 ) {
     val colors = NoodleTheme.colors
-    val p by animateFloatAsState(progress.coerceIn(0f, 1f), tween(520, easing = NoodleMotion.Emphasized), label = "bar")
-    Canvas(modifier.fillMaxWidth().height(height)) {
-        val r = CornerRadius(this.size.height / 2f)
-        drawRoundRect(colors.fillSecondary, size = this.size, cornerRadius = r)
+    val p by animateFloatAsState(progress.coerceIn(0f, 1f), spring(0.6f, 220f), label = "bar")
+    Box(modifier.fillMaxWidth().height(height).ink(NoodleShapes.Capsule, colors.surface, elevation = 3.dp)) {
+        Box(
+            Modifier
+                .padding(2.dp)
+                .fillMaxHeight()
+                .fillMaxWidth(p.coerceAtLeast(0.001f))
+                .clip(NoodleShapes.Capsule)
+                .background(brush),
+        )
+    }
+}
+
+/** Волнистый прогресс: активная часть — живая «нить», бегущая по дорожке. */
+@Composable
+fun NoodleWavyProgress(progress: Float, modifier: Modifier = Modifier) {
+    val colors = NoodleTheme.colors
+    val p by animateFloatAsState(progress.coerceIn(0f, 1f), spring(0.6f, 220f), label = "wavy")
+    val t = rememberInfiniteTransition(label = "wavyT")
+    val phase by t.animateFloat(
+        initialValue = 0f,
+        targetValue = (2 * Math.PI).toFloat(),
+        animationSpec = infiniteRepeatable(tween(1400, easing = LinearEasing)),
+        label = "phase",
+    )
+    Canvas(modifier.fillMaxWidth().height(24.dp)) {
+        val sw = 6.dp.toPx()
+        val pad = sw / 2f + 1.dp.toPx()
+        val end = pad + (size.width - pad * 2f) * p
+        drawLine(colors.fill, Offset(end, size.height / 2f), Offset(size.width - pad, size.height / 2f), sw, StrokeCap.Round)
         if (p > 0.001f) {
-            drawRoundRect(
-                brush = brush,
-                size = Size(maxOf(this.size.height, this.size.width * p), this.size.height),
-                cornerRadius = r,
-            )
+            squiggle(colors.outline, sw + 4.dp.toPx(), 5.dp.toPx(), 22.dp.toPx(), -phase, x0 = pad, x1 = end)
+            squiggle(colors.primary, sw, 5.dp.toPx(), 22.dp.toPx(), -phase, x0 = pad, x1 = end)
         }
     }
 }
 
 /** Бесконечный линейный прогресс. */
 @Composable
-fun NoodleIndeterminateBar(modifier: Modifier = Modifier, height: Dp = 6.dp) {
+fun NoodleIndeterminateBar(modifier: Modifier = Modifier, height: Dp = 18.dp) {
     val colors = NoodleTheme.colors
     val t = rememberInfiniteTransition(label = "indeterminate")
     val x by t.animateFloat(
-        initialValue = -0.4f,
+        initialValue = -0.35f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(tween(1300, easing = NoodleMotion.Emphasized)),
         label = "x",
     )
-    Canvas(modifier.fillMaxWidth().height(height)) {
-        val r = CornerRadius(this.size.height / 2f)
-        drawRoundRect(colors.fillSecondary, size = this.size, cornerRadius = r)
-        val w = this.size.width * 0.4f
-        val start = (x * this.size.width).coerceAtLeast(0f)
-        val end = (x * this.size.width + w).coerceAtMost(this.size.width)
-        if (end > start) {
-            drawRoundRect(
-                brush = colors.gradient,
-                topLeft = Offset(start, 0f),
-                size = Size(end - start, this.size.height),
-                cornerRadius = r,
-            )
+    Box(modifier.fillMaxWidth().height(height).ink(NoodleShapes.Capsule, colors.surface, elevation = 3.dp)) {
+        Canvas(Modifier.fillMaxSize().padding(2.dp)) {
+            val r = CornerRadius(size.height / 2f)
+            val w = size.width * 0.35f
+            val start = (x * size.width).coerceAtLeast(0f)
+            val end = (x * size.width + w).coerceAtMost(size.width)
+            if (end > start) drawRoundRect(colors.primary, Offset(start, 0f), Size(end - start, size.height), r)
         }
     }
 }
@@ -162,26 +181,16 @@ fun NoodleProgressRing(
     Box(modifier.size(diameter), contentAlignment = Alignment.Center) {
         Canvas(Modifier.size(diameter)) {
             val sw = strokeWidth.toPx()
-            val d = this.size.minDimension - sw
-            val tl = Offset(sw / 2f, sw / 2f)
+            val d = this.size.minDimension - sw - 5.dp.toPx()
+            val tl = Offset((this.size.minDimension - d) / 2f, (this.size.minDimension - d) / 2f)
             val arcSize = Size(d, d)
-            drawArc(colors.fillTertiary, 0f, 360f, false, tl, arcSize, style = Stroke(sw, cap = StrokeCap.Round))
+            val ink = Stroke(sw + 5.dp.toPx(), cap = StrokeCap.Round)
+            drawArc(colors.outline, 0f, 360f, false, tl, arcSize, style = ink)
+            drawArc(colors.surface, 0f, 360f, false, tl, arcSize, style = Stroke(sw, cap = StrokeCap.Round))
             if (p > 0.004f) {
                 rotate(-90f) {
-                    drawArc(
-                        brush = Brush.sweepGradient(
-                            0f to colors.primarySecondary,
-                            p.coerceAtLeast(0.02f) to colors.primary,
-                            1f to colors.primary,
-                            center = center,
-                        ),
-                        startAngle = 0f,
-                        sweepAngle = 360f * p,
-                        useCenter = false,
-                        topLeft = tl,
-                        size = arcSize,
-                        style = Stroke(sw, cap = StrokeCap.Round),
-                    )
+                    if (p < 0.999f) drawArc(colors.outline, 0f, 360f * p, false, tl, arcSize, style = ink)
+                    drawArc(colors.primary, 0f, 360f * p, false, tl, arcSize, style = Stroke(sw, cap = StrokeCap.Round))
                 }
             }
         }
@@ -278,27 +287,26 @@ fun NoodleToastHost(state: NoodleToastState, modifier: Modifier = Modifier) {
 private fun ToastPill(m: NoodleToastMessage) {
     val colors = NoodleTheme.colors
     val tint = when (m.tone) {
-        NoodleToastTone.Neutral -> colors.primary
+        NoodleToastTone.Neutral -> colors.surface
         NoodleToastTone.Success -> colors.success
         NoodleToastTone.Warning -> colors.warning
         NoodleToastTone.Danger -> colors.danger
     }
     Row(
         Modifier
-            .softShadow(18.dp, NoodleShapes.Capsule, Color.Black)
-            .clip(NoodleShapes.Capsule)
-            .background(NoodlePalette.Soy)
+            .padding(end = 4.dp, bottom = 4.dp)
+            .ink(NoodleShapes.Capsule, colors.primarySecondary, elevation = 4.dp, border = 2.5.dp)
             .padding(start = 8.dp, end = 20.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Box(Modifier.size(30.dp).clip(CircleShape).background(tint), contentAlignment = Alignment.Center) {
-            if (m.icon != null) NoodleIcon(m.icon, tint = Color.White, iconSize = 18.dp)
+        Box(Modifier.size(32.dp).ink(CircleShape, tint, elevation = 0.dp, border = 2.dp), contentAlignment = Alignment.Center) {
+            if (m.icon != null) NoodleIcon(m.icon, tint = colors.outline, iconSize = 18.dp)
         }
         NoodleText(
             m.text,
-            style = NoodleTheme.typography.subhead.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold),
-            color = Color.White,
+            style = NoodleTheme.typography.subhead.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Black),
+            color = colors.onPrimary,
             maxLines = 2,
         )
     }
