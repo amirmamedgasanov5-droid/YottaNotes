@@ -70,7 +70,7 @@ fun NoodleWheelPicker(
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp)
                 .height(itemHeight)
-                .ink(SquircleShape(12.dp), colors.primarySecondary, elevation = 3.dp),
+                .ink(SquircleShape(12.dp), colors.fillTertiary, border = 0.dp),
         )
         LazyColumn(
             state = state,
@@ -99,8 +99,8 @@ fun NoodleWheelPicker(
                 ) {
                     NoodleText(
                         text,
-                        style = NoodleTheme.typography.title3.copy(fontWeight = if (index == centered) FontWeight.Black else FontWeight.Bold),
-                        color = if (index == centered) colors.onPrimary else colors.labelSecondary,
+                        style = NoodleTheme.typography.title3.copy(fontWeight = if (index == centered) FontWeight.Medium else FontWeight.Normal),
+                        color = if (index == centered) colors.label else colors.labelTertiary,
                         maxLines = 1,
                     )
                 }

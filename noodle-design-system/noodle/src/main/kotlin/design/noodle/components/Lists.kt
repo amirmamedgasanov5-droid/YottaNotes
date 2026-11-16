@@ -26,9 +26,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.KeyboardArrowRight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -64,20 +65,10 @@ import design.noodle.theme.NoodleTheme
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
-/** Точечный разделитель — «бусинки» вместо линии. */
+/** Тончайший разделитель. */
 @Composable
-fun NoodleDivider(modifier: Modifier = Modifier, color: Color = NoodleTheme.colors.labelTertiary) {
-    Canvas(modifier.fillMaxWidth().height(3.dp)) {
-        val y = size.height / 2f
-        drawLine(
-            color = color,
-            start = Offset(2.dp.toPx(), y),
-            end = Offset(size.width - 2.dp.toPx(), y),
-            strokeWidth = 2.dp.toPx(),
-            cap = StrokeCap.Round,
-            pathEffect = PathEffect.dashPathEffect(floatArrayOf(0.1f, 7.dp.toPx())),
-        )
-    }
+fun NoodleDivider(modifier: Modifier = Modifier, color: Color = NoodleTheme.colors.separator) {
+    Box(modifier.fillMaxWidth().height(1.dp).background(color))
 }
 
 class NoodleGroupScope {
@@ -106,23 +97,20 @@ fun NoodleGroup(
     val scope = NoodleGroupScope().apply(content)
     Column(modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
         if (header != null) {
-            Row(Modifier.padding(start = 4.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                NoodleText(header, style = type.headline.copy(fontWeight = FontWeight.Black), color = colors.label)
-                NoodleSquiggle(Modifier.padding(start = 10.dp), width = 34.dp, thickness = 3.dp, amplitude = 2.dp, wavelength = 10.dp, animated = false, color = colors.primary)
-            }
+            NoodleText(header, Modifier.padding(start = 6.dp, bottom = 10.dp), style = type.subhead, color = colors.labelSecondary)
         }
-        Box(Modifier.fillMaxWidth().padding(end = 5.dp, bottom = 5.dp).ink(SquircleShape(20.dp), colors.surface, elevation = 5.dp)) {
-            Column(Modifier.fillMaxWidth().clip(SquircleShape(18.dp))) {
+        Box(Modifier.fillMaxWidth().ink(SquircleShape(20.dp), colors.surface)) {
+            Column(Modifier.fillMaxWidth().clip(SquircleShape(20.dp))) {
                 scope.rows.forEachIndexed { index, (rowKey, row) ->
                     key(rowKey ?: index) { row() }
-                    if (index < scope.rows.lastIndex) NoodleDivider(Modifier.padding(start = dividerInset, end = 14.dp))
+                    if (index < scope.rows.lastIndex) NoodleDivider(Modifier.padding(start = dividerInset))
                 }
             }
         }
         if (footer != null) {
             NoodleText(
                 footer,
-                Modifier.padding(start = 4.dp, end = 8.dp, top = 8.dp),
+                Modifier.padding(start = 6.dp, end = 8.dp, top = 8.dp),
                 style = type.footnote,
                 color = colors.labelSecondary,
             )
@@ -149,12 +137,12 @@ fun NoodleRow(
     val haptics = rememberNoodleHaptics()
     val source = remember { MutableInteractionSource() }
     val pressed by source.collectIsPressedAsState()
-    val bg by animateColorAsState(if (pressed) colors.primarySecondary.copy(alpha = 0.45f) else Color.Transparent, tween(if (pressed) 40 else 220), label = "rowBg")
+    val bg by animateColorAsState(if (pressed) colors.fillTertiary else Color.Transparent, tween(if (pressed) 40 else 220), label = "rowBg")
 
     Row(
         modifier
             .fillMaxWidth()
-            .heightIn(min = 52.dp)
+            .heightIn(min = 54.dp)
             .background(bg)
             .then(
                 if (onClick != null) Modifier.clickable(source, null, role = Role.Button) {
@@ -169,22 +157,22 @@ fun NoodleRow(
             Box(Modifier.padding(end = 12.dp)) { leading() }
         } else if (icon != null) {
             Box(
-                Modifier.padding(end = 12.dp).size(34.dp).ink(SquircleShape(11.dp), iconTint, elevation = 0.dp, border = 2.dp),
+                Modifier.padding(end = 12.dp).size(32.dp).ink(CircleShape, colors.fillTertiary, border = 0.dp),
                 contentAlignment = Alignment.Center,
-            ) { NoodleIcon(icon, tint = colors.outline, iconSize = 19.dp) }
+            ) { NoodleIcon(icon, tint = colors.label, iconSize = 17.dp) }
         }
         Column(Modifier.weight(1f)) {
-            NoodleText(title, style = type.body.copy(fontWeight = FontWeight.Bold), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            NoodleText(title, style = type.body, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (subtitle != null) {
                 NoodleText(subtitle, style = type.footnote, color = colors.labelSecondary, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         }
         if (value != null) {
-            NoodleText(value, Modifier.padding(start = 8.dp), style = type.body.copy(fontWeight = FontWeight.ExtraBold), color = colors.labelSecondary, maxLines = 1)
+            NoodleText(value, Modifier.padding(start = 8.dp), style = type.body, color = colors.labelSecondary, maxLines = 1)
         }
         if (trailing != null) Box(Modifier.padding(start = 10.dp)) { trailing() }
         if (showChevron) {
-            NoodleIcon(Icons.Rounded.KeyboardArrowRight, Modifier.padding(start = 4.dp), tint = colors.label, iconSize = 22.dp)
+            NoodleIcon(Icons.Outlined.KeyboardArrowRight, Modifier.padding(start = 4.dp), tint = colors.labelTertiary, iconSize = 20.dp)
         }
     }
 }
@@ -239,8 +227,8 @@ fun NoodleSwipeToDelete(
                     contentAlignment = Alignment.Center,
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        NoodleIcon(Icons.Rounded.Delete, tint = Color.White, iconSize = 22.dp)
-                        NoodleText(label, style = NoodleTheme.typography.caption1.copy(fontWeight = FontWeight.SemiBold), color = Color.White)
+                        NoodleIcon(Icons.Outlined.Delete, tint = Color.White, iconSize = 22.dp)
+                        NoodleText(label, style = NoodleTheme.typography.caption1.copy(fontWeight = FontWeight.Medium), color = Color.White)
                     }
                 }
             }
@@ -274,7 +262,7 @@ fun NoodleSwipeToDelete(
 @Composable
 fun NoodleSectionTitle(text: String, modifier: Modifier = Modifier, action: String? = null, onAction: () -> Unit = {}) {
     Row(modifier.fillMaxWidth().padding(horizontal = 20.dp), verticalAlignment = Alignment.Bottom) {
-        NoodleText(text, Modifier.weight(1f), style = NoodleTheme.typography.title2)
+        NoodleText(text, Modifier.weight(1f), style = NoodleTheme.typography.title3)
         if (action != null) {
             NoodleTextButton(action, onAction)
         }

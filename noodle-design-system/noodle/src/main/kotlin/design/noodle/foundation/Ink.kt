@@ -25,36 +25,31 @@ import androidx.compose.ui.unit.dp
 import design.noodle.theme.NoodleTheme
 
 /**
- * Фирменная «чернильная» поверхность Noodle:
- * плоская заливка + контур + жёсткая смещённая тень (без размытия).
- * [pressed] (0..1) вдавливает поверхность в тень — как физическая кнопка.
+ * Поверхность Noodle: плоская заливка и тончайший контур, без теней.
+ * [pressed] (0..1) мягко уменьшает и приглушает элемент при касании.
  */
 @Composable
 fun Modifier.ink(
     shape: Shape,
     fill: Color,
     pressed: () -> Float = { 0f },
-    elevation: Dp = 4.dp,
-    border: Dp = 2.dp,
+    elevation: Dp = 0.dp,
+    border: Dp = 1.dp,
     outline: Color = NoodleTheme.colors.outline,
-    shadowColor: Color = NoodleTheme.colors.hardShadow,
+    shadowColor: Color = Color.Transparent,
+    strokeWidth: Dp? = null,
 ): Modifier {
-    val d = with(LocalDensity.current) { elevation.toPx() }
+    val w = strokeWidth ?: if (border > 0.dp) 1.dp else 0.dp
     return this
         .graphicsLayer {
             val p = pressed()
-            translationX = d * p
-            translationY = d * p
-        }
-        .drawBehind {
-            if (d > 0f) {
-                val o = shape.createOutline(size, layoutDirection, this)
-                val off = d * (1f - pressed())
-                translate(off, off) { drawOutline(o, shadowColor) }
-            }
+            val sc = 1f - 0.03f * p
+            scaleX = sc
+            scaleY = sc
+            alpha = 1f - 0.1f * p
         }
         .background(fill, shape)
-        .then(if (border > 0.dp) Modifier.border(border, outline, shape) else Modifier)
+        .then(if (w > 0.dp) Modifier.border(w, outline, shape) else Modifier)
 }
 
 /** Состояние нажатия 0..1 с упругой пружиной. */
@@ -63,7 +58,7 @@ fun rememberPress(source: MutableInteractionSource, enabled: Boolean = true): St
     val pressed by source.collectIsPressedAsState()
     return animateFloatAsState(
         targetValue = if (pressed && enabled) 1f else 0f,
-        animationSpec = spring(dampingRatio = 0.5f, stiffness = 900f),
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 700f),
         label = "inkPress",
     )
 }
@@ -74,8 +69,8 @@ fun Modifier.inkPressable(
     shape: Shape,
     fill: Color,
     enabled: Boolean = true,
-    elevation: Dp = 4.dp,
-    border: Dp = 2.dp,
+    elevation: Dp = 0.dp,
+    border: Dp = 1.dp,
     haptic: Boolean = true,
     role: Role? = Role.Button,
     onClick: () -> Unit,

@@ -25,12 +25,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.rounded.Build
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.outlined.Build
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -109,11 +107,11 @@ internal fun ShowcaseScaffold(ui: ShowcaseState, initialTab: Int = 0) {
 
     val tabs = remember {
         listOf(
-            NoodleTabItem("Главная", Icons.Outlined.Home, Icons.Rounded.Home),
-            NoodleTabItem("Контролы", Icons.Rounded.Build),
-            NoodleTabItem("Списки", Icons.Outlined.FavoriteBorder, Icons.Rounded.Favorite, badge = 3),
-            NoodleTabItem("Движение", Icons.Rounded.PlayArrow),
-            NoodleTabItem("Стиль", Icons.Outlined.Settings, Icons.Rounded.Settings),
+            NoodleTabItem("Главная", Icons.Outlined.Home),
+            NoodleTabItem("Контролы", Icons.Outlined.Build),
+            NoodleTabItem("Списки", Icons.Outlined.FavoriteBorder, badge = 3),
+            NoodleTabItem("Движение", Icons.Outlined.PlayArrow),
+            NoodleTabItem("Стиль", Icons.Outlined.Settings),
         )
     }
 
@@ -163,14 +161,14 @@ internal fun ShowcaseScaffold(ui: ShowcaseState, initialTab: Int = 0) {
                     color = colors.labelSecondary,
                 )
                 NoodleGroup {
-                    row { NoodleRow("Поделиться", icon = Icons.Rounded.Star, iconTint = colors.info, showChevron = true, onClick = {}) }
-                    row { NoodleRow("В избранное", icon = Icons.Rounded.Favorite, iconTint = colors.danger, showChevron = true, onClick = {}) }
+                    row { NoodleRow("Поделиться", icon = Icons.Outlined.Star, iconTint = colors.info, showChevron = true, onClick = {}) }
+                    row { NoodleRow("В избранное", icon = Icons.Outlined.Favorite, iconTint = colors.danger, showChevron = true, onClick = {}) }
                 }
                 NoodleButton(
                     "Готово",
                     onClick = {
                         ui.sheet = false
-                        ui.toast.show("Сохранено", Icons.Rounded.Star, NoodleToastTone.Success)
+                        ui.toast.show("Сохранено", Icons.Outlined.Star, NoodleToastTone.Success)
                     },
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 20.dp),
                 )
@@ -191,7 +189,7 @@ internal fun ShowcaseScaffold(ui: ShowcaseState, initialTab: Int = 0) {
             actions = listOf(
                 NoodleAlertAction("Отмена", NoodleAlertActionStyle.Cancel),
                 NoodleAlertAction("Удалить", NoodleAlertActionStyle.Destructive) {
-                    ui.toast.show("Заметка удалена", Icons.Rounded.Star, NoodleToastTone.Danger)
+                    ui.toast.show("Заметка удалена", Icons.Outlined.Star, NoodleToastTone.Danger)
                 },
             ),
         )
@@ -201,10 +199,10 @@ internal fun ShowcaseScaffold(ui: ShowcaseState, initialTab: Int = 0) {
             onDismissRequest = { ui.actionSheet = false },
             title = "Что сделать с файлом?",
             actions = listOf(
-                NoodleAlertAction("Переименовать") { ui.toast.show("Переименовано", Icons.Rounded.Star, NoodleToastTone.Success) },
-                NoodleAlertAction("Дублировать") { ui.toast.show("Копия создана", Icons.Rounded.Star) },
+                NoodleAlertAction("Переименовать") { ui.toast.show("Переименовано", Icons.Outlined.Star, NoodleToastTone.Success) },
+                NoodleAlertAction("Дублировать") { ui.toast.show("Копия создана", Icons.Outlined.Star) },
                 NoodleAlertAction("Удалить", NoodleAlertActionStyle.Destructive) {
-                    ui.toast.show("Файл удалён", Icons.Rounded.Star, NoodleToastTone.Danger)
+                    ui.toast.show("Файл удалён", Icons.Outlined.Star, NoodleToastTone.Danger)
                 },
             ),
         )

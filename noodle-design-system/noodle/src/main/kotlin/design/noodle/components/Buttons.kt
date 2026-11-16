@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,35 +59,32 @@ fun NoodleButton(
     val colors = NoodleTheme.colors
     val type = NoodleTheme.typography
     val fill = when (style) {
-        NoodleButtonStyle.Filled -> colors.primary
-        NoodleButtonStyle.Tinted -> colors.primarySecondary
+        NoodleButtonStyle.Filled -> colors.label
+        NoodleButtonStyle.Tinted -> colors.fillTertiary
         NoodleButtonStyle.Gray -> colors.surface
         NoodleButtonStyle.Plain -> Color.Transparent
-        NoodleButtonStyle.Destructive -> colors.danger
+        NoodleButtonStyle.Destructive -> colors.surface
     }
     val content = when (style) {
-        NoodleButtonStyle.Plain -> colors.label
-        NoodleButtonStyle.Gray -> colors.label
-        else -> colors.onPrimary
+        NoodleButtonStyle.Filled -> colors.background
+        NoodleButtonStyle.Destructive -> colors.danger
+        else -> colors.label
     }
     val height: Dp = when (size) {
-        NoodleButtonSize.Large -> 54.dp
-        NoodleButtonSize.Medium -> 46.dp
-        NoodleButtonSize.Small -> 36.dp
+        NoodleButtonSize.Large -> 52.dp
+        NoodleButtonSize.Medium -> 44.dp
+        NoodleButtonSize.Small -> 34.dp
     }
     val textStyle = when (size) {
-        NoodleButtonSize.Large -> type.headline.copy(fontSize = 17.sp)
+        NoodleButtonSize.Large -> type.headline
         NoodleButtonSize.Medium -> type.headline
-        NoodleButtonSize.Small -> type.subhead.copy(fontWeight = FontWeight.ExtraBold)
+        NoodleButtonSize.Small -> type.subhead.copy(fontWeight = FontWeight.Medium)
     }
-    val shape = if (size == NoodleButtonSize.Large) SquircleShape(16.dp) else NoodleShapes.Capsule
-    val elevation = when (size) {
-        NoodleButtonSize.Large -> 5.dp
-        NoodleButtonSize.Medium -> 4.dp
-        NoodleButtonSize.Small -> 3.dp
-    }
-    val hPad = if (size == NoodleButtonSize.Small) 14.dp else 22.dp
+    val shape = NoodleShapes.Capsule
+    val elevation = 0.dp
+    val hPad = if (size == NoodleButtonSize.Small) 16.dp else 24.dp
     val plain = style == NoodleButtonStyle.Plain
+    val borderless = style == NoodleButtonStyle.Filled || style == NoodleButtonStyle.Tinted
 
     Box(
         modifier
@@ -112,6 +108,7 @@ fun NoodleButton(
                         fill = fill,
                         enabled = enabled && !loading,
                         elevation = elevation,
+                        border = if (borderless) 0.dp else 1.dp,
                         onClick = onClick,
                     )
                 },
@@ -134,7 +131,7 @@ fun NoodleButton(
             }
             NoodleText(
                 text,
-                style = textStyle.copy(textDecoration = if (plain) TextDecoration.Underline else TextDecoration.None),
+                style = textStyle,
                 color = content,
                 maxLines = 1,
             )
@@ -168,7 +165,7 @@ fun NoodleIconButton(
                         .graphicsLayer { scaleX = 1f - 0.12f * press.value; scaleY = 1f - 0.12f * press.value }
                         .clickable(source, null, enabled = enabled, role = Role.Button) { haptics.tick(); onClick() }
                 } else {
-                    Modifier.inkPressable(NoodleShapes.Capsule, container, enabled, elevation = 3.dp, onClick = onClick)
+                    Modifier.inkPressable(NoodleShapes.Capsule, container, enabled, onClick = onClick)
                 },
             ),
         contentAlignment = Alignment.Center,
@@ -196,10 +193,7 @@ fun NoodleTextButton(
             .graphicsLayer { this.alpha = alpha }
             .clickable(source, null, enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(horizontal = 8.dp, vertical = 8.dp),
-        style = NoodleTheme.typography.body.copy(
-            fontWeight = if (bold) FontWeight.ExtraBold else FontWeight.Medium,
-            textDecoration = TextDecoration.Underline,
-        ),
+        style = NoodleTheme.typography.body.copy(fontWeight = if (bold) FontWeight.Medium else FontWeight.Normal),
         color = color,
     )
 }

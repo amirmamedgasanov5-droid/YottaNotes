@@ -10,11 +10,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -74,22 +74,22 @@ fun ListsScreen(state: LazyListState, ui: ShowcaseState, bottomPad: Dp) {
         bottomPadding = bottomPad,
         trailing = {
             Box {
-                NoodleIconButton(Icons.Rounded.MoreVert, { menu = true }, container = androidx.compose.ui.graphics.Color.Transparent)
+                NoodleIconButton(Icons.Outlined.MoreVert, { menu = true }, container = androidx.compose.ui.graphics.Color.Transparent)
                 NoodleMenu(
                     expanded = menu,
                     onDismissRequest = { menu = false },
                     items = listOf(
-                        NoodleMenuItem("Новый контакт", Icons.Rounded.Add) {
+                        NoodleMenuItem("Новый контакт", Icons.Outlined.Add) {
                             contacts.add(0, Contact(100 + contacts.size, "Новый контакт", "Только что", 1, true, 0))
-                            ui.toast.show("Контакт добавлен", Icons.Rounded.Add, NoodleToastTone.Success)
+                            ui.toast.show("Контакт добавлен", Icons.Outlined.Add, NoodleToastTone.Success)
                         },
-                        NoodleMenuItem("Сбросить список", Icons.Rounded.Refresh) {
+                        NoodleMenuItem("Сбросить список", Icons.Outlined.Refresh) {
                             contacts.clear(); contacts.addAll(seed)
-                            ui.toast.show("Список восстановлен", Icons.Rounded.Refresh)
+                            ui.toast.show("Список восстановлен", Icons.Outlined.Refresh)
                         },
-                        NoodleMenuItem("Очистить всё", Icons.Rounded.Delete, destructive = true) {
+                        NoodleMenuItem("Очистить всё", Icons.Outlined.Delete, destructive = true) {
                             contacts.clear()
-                            ui.toast.show("Список очищен", Icons.Rounded.Delete, NoodleToastTone.Danger)
+                            ui.toast.show("Список очищен", Icons.Outlined.Delete, NoodleToastTone.Danger)
                         },
                     ),
                 )
@@ -125,7 +125,7 @@ fun ListsScreen(state: LazyListState, ui: ShowcaseState, bottomPad: Dp) {
                         row(key = c.id) {
                             NoodleSwipeToDelete(onDelete = {
                                 contacts.remove(c)
-                                ui.toast.show("${c.name} удалён", Icons.Rounded.Delete, NoodleToastTone.Danger)
+                                ui.toast.show("${c.name} удалён", Icons.Outlined.Delete, NoodleToastTone.Danger)
                             }) {
                                 NoodleRow(
                                     title = c.name,
@@ -134,10 +134,10 @@ fun ListsScreen(state: LazyListState, ui: ShowcaseState, bottomPad: Dp) {
                                     trailing = {
                                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                                             if (c.unread > 0) NoodleBadge(c.unread)
-                                            if (c.group == 2) NoodleTag("Work", color = colors.info)
+                                            if (c.group == 2) NoodleTag("Work")
                                         }
                                     },
-                                    onClick = { ui.toast.show(c.name, Icons.Rounded.Star) },
+                                    onClick = { ui.toast.show(c.name, Icons.Outlined.Star) },
                                 )
                             }
                         }

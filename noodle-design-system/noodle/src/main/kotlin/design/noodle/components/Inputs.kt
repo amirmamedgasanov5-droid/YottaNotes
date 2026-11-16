@@ -25,8 +25,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
@@ -67,22 +68,20 @@ fun NoodleTextField(
     val type = NoodleTheme.typography
     var focused by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
-    val lift by animateFloatAsState(if (focused) 1f else 0f, spring(0.55f, 700f), label = "fieldLift")
-    val shadow by animateColorAsState(
-        when { isError -> colors.danger; focused -> colors.primary; else -> colors.hardShadow },
-        tween(160), label = "fieldShadow",
+    val edge by animateColorAsState(
+        when { isError -> colors.danger; focused -> colors.primary; else -> Color.Transparent },
+        tween(180), label = "fieldEdge",
     )
 
     Column(modifier) {
         if (label != null) {
-            NoodleText(label, Modifier.padding(start = 2.dp, bottom = 8.dp), style = type.footnote.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold), color = colors.label)
+            NoodleText(label, Modifier.padding(start = 2.dp, bottom = 8.dp), style = type.footnote, color = colors.labelSecondary)
         }
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(end = 5.dp, bottom = 5.dp)
-                .ink(SquircleShape(15.dp), colors.surface, elevation = (2f + 3f * lift).dp, shadowColor = shadow)
-                .heightIn(min = 52.dp)
+                .ink(SquircleShape(14.dp), colors.fillTertiary, border = 1.dp, outline = edge, strokeWidth = 1.2.dp)
+                .heightIn(min = 50.dp)
                 .noRippleClickable(enabled) { focusRequester.requestFocus() }
                 .padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -98,7 +97,7 @@ fun NoodleTextField(
                     enabled = enabled,
                     singleLine = singleLine,
                     textStyle = type.body.copy(color = colors.label),
-                    cursorBrush = SolidColor(colors.label),
+                    cursorBrush = SolidColor(colors.primary),
                     keyboardOptions = keyboardOptions,
                     decorationBox = { inner ->
                         Box {
@@ -117,10 +116,10 @@ fun NoodleTextField(
                     Modifier
                         .padding(start = 8.dp)
                         .size(22.dp)
-                        .ink(CircleShape, colors.primarySecondary, elevation = 0.dp, border = 1.8.dp)
+                        .ink(CircleShape, colors.labelQuaternary, border = 0.dp)
                         .noRippleClickable { onValueChange("") },
                     contentAlignment = Alignment.Center,
-                ) { NoodleIcon(Icons.Rounded.Close, tint = colors.outline, iconSize = 13.dp) }
+                ) { NoodleIcon(Icons.Outlined.Close, tint = colors.background, iconSize = 13.dp) }
             }
         }
         AnimatedVisibility(
@@ -156,14 +155,13 @@ fun NoodleSearchBar(
         Row(
             Modifier
                 .weight(1f)
-                .padding(end = 4.dp, bottom = 4.dp)
-                .height(46.dp)
-                .ink(androidx.compose.foundation.shape.RoundedCornerShape(50), colors.surface, elevation = if (focused) 4.dp else 3.dp, shadowColor = if (focused) colors.primary else colors.hardShadow)
+                .height(42.dp)
+                .ink(androidx.compose.foundation.shape.RoundedCornerShape(50), colors.fillTertiary, border = 1.dp, outline = if (focused) colors.primary else Color.Transparent, strokeWidth = 1.2.dp)
                 .noRippleClickable { focusRequester.requestFocus() }
                 .padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            NoodleIcon(Icons.Rounded.Search, Modifier.padding(end = 8.dp), tint = colors.label, iconSize = 20.dp)
+            NoodleIcon(Icons.Outlined.Search, Modifier.padding(end = 8.dp), tint = colors.labelSecondary, iconSize = 19.dp)
             Box(Modifier.weight(1f)) {
                 BasicTextField(
                     value = value,
@@ -171,7 +169,7 @@ fun NoodleSearchBar(
                     modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onFocusChanged { focused = it.isFocused },
                     singleLine = true,
                     textStyle = type.body.copy(color = colors.label),
-                    cursorBrush = SolidColor(colors.label),
+                    cursorBrush = SolidColor(colors.primary),
                     decorationBox = { inner ->
                         Box(contentAlignment = Alignment.CenterStart) {
                             if (value.isEmpty()) NoodleText(placeholder, color = colors.labelTertiary)
@@ -182,9 +180,9 @@ fun NoodleSearchBar(
             }
             AnimatedVisibility(visible = value.isNotEmpty(), enter = scaleIn(NoodleMotion.bouncy()) + fadeIn(), exit = scaleOut() + fadeOut()) {
                 Box(
-                    Modifier.size(20.dp).ink(CircleShape, colors.primarySecondary, elevation = 0.dp, border = 1.8.dp).noRippleClickable { onValueChange("") },
+                    Modifier.size(18.dp).ink(CircleShape, colors.labelQuaternary, border = 0.dp).noRippleClickable { onValueChange("") },
                     contentAlignment = Alignment.Center,
-                ) { NoodleIcon(Icons.Rounded.Close, tint = colors.outline, iconSize = 12.dp) }
+                ) { NoodleIcon(Icons.Outlined.Close, tint = colors.background, iconSize = 11.dp) }
             }
         }
         AnimatedVisibility(
@@ -198,7 +196,7 @@ fun NoodleSearchBar(
                     onValueChange("")
                     focusManager.clearFocus()
                 }.padding(start = 12.dp),
-                style = type.headline,
+                style = type.body,
                 color = colors.label,
                 maxLines = 1,
             )

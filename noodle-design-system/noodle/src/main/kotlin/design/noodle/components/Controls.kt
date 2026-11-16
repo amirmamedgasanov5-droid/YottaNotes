@@ -40,7 +40,9 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
@@ -71,24 +73,24 @@ fun NoodleSwitch(
     val colors = NoodleTheme.colors
     val haptics = rememberNoodleHaptics()
     var pressed by remember { mutableStateOf(false) }
-    val trackW = 58.dp
-    val trackH = 34.dp
+    val trackW = 50.dp
+    val trackH = 30.dp
     val pad = 3.dp
     val thumb = 24.dp
-    val targetW = if (pressed) 30.dp else thumb
+    val targetW = if (pressed) 29.dp else thumb
     val thumbW by animateDpAsState(targetW, NoodleMotion.snappy(), label = "thumbW")
     val thumbX by animateDpAsState(
-        if (checked) trackW - pad * 2 - 2.dp - targetW + 1.dp else pad - 1.dp,
-        spring(dampingRatio = 0.45f, stiffness = 520f), label = "thumbX",
+        if (checked) trackW - pad - targetW else pad,
+        spring(dampingRatio = 0.6f, stiffness = 480f), label = "thumbX",
     )
-    val track by animateColorAsState(if (checked) colors.primary else colors.switchOff, tween(180), label = "track")
+    val track by animateColorAsState(if (checked) colors.label else colors.switchOff, tween(200), label = "track")
     val currentChecked by rememberUpdatedState(checked)
     val currentOnChange by rememberUpdatedState(onCheckedChange)
 
     Box(
         modifier
             .graphicsLayer { alpha = if (enabled) 1f else 0.45f }
-            .size(trackW + 3.dp, trackH + 3.dp)
+            .size(trackW, trackH)
             .pointerInput(enabled) {
                 if (!enabled) return@pointerInput
                 detectTapGestures(
@@ -111,12 +113,12 @@ fun NoodleSwitch(
                 ) { change, delta -> change.consume(); total += delta }
             },
     ) {
-        Box(Modifier.size(trackW, trackH).ink(NoodleShapes.Capsule, track, elevation = 3.dp, border = 2.dp))
+        Box(Modifier.size(trackW, trackH).ink(NoodleShapes.Capsule, track, border = 0.dp))
         Box(
             Modifier
                 .offset { IntOffset(thumbX.roundToPx(), ((trackH - thumb) / 2).roundToPx()) }
                 .size(thumbW, thumb)
-                .ink(NoodleShapes.Capsule, colors.controlThumb, elevation = 0.dp, border = 2.dp),
+                .ink(NoodleShapes.Capsule, colors.controlThumb, border = 0.dp),
         )
     }
 }
@@ -134,9 +136,9 @@ fun NoodleSegmentedControl(
     BoxWithConstraints(
         modifier
             .fillMaxWidth()
-            .height(46.dp)
-            .ink(SquircleShape(15.dp), colors.surface, elevation = 3.dp)
-            .padding(4.dp),
+            .height(40.dp)
+            .ink(NoodleShapes.Capsule, colors.fillTertiary, border = 0.dp)
+            .padding(3.dp),
     ) {
         val segW = maxWidth / options.size
         val x by animateDpAsState(segW * selectedIndex, spring(dampingRatio = 0.62f, stiffness = 520f), label = "segX")
@@ -145,13 +147,13 @@ fun NoodleSegmentedControl(
                 .offset { IntOffset(x.roundToPx(), 0) }
                 .width(segW)
                 .fillMaxHeight()
-                .ink(SquircleShape(11.dp), colors.primarySecondary, elevation = 0.dp, border = 2.dp),
+                .ink(NoodleShapes.Capsule, colors.surface, border = 1.dp),
         )
         Row(Modifier.fillMaxSize()) {
             options.forEachIndexed { i, label ->
                 val selected = i == selectedIndex
                 val c by animateColorAsState(
-                    if (selected) colors.onPrimary else colors.labelSecondary, tween(160), label = "segText",
+                    if (selected) colors.label else colors.labelSecondary, tween(160), label = "segText",
                 )
                 Box(
                     Modifier
@@ -162,7 +164,7 @@ fun NoodleSegmentedControl(
                 ) {
                     NoodleText(
                         label,
-                        style = NoodleTheme.typography.subhead.copy(fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Bold),
+                        style = NoodleTheme.typography.subhead.copy(fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal),
                         color = c,
                         maxLines = 1,
                     )
@@ -184,7 +186,7 @@ fun NoodleSlider(
 ) {
     val colors = NoodleTheme.colors
     val haptics = rememberNoodleHaptics()
-    val thumbPx = with(LocalDensity.current) { 30.dp.toPx() }
+    val thumbPx = with(LocalDensity.current) { 28.dp.toPx() }
     var width by remember { mutableIntStateOf(0) }
     var dragging by remember { mutableStateOf(false) }
     val span = valueRange.endInclusive - valueRange.start
@@ -225,25 +227,22 @@ fun NoodleSlider(
                 ) { change, _ -> change.consume(); emit(change.position.x) }
             },
     ) {
-        // дорожка + заливка
         val density = LocalDensity.current
         val fillDp = with(density) { (thumbPx / 2f + fraction * (width - thumbPx)).toDp() }
-        Box(Modifier.align(Alignment.CenterStart).fillMaxWidth().height(18.dp).ink(NoodleShapes.Capsule, colors.surface, elevation = 3.dp)) {
-            Box(
-                Modifier
-                    .padding(2.dp)
-                    .fillMaxHeight()
-                    .width((fillDp - 4.dp).coerceAtLeast(14.dp))
-                    .clip(NoodleShapes.Capsule)
-                    .background(colors.primary),
-            )
+        Box(Modifier.align(Alignment.CenterStart).fillMaxWidth().height(4.dp).clip(NoodleShapes.Capsule).background(colors.fillSecondary)) {
+            Box(Modifier.fillMaxHeight().width(fillDp).background(colors.label))
         }
         Box(
             Modifier
                 .align(Alignment.CenterStart)
-                .offset { IntOffset((fraction * (width - thumbPx)).roundToInt(), -(lift * 3.dp.toPx()).roundToInt()) }
-                .size(30.dp)
-                .ink(CircleShape, colors.primarySecondary, elevation = 3.dp),
+                .offset { IntOffset((fraction * (width - thumbPx)).roundToInt(), 0) }
+                .size(28.dp)
+                .graphicsLayer {
+                    scaleX = 1f + 0.12f * lift
+                    scaleY = 1f + 0.12f * lift
+                }
+                .shadow(4.dp, CircleShape, ambientColor = Color.Black.copy(0.25f), spotColor = Color.Black.copy(0.25f))
+                .ink(CircleShape, colors.controlThumb, border = 1.dp, outline = colors.outline),
         )
     }
 }
@@ -256,7 +255,7 @@ fun NoodleStepper(
     modifier: Modifier = Modifier,
     range: IntRange = 0..99,
 ) {
-    Row(modifier, horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier, horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         StepperButton(plus = false, enabled = value > range.first) { onValueChange(value - 1) }
         StepperButton(plus = true, enabled = value < range.last) { onValueChange(value + 1) }
     }
@@ -267,15 +266,15 @@ private fun StepperButton(plus: Boolean, enabled: Boolean, onClick: () -> Unit) 
     val colors = NoodleTheme.colors
     Box(
         Modifier
-            .size(38.dp)
-            .graphicsLayer { alpha = if (enabled) 1f else 0.4f }
-            .inkPressable(SquircleShape(12.dp), if (plus) colors.primary else colors.surface, enabled, elevation = 3.dp, onClick = onClick),
+            .size(36.dp)
+            .graphicsLayer { alpha = if (enabled) 1f else 0.35f }
+            .inkPressable(NoodleShapes.Capsule, colors.fillTertiary, enabled, border = 0.dp, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Canvas(Modifier.size(14.dp)) {
-            val w = 2.8.dp.toPx()
-            drawLine(colors.outline, Offset(0f, size.height / 2f), Offset(size.width, size.height / 2f), w, StrokeCap.Round)
-            if (plus) drawLine(colors.outline, Offset(size.width / 2f, 0f), Offset(size.width / 2f, size.height), w, StrokeCap.Round)
+            val w = 1.6.dp.toPx()
+            drawLine(colors.label, Offset(0f, size.height / 2f), Offset(size.width, size.height / 2f), w, StrokeCap.Round)
+            if (plus) drawLine(colors.label, Offset(size.width / 2f, 0f), Offset(size.width / 2f, size.height), w, StrokeCap.Round)
         }
     }
 }

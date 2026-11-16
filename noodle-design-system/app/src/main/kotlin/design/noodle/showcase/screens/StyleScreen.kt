@@ -15,10 +15,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,7 +82,7 @@ fun StyleScreen(state: LazyListState, ui: ShowcaseState, bottomPad: Dp) {
                     NoodleRow(
                         "Тактильный отклик",
                         subtitle = "Лёгкие «тики» на переключателях, табах и колесе",
-                        icon = Icons.Rounded.Favorite,
+                        icon = Icons.Outlined.Favorite,
                         iconTint = colors.danger,
                         trailing = { NoodleSwitch(ui.haptics, { ui.haptics = it }) },
                     )
@@ -93,7 +93,7 @@ fun StyleScreen(state: LazyListState, ui: ShowcaseState, bottomPad: Dp) {
         item { Spacer(Modifier.height(24.dp)) }
         item {
             Column(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                NoodleLogo(diameter = 88.dp, onClick = { ui.toast.show("Noodle — это про вкус", Icons.Rounded.Star) })
+                NoodleLogo(diameter = 88.dp, onClick = { ui.toast.show("Noodle — это про вкус", Icons.Outlined.Star) })
                 NoodleText("Noodle Design System", Modifier.padding(top = 14.dp), style = type.headline)
                 NoodleText("Версия 1.0.0", Modifier.padding(top = 2.dp), style = type.footnote, color = colors.labelSecondary)
             }
@@ -105,21 +105,17 @@ fun StyleScreen(state: LazyListState, ui: ShowcaseState, bottomPad: Dp) {
 @Composable
 private fun AccentDot(accent: NoodleAccent, selected: Boolean, onClick: () -> Unit) {
     val colors = NoodleTheme.colors
-    val ring by animateFloatAsState(if (selected) 1f else 0f, NoodleMotion.bouncy(), label = "ring")
+    val ring by animateFloatAsState(if (selected) 1f else 0f, NoodleMotion.snappy(), label = "ring")
     Box(
         Modifier
-            .size(48.dp)
-            .noodleClickable(pressedScale = 0.88f, onClick = onClick)
-            .graphicsLayer {
-                scaleX = 1f + 0.08f * ring
-                scaleY = 1f + 0.08f * ring
-            }
-            .border(2.5.dp, accent.primary.copy(alpha = ring), CircleShape)
+            .size(44.dp)
+            .noodleClickable(pressedScale = 0.9f, onClick = onClick)
+            .border(1.5.dp, accent.primary.copy(alpha = ring), CircleShape)
             .padding(5.dp)
             .clip(CircleShape)
-            .background(Brush.linearGradient(listOf(accent.secondary, accent.primary))),
+            .background(accent.primary),
         contentAlignment = Alignment.Center,
     ) {
-        if (selected) NoodleIcon(Icons.Rounded.Check, tint = Color.White, iconSize = 22.dp)
+        if (selected) NoodleIcon(Icons.Outlined.Check, tint = Color.White, iconSize = 20.dp)
     }
 }

@@ -12,16 +12,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.Notifications
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.PlayArrow
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,8 +67,8 @@ fun HomeScreen(state: LazyListState, ui: ShowcaseState, bottomPad: Dp, onNavigat
         bottomPadding = bottomPad,
         trailing = {
             NoodleIconButton(
-                Icons.Rounded.Notifications,
-                onClick = { ui.toast.show("Новых уведомлений нет", Icons.Rounded.Notifications) },
+                Icons.Outlined.Notifications,
+                onClick = { ui.toast.show("Новых уведомлений нет", Icons.Outlined.Notifications) },
                 container = androidx.compose.ui.graphics.Color.Transparent,
             )
         },
@@ -75,12 +76,12 @@ fun HomeScreen(state: LazyListState, ui: ShowcaseState, bottomPad: Dp, onNavigat
         item {
             Hero(
                 onTry = { onNavigate(1) },
-                onToast = { ui.toast.show("Добро пожаловать в Noodle", Icons.Rounded.Favorite, NoodleToastTone.Success) },
+                onToast = { ui.toast.show("Добро пожаловать в Noodle", Icons.Outlined.Favorite, NoodleToastTone.Success) },
             )
         }
 
         item { Spacer(Modifier.height(28.dp)) }
-        item { NoodleSectionTitle("Палитра") }
+        item { NoodleSectionTitle("Цвет") }
         item { Spacer(Modifier.height(12.dp)) }
         item { Palette() }
 
@@ -113,56 +114,44 @@ private fun Sample(text: String, style: androidx.compose.ui.text.TextStyle, colo
 private fun Hero(onTry: () -> Unit, onToast: () -> Unit) {
     val colors = NoodleTheme.colors
     val type = NoodleTheme.typography
-    val shape = SquircleShape(30.dp)
-    Box(Modifier.padding(start = 16.dp, end = 21.dp).fillMaxWidth().ink(shape, colors.primarySecondary, elevation = 6.dp, border = 2.5.dp)) {
-        Box(Modifier.matchParentSize().clip(shape)) {
-            NoodleWaves(
-                Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(84.dp),
-                color = colors.primary, amplitude = 9.dp, strands = 3, strokeWidth = 5.dp, alpha = 1f,
-            )
-        }
-        Column(Modifier.padding(22.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                NoodleLogo(diameter = 60.dp, onClick = onToast)
-                Spacer(Modifier.width(14.dp))
-                NoodleTag("v1.0", color = Color.White)
-            }
-            Spacer(Modifier.height(20.dp))
-            NoodleText("Noodle\nDesign\nSystem", style = type.largeTitle.copy(fontSize = 44.sp, lineHeight = 46.sp), color = colors.onPrimary)
-            Spacer(Modifier.height(10.dp))
-            NoodleText(
-                "Плоские цвета, жирные контуры и упругие кнопки, которые вдавливаются в тень.",
-                style = type.callout.copy(fontWeight = FontWeight.Bold),
-                color = colors.onPrimary,
-            )
-            Spacer(Modifier.height(22.dp))
-            NoodleButton("Смотреть компоненты", onClick = onTry, icon = Icons.Rounded.PlayArrow, modifier = Modifier.padding(end = 5.dp))
-            Spacer(Modifier.height(64.dp))
+    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
+        NoodleLogo(diameter = 48.dp, onClick = onToast)
+        Spacer(Modifier.height(28.dp))
+        NoodleText("Тихий интерфейс.\nОдна нить.", style = type.title1.copy(fontSize = 30.sp, lineHeight = 36.sp))
+        Spacer(Modifier.height(12.dp))
+        NoodleText(
+            "Noodle — спокойная дизайн-система: монохром, воздух и тонкая волна, которая показывает, где вы сейчас.",
+            style = type.callout,
+            color = colors.labelSecondary,
+        )
+        Spacer(Modifier.height(24.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            NoodleButton("Компоненты", onClick = onTry, size = NoodleButtonSize.Medium)
+            NoodleButton("Привет", onClick = onToast, style = NoodleButtonStyle.Tinted, size = NoodleButtonSize.Medium)
         }
     }
 }
 
-private class Swatch(val name: String, val color: Color)
+private class Swatch(val name: String, val color: Color, val bordered: Boolean = false)
 
 @Composable
 private fun Palette() {
+    val colors = NoodleTheme.colors
     val swatches = listOf(
-        Swatch("Chili", NoodlePalette.Chili),
-        Swatch("Yolk", NoodlePalette.Yolk),
-        Swatch("Mint", NoodlePalette.Mint),
+        Swatch("Ink", colors.label),
+        Swatch("Fill", colors.fill),
+        Swatch("Paper", colors.background, true),
+        Swatch("Amber", NoodlePalette.Amber),
+        Swatch("Clay", NoodlePalette.Clay),
+        Swatch("Sage", NoodlePalette.Sage),
         Swatch("Sky", NoodlePalette.Sky),
-        Swatch("Bubble", NoodlePalette.Bubble),
-        Swatch("Grape", NoodlePalette.Grape),
-        Swatch("Ink", NoodlePalette.Ink),
+        Swatch("Rose", NoodlePalette.Rose),
     )
-    LazyRow(contentPadding = PaddingValues(start = 16.dp, end = 21.dp, bottom = 6.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+    LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(18.dp)) {
         items(swatches) { s ->
-            Column(Modifier.padding(end = 4.dp, bottom = 4.dp).ink(SquircleShape(20.dp), NoodleTheme.colors.surface, elevation = 4.dp)) {
-                Column(Modifier.clip(SquircleShape(18.dp))) {
-                    Box(Modifier.width(104.dp).height(76.dp).background(s.color))
-                    Box(Modifier.width(104.dp).height(2.dp).background(NoodleTheme.colors.outline))
-                    NoodleText(s.name, Modifier.padding(12.dp), style = NoodleTheme.typography.subhead.copy(fontWeight = FontWeight.Black))
-                }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(Modifier.size(52.dp).ink(CircleShape, s.color, border = if (s.bordered) 1.dp else 0.dp))
+                NoodleText(s.name, Modifier.padding(top = 8.dp), style = NoodleTheme.typography.caption1, color = colors.labelSecondary)
             }
         }
     }
@@ -173,9 +162,9 @@ private fun FeatureCarousel() {
     val colors = NoodleTheme.colors
     val pager = rememberPagerState(pageCount = { 3 })
     val cards = listOf(
-        Triple("Упругая физика", "Каждое нажатие и переход построены на пружинах, а не на линейных кривых.", Icons.Rounded.Favorite),
-        Triple("Живая тема", "Смена светлой/тёмной темы и акцента плавно перекрашивает весь интерфейс.", Icons.Rounded.Star),
-        Triple("Тактильность", "Лёгкие хаптики на переключениях, табах, колесе и слайдере.", Icons.Rounded.PlayArrow),
+        Triple("Упругая физика", "Каждое нажатие и переход построены на пружинах, а не на линейных кривых.", Icons.Outlined.Favorite),
+        Triple("Живая тема", "Смена светлой/тёмной темы и акцента плавно перекрашивает весь интерфейс.", Icons.Outlined.Star),
+        Triple("Тактильность", "Лёгкие хаптики на переключениях, табах, колесе и слайдере.", Icons.Outlined.PlayArrow),
     )
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         HorizontalPager(
@@ -196,9 +185,9 @@ private fun FeatureCarousel() {
             ) {
                 Column(Modifier.fillMaxWidth().padding(20.dp)) {
                     Box(
-                        Modifier.size(48.dp).ink(SquircleShape(15.dp), colors.primary, elevation = 3.dp),
+                        Modifier.size(40.dp).ink(CircleShape, colors.fillTertiary, border = 0.dp),
                         contentAlignment = Alignment.Center,
-                    ) { design.noodle.components.NoodleIcon(icon, tint = colors.outline, iconSize = 26.dp) }
+                    ) { design.noodle.components.NoodleIcon(icon, tint = colors.label, iconSize = 20.dp) }
                     Spacer(Modifier.height(14.dp))
                     NoodleText(title, style = NoodleTheme.typography.title3)
                     Spacer(Modifier.height(4.dp))

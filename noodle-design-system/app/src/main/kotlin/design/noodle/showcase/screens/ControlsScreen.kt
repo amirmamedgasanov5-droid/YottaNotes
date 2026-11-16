@@ -11,14 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Email
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.Notifications
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.Share
-import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -86,13 +86,13 @@ fun ControlsScreen(state: LazyListState, ui: ShowcaseState, bottomPad: Dp) {
             NoodleGroup(header = "Кнопки") {
                 row {
                     Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        NoodleButton("Продолжить", onClick = { ui.toast.show("Нажато", Icons.Rounded.Star) }, Modifier.fillMaxWidth())
+                        NoodleButton("Продолжить", onClick = { ui.toast.show("Нажато", Icons.Outlined.Star) }, Modifier.fillMaxWidth())
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             NoodleButton("Tinted", {}, Modifier.weight(1f), style = NoodleButtonStyle.Tinted)
                             NoodleButton("Gray", {}, Modifier.weight(1f), style = NoodleButtonStyle.Gray)
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                            NoodleButton("Medium", {}, size = NoodleButtonSize.Medium, icon = Icons.Rounded.Add)
+                            NoodleButton("Medium", {}, size = NoodleButtonSize.Medium, icon = Icons.Outlined.Add)
                             NoodleButton("Small", {}, size = NoodleButtonSize.Small, style = NoodleButtonStyle.Tinted)
                             NoodleButton("Удалить", {}, size = NoodleButtonSize.Small, style = NoodleButtonStyle.Destructive)
                         }
@@ -103,7 +103,7 @@ fun ControlsScreen(state: LazyListState, ui: ShowcaseState, bottomPad: Dp) {
                                 scope.launch {
                                     delay(1800)
                                     loading = false
-                                    ui.toast.show("Готово!", Icons.Rounded.Favorite, NoodleToastTone.Success)
+                                    ui.toast.show("Готово!", Icons.Outlined.Favorite, NoodleToastTone.Success)
                                 }
                             },
                             Modifier.fillMaxWidth(),
@@ -111,10 +111,10 @@ fun ControlsScreen(state: LazyListState, ui: ShowcaseState, bottomPad: Dp) {
                             loading = loading,
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            NoodleIconButton(Icons.Rounded.Share, {})
-                            NoodleIconButton(Icons.Rounded.Favorite, {}, tint = colors.danger)
-                            NoodleIconButton(Icons.Rounded.Notifications, {})
-                            NoodleIconButton(Icons.Rounded.Add, {}, tint = colors.onPrimary, container = colors.primary)
+                            NoodleIconButton(Icons.Outlined.Share, {})
+                            NoodleIconButton(Icons.Outlined.Favorite, {})
+                            NoodleIconButton(Icons.Outlined.Notifications, {})
+                            NoodleIconButton(Icons.Outlined.Add, {}, tint = colors.background, container = colors.label)
                         }
                     }
                 }
@@ -125,9 +125,9 @@ fun ControlsScreen(state: LazyListState, ui: ShowcaseState, bottomPad: Dp) {
         item { Spacer(Modifier.height(24.dp)) }
         item {
             NoodleGroup(header = "Переключатели", dividerInset = 58.dp, footer = "Бегунок растягивается при нажатии и пружинит — попробуйте потянуть его.") {
-                row { NoodleRow("Уведомления", icon = Icons.Rounded.Notifications, iconTint = colors.danger, trailing = { NoodleSwitch(notifications, { notifications = it }) }) }
-                row { NoodleRow("Face ID", icon = Icons.Rounded.Lock, iconTint = colors.success, trailing = { NoodleSwitch(faceId, { faceId = it }) }) }
-                row { NoodleRow("Избранное", icon = Icons.Rounded.Star, iconTint = colors.warning, trailing = { NoodleSwitch(favorites, { favorites = it }) }) }
+                row { NoodleRow("Уведомления", icon = Icons.Outlined.Notifications, iconTint = colors.danger, trailing = { NoodleSwitch(notifications, { notifications = it }) }) }
+                row { NoodleRow("Face ID", icon = Icons.Outlined.Lock, iconTint = colors.success, trailing = { NoodleSwitch(faceId, { faceId = it }) }) }
+                row { NoodleRow("Избранное", icon = Icons.Outlined.Star, iconTint = colors.warning, trailing = { NoodleSwitch(favorites, { favorites = it }) }) }
             }
         }
 
@@ -204,12 +204,12 @@ fun ControlsScreen(state: LazyListState, ui: ShowcaseState, bottomPad: Dp) {
         item {
             Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 NoodleSearchBar(query, { query = it })
-                NoodleTextField(name, { name = it }, label = "Имя", placeholder = "Как вас зовут?", leadingIcon = Icons.Rounded.Person)
+                NoodleTextField(name, { name = it }, label = "Имя", placeholder = "Как вас зовут?", leadingIcon = Icons.Outlined.Person)
                 NoodleTextField(
                     email, { email = it },
                     label = "Почта",
                     placeholder = "you@noodle.design",
-                    leadingIcon = Icons.Rounded.Email,
+                    leadingIcon = Icons.Outlined.Email,
                     isError = email.isNotBlank() && !email.contains(Regex("^\\S+@\\S+\\.\\S+$")),
                     supportingText = if (email.isNotBlank() && !email.contains(Regex("^\\S+@\\S+\\.\\S+$"))) "Введите корректный адрес" else null,
                 )

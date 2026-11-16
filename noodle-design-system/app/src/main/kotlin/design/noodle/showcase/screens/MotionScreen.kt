@@ -15,9 +15,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -85,9 +85,9 @@ fun MotionScreen(state: LazyListState, ui: ShowcaseState, bottomPad: Dp) {
         item { Spacer(Modifier.height(24.dp)) }
         item {
             NoodleGroup(header = "Тосты", footer = "Выпрыгивают сверху, как Dynamic Island.") {
-                row { NoodleRow("Успех", icon = Icons.Rounded.Favorite, iconTint = colors.success, showChevron = true, onClick = { ui.toast.show("Всё получилось", Icons.Rounded.Favorite, NoodleToastTone.Success) }) }
-                row { NoodleRow("Предупреждение", icon = Icons.Rounded.Warning, iconTint = colors.warning, showChevron = true, onClick = { ui.toast.show("Слабый сигнал сети", Icons.Rounded.Warning, NoodleToastTone.Warning) }) }
-                row { NoodleRow("Ошибка", icon = Icons.Rounded.Info, iconTint = colors.danger, showChevron = true, onClick = { ui.toast.show("Не удалось сохранить", Icons.Rounded.Info, NoodleToastTone.Danger) }) }
+                row { NoodleRow("Успех", icon = Icons.Outlined.Favorite, iconTint = colors.success, showChevron = true, onClick = { ui.toast.show("Всё получилось", Icons.Outlined.Favorite, NoodleToastTone.Success) }) }
+                row { NoodleRow("Предупреждение", icon = Icons.Outlined.Warning, iconTint = colors.warning, showChevron = true, onClick = { ui.toast.show("Слабый сигнал сети", Icons.Outlined.Warning, NoodleToastTone.Warning) }) }
+                row { NoodleRow("Ошибка", icon = Icons.Outlined.Info, iconTint = colors.danger, showChevron = true, onClick = { ui.toast.show("Не удалось сохранить", Icons.Outlined.Info, NoodleToastTone.Danger) }) }
             }
         }
 

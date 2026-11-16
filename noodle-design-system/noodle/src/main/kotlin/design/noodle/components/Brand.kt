@@ -116,39 +116,35 @@ fun NoodleWaves(
     }
 }
 
-/** Фирменный лоадер: три нити лапши «плывут». */
+/** Фирменный лоадер: одна тонкая нить плывёт. */
 @Composable
 fun NoodleLoader(
     modifier: Modifier = Modifier,
-    width: Dp = 72.dp,
-    height: Dp = 40.dp,
+    width: Dp = 56.dp,
+    height: Dp = 24.dp,
 ) {
     val colors = NoodleTheme.colors
     val t = rememberInfiniteTransition(label = "loader")
     val phase by t.animateFloat(
         initialValue = 0f,
         targetValue = (2 * PI).toFloat(),
-        animationSpec = infiniteRepeatable(tween(1300, easing = LinearEasing)),
+        animationSpec = infiniteRepeatable(tween(1400, easing = LinearEasing)),
         label = "loaderPhase",
     )
     Canvas(modifier.size(width, height)) {
-        val cols = listOf(colors.primary, colors.primarySecondary, colors.outline)
-        for (k in 0 until 3) {
-            squiggle(
-                color = cols[k],
-                stroke = size.height * 0.15f,
-                amplitude = size.height * 0.16f,
-                wavelength = size.width / 1.5f,
-                phase = -phase + k * 0.9f,
-                y = size.height * (0.24f + 0.26f * k),
-                x0 = size.height * 0.1f,
-                x1 = size.width - size.height * 0.1f,
-            )
-        }
+        squiggle(
+            color = colors.primary,
+            stroke = 2.2.dp.toPx(),
+            amplitude = size.height * 0.28f,
+            wavelength = size.width / 2.2f,
+            phase = -phase,
+            x0 = 2.dp.toPx(),
+            x1 = size.width - 2.dp.toPx(),
+        )
     }
 }
 
-/** Логотип Noodle: яркий блок с чернильным контуром и тремя нитями. */
+/** Логотип Noodle: тёмный квадрат с тонкой нитью. */
 @Composable
 fun NoodleLogo(
     modifier: Modifier = Modifier,
@@ -166,23 +162,20 @@ fun NoodleLogo(
     Box(
         modifier
             .size(diameter)
-            .then(if (onClick != null) Modifier.noodleClickable(pressedScale = 0.92f, onClick = onClick) else Modifier)
-            .ink(SquircleShape(diameter * 0.3f), colors.primarySecondary, elevation = diameter * 0.07f, border = 2.5.dp),
+            .then(if (onClick != null) Modifier.noodleClickable(pressedScale = 0.94f, onClick = onClick) else Modifier)
+            .ink(SquircleShape(diameter * 0.32f), colors.label, border = 0.dp),
     ) {
         Canvas(Modifier.size(diameter)) {
-            val cols = listOf(colors.primary, colors.outline, colors.primary)
-            for (k in 0 until 3) {
-                squiggle(
-                    color = cols[k],
-                    stroke = size.height * 0.085f,
-                    amplitude = size.height * 0.055f,
-                    wavelength = size.width * 0.42f,
-                    phase = phase * (if (k % 2 == 0) 1f else -1f) + k,
-                    y = size.height * (0.3f + 0.2f * k),
-                    x0 = size.width * 0.2f,
-                    x1 = size.width * 0.8f,
-                )
-            }
+            squiggle(
+                color = colors.background,
+                stroke = size.height * 0.05f,
+                amplitude = size.height * 0.08f,
+                wavelength = size.width * 0.34f,
+                phase = phase,
+                y = size.height * 0.5f,
+                x0 = size.width * 0.22f,
+                x1 = size.width * 0.78f,
+            )
         }
     }
 }

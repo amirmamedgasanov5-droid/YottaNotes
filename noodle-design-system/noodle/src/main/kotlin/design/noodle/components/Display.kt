@@ -5,6 +5,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
@@ -36,7 +38,6 @@ import design.noodle.foundation.SquircleShape
 import design.noodle.foundation.ink
 import design.noodle.foundation.inkPressable
 import design.noodle.theme.NoodleMotion
-import design.noodle.theme.NoodlePalette
 import design.noodle.theme.NoodleTheme
 import kotlinx.coroutines.delay
 
@@ -45,44 +46,39 @@ import kotlinx.coroutines.delay
 fun NoodleCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    shape: Shape = SquircleShape(22.dp),
+    shape: Shape = SquircleShape(20.dp),
     background: Color = NoodleTheme.colors.surface,
-    elevation: Dp = 5.dp,
+    elevation: Dp = 0.dp,
     content: @Composable () -> Unit,
 ) {
     Box(
         modifier
-            .padding(end = elevation, bottom = elevation)
             .then(
-                if (onClick != null) Modifier.inkPressable(shape, background, elevation = elevation, role = null, onClick = onClick)
-                else Modifier.ink(shape, background, elevation = elevation),
+                if (onClick != null) Modifier.inkPressable(shape, background, role = null, onClick = onClick)
+                else Modifier.ink(shape, background),
             ),
     ) { content() }
 }
 
 /** Бейдж-счётчик. */
 @Composable
-fun NoodleBadge(count: Int, modifier: Modifier = Modifier, color: Color = NoodleTheme.colors.danger) {
+fun NoodleBadge(count: Int, modifier: Modifier = Modifier, color: Color = NoodleTheme.colors.label) {
     val text = if (count > 99) "99+" else count.toString()
     NoodleText(
         text,
         modifier
-            .height(20.dp)
-            .width(if (text.length == 1) 20.dp else (12 + text.length * 7).dp)
-            .ink(NoodleShapes.Capsule, color, elevation = 0.dp, border = 1.8.dp)
+            .height(18.dp)
+            .width(if (text.length == 1) 18.dp else (10 + text.length * 7).dp)
+            .ink(NoodleShapes.Capsule, color, border = 0.dp)
             .padding(top = 1.dp),
-        style = NoodleTheme.typography.caption2.copy(fontWeight = FontWeight.Black, fontSize = 11.sp),
-        color = NoodleTheme.colors.outline,
+        style = NoodleTheme.typography.caption2.copy(fontWeight = FontWeight.Medium, fontSize = 10.5.sp),
+        color = NoodleTheme.colors.background,
         textAlign = TextAlign.Center,
         maxLines = 1,
     )
 }
 
-private val avatarPalette = listOf(
-    NoodlePalette.Chili, NoodlePalette.Yolk, NoodlePalette.Mint, NoodlePalette.Sky, NoodlePalette.Bubble, NoodlePalette.Grape,
-)
-
-/** Аватар: плоский цвет по имени, контур, статус. */
+/** Аватар: монохромный круг с инициалами и тонким индикатором статуса. */
 @Composable
 fun NoodleAvatar(
     name: String,
@@ -91,42 +87,43 @@ fun NoodleAvatar(
     online: Boolean? = null,
 ) {
     val colors = NoodleTheme.colors
-    val c = avatarPalette[(name.hashCode() and 0x7fffffff) % avatarPalette.size]
     val initials = name.split(" ").filter { it.isNotBlank() }.take(2).joinToString("") { it.first().uppercase() }
     Box(modifier.size(diameter)) {
-        Box(Modifier.size(diameter).ink(CircleShape, c, elevation = 0.dp, border = 2.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(diameter).ink(CircleShape, colors.fillSecondary, border = 0.dp), contentAlignment = Alignment.Center) {
             NoodleText(
                 initials,
-                style = NoodleTheme.typography.headline.copy(fontSize = (diameter.value * 0.36f).sp, fontWeight = FontWeight.Black),
-                color = NoodlePalette.Ink,
+                style = NoodleTheme.typography.headline.copy(fontSize = (diameter.value * 0.34f).sp, fontWeight = FontWeight.Medium),
+                color = colors.labelSecondary,
             )
         }
         if (online != null) {
             Box(
                 Modifier
                     .align(Alignment.BottomEnd)
-                    .size(diameter * 0.32f)
-                    .ink(CircleShape, if (online) colors.success else colors.fill, elevation = 0.dp, border = 2.dp),
+                    .size(diameter * 0.3f)
+                    .ink(CircleShape, colors.surface, border = 0.dp)
+                    .padding(2.dp)
+                    .ink(CircleShape, if (online) colors.success else colors.labelQuaternary, border = 0.dp),
             )
         }
     }
 }
 
-/** Индикатор страниц: активная точка вытягивается в цветную капсулу с контуром. */
+/** Индикатор страниц: тонкие чёрточки, активная вытягивается. */
 @Composable
 fun NoodlePageIndicator(
     pageCount: Int,
     currentPage: Int,
     modifier: Modifier = Modifier,
-    activeColor: Color = NoodleTheme.colors.primary,
-    inactiveColor: Color = NoodleTheme.colors.surface,
+    activeColor: Color = NoodleTheme.colors.label,
+    inactiveColor: Color = NoodleTheme.colors.labelQuaternary,
 ) {
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy(7.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
         repeat(pageCount) { i ->
             val selected = i == currentPage
-            val w by animateDpAsState(if (selected) 28.dp else 10.dp, spring(0.55f, 500f), label = "dotW")
-            val c by animateColorAsState(if (selected) activeColor else inactiveColor, tween(160), label = "dotC")
-            Box(Modifier.height(10.dp).width(w).ink(NoodleShapes.Capsule, c, elevation = 0.dp, border = 2.dp))
+            val w by animateDpAsState(if (selected) 22.dp else 12.dp, spring(0.8f, 500f), label = "dotW")
+            val c by animateColorAsState(if (selected) activeColor else inactiveColor, tween(180), label = "dotC")
+            Box(Modifier.height(2.dp).width(w).clip(NoodleShapes.Capsule).background(c))
         }
     }
 }
@@ -166,28 +163,26 @@ fun NoodleBarChart(
                 NoodleText(
                     valueFormatter(v),
                     Modifier.graphicsLayer { alpha = lift.value.coerceIn(0f, 1f) }.padding(bottom = 6.dp),
-                    style = NoodleTheme.typography.caption1.copy(fontWeight = FontWeight.Black),
+                    style = NoodleTheme.typography.caption1.copy(fontWeight = FontWeight.Medium),
                 )
                 Box(
                     Modifier
                         .fillMaxWidth()
-                        .padding(end = 3.dp, bottom = 3.dp)
                         .height(chartHeight * (v / maxV))
                         .graphicsLayer {
                             scaleY = grow.value
                             transformOrigin = TransformOrigin(0.5f, 1f)
-                            translationY = -lift.value * 6.dp.toPx()
                         }
                         .inkPressable(
-                            SquircleShape(topStart = 10.dp, topEnd = 10.dp, bottomEnd = 4.dp, bottomStart = 4.dp),
-                            if (selected) colors.primary else colors.surface,
-                            elevation = 3.dp, haptic = true, role = null,
+                            SquircleShape(topStart = 8.dp, topEnd = 8.dp, bottomEnd = 3.dp, bottomStart = 3.dp),
+                            if (selected) colors.label else colors.fillSecondary,
+                            border = 0.dp, haptic = true, role = null,
                         ) { onSelect(i) },
                 )
                 NoodleText(
                     labels.getOrElse(i) { "" },
                     Modifier.padding(top = 8.dp),
-                    style = NoodleTheme.typography.caption1.copy(fontWeight = if (selected) FontWeight.Black else FontWeight.Bold),
+                    style = NoodleTheme.typography.caption1.copy(fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal),
                     color = if (selected) colors.label else colors.labelSecondary,
                 )
             }
