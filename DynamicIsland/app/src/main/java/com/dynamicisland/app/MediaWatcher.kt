@@ -90,6 +90,7 @@ class MediaWatcher(private val ctx: Context, private val onItem: (MediaItem?) ->
             speed = st?.playbackSpeed ?: 1f
             onPrev = { c.transportControls.skipToPrevious() }
             onNext = { c.transportControls.skipToNext() }
+            onSeek = { ms -> c.transportControls.seekTo(ms) }
             onToggle = { if (c.playbackState?.state == PlaybackState.STATE_PLAYING) c.transportControls.pause() else c.transportControls.play() }
             open = { try { c.sessionActivity?.send() } catch (_: Exception) {} }
         }

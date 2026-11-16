@@ -17,6 +17,8 @@ class Prefs(c: Context) {
     var notifications: Boolean get() = b("notif", true); set(v) = putB("notif", v)
     var media: Boolean get() = b("media", true); set(v) = putB("media", v)
     var charging: Boolean get() = b("charging", true); set(v) = putB("charging", v)
+    var system: Boolean get() = b("system", true); set(v) = putB("system", v)
+    var timers: Boolean get() = b("timers", true); set(v) = putB("timers", v)
     var calls: Boolean get() = b("calls", true); set(v) = putB("calls", v)
 
     /** 0 — авто (искать камеру), 1 — слева, 2 — по центру, 3 — справа */

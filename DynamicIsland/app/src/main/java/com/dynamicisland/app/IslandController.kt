@@ -1,11 +1,17 @@
 package com.dynamicisland.app
 
+import android.bluetooth.BluetoothClass
+import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
 import android.graphics.PixelFormat
 import android.graphics.RectF
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+import android.media.AudioManager
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Handler
@@ -15,13 +21,19 @@ import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.view.Gravity
+import android.view.View
 import android.view.WindowManager
+import android.widget.FrameLayout
+import android.widget.TextView
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 
-class IslandController(private val ctx: Context) {
+class IslandController(
+    private val ctx: Context,
+    private val windowType: Int = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+) {
     val prefs = Prefs(ctx)
     private val h = Handler(Looper.getMainLooper())
     private val wm = ctx.getSystemService(WindowManager::class.java)
@@ -37,29 +49,43 @@ class IslandController(private val ctx: Context) {
     private var cutout: RectF? = null
     private var screenW = 0
     private var geo: Geometry? = null
+    private var geoVer = 0
     private var landscape = false
     private var lastSpec: Spec? = null
     private var previewUntil = 0L
 
+    // «живые активности»: звонки, будильники, таймеры
+    private val live = LinkedHashMap<String, Item>()
     private var media: MediaItem? = null
-    private var call: CallItem? = null
+    private val suppressed = HashSet<String>()
+    private var primaryOverride: String? = null
+    private var expandedId: String? = null
+
+    // разовые события
     private var current: Item? = null
     private val queue = ArrayDeque<Item>()
     private val lastSig = HashMap<String, Int>()
-    private var userExpanded = false
     private var touching = false
+    private var fullShown = true
+    private var chargeInit = false
 
     private val mediaWatcher = MediaWatcher(ctx) { m -> onMedia(m) }
 
     private val dismissR = Runnable { dismissCurrent() }
-    private val collapseR = Runnable { userExpanded = false; render() }
+    private val collapseR = Runnable { expandedId = null; render() }
     private val renderR = Runnable { render() }
 
-    private val powerReceiver = object : BroadcastReceiver() {
+    private val receiver = object : BroadcastReceiver() {
         override fun onReceive(c: Context, i: Intent) {
             when (i.action) {
                 Intent.ACTION_POWER_CONNECTED -> if (prefs.charging) enqueue(ChargeItem(batteryLevel(), 0))
+                Intent.ACTION_POWER_DISCONNECTED -> fullShown = false
                 Intent.ACTION_BATTERY_LOW -> if (prefs.charging) enqueue(ChargeItem(batteryLevel(), 1))
+                Intent.ACTION_BATTERY_CHANGED -> onBattery(i)
+                AudioManager.RINGER_MODE_CHANGED_ACTION -> if (prefs.system) onRinger()
+                Intent.ACTION_USER_PRESENT -> if (prefs.system) enqueue(MiniItem("unlock", 2, "", WHITE, R.drawable.ic_lock))
+                BluetoothDevice.ACTION_ACL_CONNECTED -> if (prefs.system) onBluetooth(i, true)
+                BluetoothDevice.ACTION_ACL_DISCONNECTED -> if (prefs.system) onBluetooth(i, false)
             }
         }
     }
@@ -68,7 +94,7 @@ class IslandController(private val ctx: Context) {
 
     private fun baseLp() = WindowManager.LayoutParams(
         WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT,
-        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+        windowType,
         WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
@@ -81,33 +107,39 @@ class IslandController(private val ctx: Context) {
     }
 
     fun start() {
-        landscape = ctx.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        landscape = ctx.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         probeLp.width = WindowManager.LayoutParams.MATCH_PARENT
-        probeLp.height = (140 * d).toInt()
+        probeLp.height = (160 * d).toInt()
         probeLp.x = 0; probeLp.y = 0
         probeLp.flags = probeLp.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
         probeLp.title = "IslandProbe"
         try { wm.addView(probe, probeLp) } catch (_: Exception) {}
         islandLp.title = "DynamicIsland"
-        val f = IntentFilter().apply { addAction(Intent.ACTION_POWER_CONNECTED); addAction(Intent.ACTION_BATTERY_LOW) }
-        ctx.registerReceiver(powerReceiver, f)
+        val f = IntentFilter().apply {
+            addAction(Intent.ACTION_POWER_CONNECTED); addAction(Intent.ACTION_POWER_DISCONNECTED)
+            addAction(Intent.ACTION_BATTERY_LOW); addAction(Intent.ACTION_BATTERY_CHANGED)
+            addAction(AudioManager.RINGER_MODE_CHANGED_ACTION); addAction(Intent.ACTION_USER_PRESENT)
+            addAction(BluetoothDevice.ACTION_ACL_CONNECTED); addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+        }
+        ctx.registerReceiver(receiver, f)
         mediaWatcher.start()
         IslandBus.controller = this
     }
 
     fun stop() {
-        IslandBus.controller = null
+        if (IslandBus.controller === this) IslandBus.controller = null
         h.removeCallbacksAndMessages(null)
         mediaWatcher.stop()
-        try { ctx.unregisterReceiver(powerReceiver) } catch (_: Exception) {}
+        try { ctx.unregisterReceiver(receiver) } catch (_: Exception) {}
         try { wm.removeViewImmediate(probe) } catch (_: Exception) {}
+        calView?.let { try { wm.removeViewImmediate(it) } catch (_: Exception) {} }
         if (islandAttached) try { wm.removeViewImmediate(island) } catch (_: Exception) {}
         islandAttached = false
     }
 
     fun onConfig() {
-        landscape = ctx.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-        geo = buildGeo()
+        landscape = ctx.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        geo = buildGeo(); geoVer++
         render()
     }
 
@@ -118,7 +150,7 @@ class IslandController(private val ctx: Context) {
     private fun onCutout(r: RectF?, w: Int) {
         if (r == cutout && w == screenW) return
         cutout = r; screenW = w
-        h.post { geo = buildGeo(); render() }
+        h.post { geo = buildGeo(); geoVer++; render() }
     }
 
     private fun buildGeo(): Geometry? {
@@ -164,7 +196,7 @@ class IslandController(private val ctx: Context) {
     }
 
     fun onSettingsChanged(preview: Boolean) {
-        geo = buildGeo()
+        geo = buildGeo(); geoVer++
         if (preview) {
             previewUntil = SystemClock.uptimeMillis() + 2500
             h.removeCallbacks(renderR); h.postDelayed(renderR, 2600)
@@ -192,7 +224,7 @@ class IslandController(private val ctx: Context) {
                 prefs.posMode = 4
                 prefs.offX = 0; prefs.offY = 0
             }
-            geo = buildGeo()
+            geo = buildGeo(); geoVer++
             previewUntil = SystemClock.uptimeMillis() + 2500
             h.removeCallbacks(renderR); h.postDelayed(renderR, 2600)
             render()
@@ -202,7 +234,7 @@ class IslandController(private val ctx: Context) {
         render()
     }
 
-    // ------------------------------------------------------------ события
+    // ------------------------------------------------------------ источники событий
 
     fun showNotification(n: NotifItem) {
         if (!prefs.notifications || !screenOn()) return
@@ -218,24 +250,67 @@ class IslandController(private val ctx: Context) {
         if (current?.id == id && current is NotifItem) dismissCurrent()
     }
 
-    fun onCall(c: CallItem) {
-        if (!prefs.calls) return
-        val wasRinging = call?.ringing == true
-        call = c
-        userExpanded = c.ringing
-        if (c.ringing && !wasRinging) buzz()
+    /** Звонок, будильник или таймер. */
+    fun setLive(item: Item) {
+        when (item) {
+            is CallItem -> if (!prefs.calls) return
+            is AlertItem, is LiveItem -> if (!prefs.timers) return
+            else -> return
+        }
+        val old = live[item.id]
+        if (old == null) suppressed.remove(item.id)
+        live[item.id] = item
+        if (item.urgent && old?.urgent != true) buzz()
         render(); armTimers()
     }
 
-    fun onCallRemoved(id: String) {
-        if (call?.id == id) { call = null; userExpanded = false; render(); armTimers() }
+    fun removeLive(id: String) {
+        if (live.remove(id) != null) {
+            suppressed.remove(id)
+            if (primaryOverride == id) primaryOverride = null
+            if (expandedId == id) expandedId = null
+            render(); armTimers()
+        }
     }
 
     fun onMedia(m: MediaItem?) {
+        val prev = media
         media = if (prefs.media) m else null
-        if (media == null && call == null) userExpanded = false
+        if (prev == null || media == null || prev.title != media?.title) suppressed.remove("media")
+        if (media == null) { if (primaryOverride == "media") primaryOverride = null; if (expandedId == "media") expandedId = null }
         render()
     }
+
+    private fun onBattery(i: Intent) {
+        val status = i.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+        val plugged = i.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0
+        val full = status == BatteryManager.BATTERY_STATUS_FULL && plugged
+        if (!chargeInit) { chargeInit = true; fullShown = full; return }
+        if (!plugged) fullShown = false
+        else if (full && !fullShown) { fullShown = true; if (prefs.charging) enqueue(ChargeItem(100, 2)) }
+    }
+
+    private fun onRinger() {
+        val am = ctx.getSystemService(AudioManager::class.java)
+        val orange = 0xFFFF9F0A.toInt()
+        enqueue(when (am.ringerMode) {
+            AudioManager.RINGER_MODE_SILENT -> MiniItem("ringer", 0, "Без звука", orange, R.drawable.ic_bell, true)
+            AudioManager.RINGER_MODE_VIBRATE -> MiniItem("ringer", 0, "Вибро", orange, R.drawable.ic_bell, false)
+            else -> MiniItem("ringer", 0, "Звонок", WHITE, R.drawable.ic_bell, false)
+        })
+    }
+
+    @Suppress("DEPRECATION")
+    private fun onBluetooth(i: Intent, connected: Boolean) {
+        val dev: BluetoothDevice = (if (Build.VERSION.SDK_INT >= 33) i.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+        else i.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)) ?: return
+        val major = try { dev.bluetoothClass?.majorDeviceClass } catch (_: SecurityException) { null }
+        if (major != BluetoothClass.Device.Major.AUDIO_VIDEO) return
+        val name = try { dev.name } catch (_: SecurityException) { null } ?: "Наушники"
+        enqueue(MiniItem("bt", 1, if (connected) name else "Отключено", if (connected) GREEN else SEC, R.drawable.ic_headphones))
+    }
+
+    // ------------------------------------------------------------ очередь разовых событий
 
     private fun enqueue(i: Item) {
         if (current?.id == i.id) { current = i; render(); armTimers(); return }
@@ -247,7 +322,7 @@ class IslandController(private val ctx: Context) {
 
     private fun advance() {
         current = queue.removeFirstOrNull()
-        if (current != null) buzz()
+        if (current != null && current !is MiniItem) buzz()
         render(); armTimers()
     }
 
@@ -261,55 +336,112 @@ class IslandController(private val ctx: Context) {
         h.removeCallbacks(dismissR); h.removeCallbacks(collapseR)
         if (touching) return
         val c = current
-        if (c != null) h.postDelayed(dismissR, if (c is ChargeItem) 3200L else 5200L)
-        else if (userExpanded && call?.ringing != true) h.postDelayed(collapseR, 6500)
+        if (c != null) h.postDelayed(dismissR, when (c) {
+            is ChargeItem -> 3200L
+            is MiniItem -> if (c.kind == 2) 1700L else 2600L
+            else -> 5200L
+        })
+        else {
+            val p = primary()
+            if (p != null && expandedId == p.id && !p.urgent) h.postDelayed(collapseR, 6500)
+        }
     }
 
-    // ------------------------------------------------------------ жесты
+    // ------------------------------------------------------------ активности
+
+    private fun plist(): List<Item> {
+        val l = ArrayList<Item>()
+        l += live.values.filter { it.urgent }
+        l += live.values.filter { it is CallItem && !it.urgent }
+        l += live.values.filterIsInstance<LiveItem>()
+        media?.let { l += it }
+        return l.filter { it.urgent || it.id !in suppressed }
+    }
+
+    private fun primary(list: List<Item> = plist()): Item? =
+        list.firstOrNull { it.urgent } ?: list.firstOrNull { it.id == primaryOverride } ?: list.firstOrNull()
+
+    private fun openItem(i: Item) {
+        when (i) {
+            is MediaItem -> i.open?.invoke()
+            is CallItem -> i.open?.invoke()
+            is LiveItem -> i.open?.invoke()
+            is AlertItem -> i.open?.invoke()
+            is NotifItem -> i.open?.invoke()
+            else -> {}
+        }
+    }
+
+    // ------------------------------------------------------------ жесты (как в iOS)
 
     fun onTouch(down: Boolean) { touching = down; armTimers() }
 
     fun onOutside() {
+        val p = primary()
         if (current != null) dismissCurrent()
-        else if (userExpanded && call?.ringing != true) { userExpanded = false; render(); armTimers() }
+        else if (p != null && expandedId == p.id && !p.urgent) { expandedId = null; render(); armTimers() }
     }
 
+    /** Нажатие: открыть приложение (раскрытое или свёрнутое — как на iPhone). */
     fun onTap() {
         val c = current
-        if (c is NotifItem) { c.open?.invoke(); dismissCurrent(); return }
-        if (c != null) { dismissCurrent(); return }
-        val p: Item = call ?: media ?: return
-        if (userExpanded || call?.ringing == true) {
-            when (p) { is MediaItem -> p.open?.invoke(); is CallItem -> p.open?.invoke(); else -> {} }
-            if (call?.ringing != true) { userExpanded = false; render(); armTimers() }
-        } else { userExpanded = true; buzz(); render(); armTimers() }
+        if (c != null) { if (c is NotifItem) openItem(c); dismissCurrent(); return }
+        val p = primary() ?: return
+        if ((p is MediaItem && p.open == null) || (p is LiveItem && p.open == null)) {
+            if (!p.urgent) { expandedId = if (expandedId == p.id) null else p.id; buzz(); render(); armTimers() }
+            return
+        }
+        openItem(p)
+        if (!p.urgent && expandedId == p.id) { expandedId = null; render(); armTimers() }
     }
 
+    /** Долгое нажатие: раскрыть / свернуть. */
     fun onLongPress() {
         if (current != null) { dismissCurrent(); return }
-        if (call == null && media == null) return
-        if (call?.ringing == true) return
-        userExpanded = !userExpanded; buzz(); render(); armTimers()
+        val p = primary() ?: return
+        if (p.urgent) return
+        expandedId = if (expandedId == p.id) null else p.id
+        buzz(); render(); armTimers()
     }
 
     fun onSwipeUp() {
+        val p = primary()
         if (current != null) dismissCurrent()
-        else if (userExpanded && call?.ringing != true) { userExpanded = false; render(); armTimers() }
+        else if (p != null && expandedId == p.id && !p.urgent) { expandedId = null; render(); armTimers() }
+    }
+
+    /** Свайп вбок: убрать остров (до следующего события). */
+    fun onSwipeSide() {
+        if (current != null) { dismissCurrent(); return }
+        val p = primary() ?: return
+        if (p.urgent) return
+        suppressed.add(p.id); expandedId = null
+        if (primaryOverride == p.id) primaryOverride = null
+        buzz(); render()
+    }
+
+    fun onBubbleTap() {
+        val list = plist()
+        val p = primary(list)
+        val s = list.firstOrNull { it !== p } ?: return
+        primaryOverride = s.id; expandedId = null
+        buzz(); render()
     }
 
     // ------------------------------------------------------------ рендер
 
     fun render() {
         val g = geo ?: return
-        val persistent: Item? = call ?: media
+        val list = plist()
+        val p = primary(list)
         val cur = current
         val tablet = ctx.resources.configuration.smallestScreenWidthDp >= 600
         val hideLand = landscape && !tablet && !(prefs.posMode == 4 && prefs.cal(true) != null)
         val spec = when {
-            calView != null || hideLand -> hiddenSpec(g)
-            cur != null -> expandedSpec(g, cur)
-            persistent != null && (userExpanded || call?.ringing == true) -> expandedSpec(g, persistent)
-            persistent != null -> compactSpec(g, persistent)
+            !prefs.enabled || calView != null || hideLand -> hiddenSpec(g)
+            cur != null -> transientSpec(g, cur)
+            p != null && (p.urgent || expandedId == p.id) -> expandedSpec(g, p)
+            p != null -> compactSpec(g, p, list.firstOrNull { it !== p })
             prefs.idleAlways || SystemClock.uptimeMillis() < previewUntil -> idleSpec(g)
             else -> hiddenSpec(g)
         }
@@ -323,46 +455,96 @@ class IslandController(private val ctx: Context) {
         return Spec("idle", r, g.pillRadius(r), true, g.camRect(), false)
     }
 
-    private fun compactSpec(g: Geometry, p: Item): Spec {
-        val c = g.compact(24 * d, if (p is CallItem) 46 * d else 24 * d)
+    private fun textW(s: String, sp: Float): Float {
+        val t = TextView(ctx).apply {
+            setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, sp)
+            typeface = android.graphics.Typeface.create(android.graphics.Typeface.create("sans-serif", android.graphics.Typeface.NORMAL), 600, false)
+            text = s
+        }
+        t.measure(0, 0)
+        return t.measuredWidth.toFloat()
+    }
+
+    private fun glyph(res: Int, color: Int): Drawable = ctx.getDrawable(res)!!.mutate().apply { setTint(color) }
+
+    private fun bubbleOf(g: Geometry, c: Compact, sec: Item?): Triple<RectF, Drawable?, Boolean>? {
+        sec ?: return null
+        val dia = if (g.attached) 34 * d else c.rect.height()
+        val gap = 8 * d
+        val cy = g.cy
+        val rightOk = g.sw - g.margin - c.rect.right >= dia + gap
+        val leftOk = c.rect.left - g.margin >= dia + gap
+        val toLeft = (g.side == Side.RIGHT && leftOk) || (!rightOk && leftOk)
+        if (!rightOk && !leftOk) return null
+        val x = if (toLeft) c.rect.left - gap - dia else c.rect.right + gap
+        val r = RectF(x, cy - dia / 2, x + dia, cy + dia / 2)
+        return when (sec) {
+            is MediaItem -> Triple(r, sec.art?.let { BitmapDrawable(ctx.resources, it) } ?: glyph(R.drawable.ic_music, sec.color), sec.art != null)
+            is CallItem -> Triple(r, glyph(R.drawable.ic_call, GREEN), false)
+            is LiveItem -> Triple(r, sec.appIcon?.constantState?.newDrawable()?.mutate() ?: glyph(R.drawable.ic_timer, 0xFFFF9F0A.toInt()), sec.appIcon != null)
+            is AlertItem -> Triple(r, glyph(R.drawable.ic_bell, 0xFFFF9F0A.toInt()), false)
+            else -> null
+        }
+    }
+
+    private fun compactSpec(g: Geometry, p: Item, sec: Item?): Spec {
+        val c = g.compact(24 * d, if (p is CallItem || p is LiveItem) 46 * d else 24 * d)
+        val b = bubbleOf(g, c, sec)
+        val bk = sec?.id
         return when (p) {
             is MediaItem -> Spec("media:c", c.rect, c.radius, true, g.camRect(), true,
-                { MediaCompactView(ctx, c, p) }, { (it as Bindable).bind(p) })
+                { MediaCompactView(ctx, c, p) }, { (it as Bindable).bind(p) }, b?.first, b?.second, b?.third ?: false, bk)
             is CallItem -> Spec("call:c:${p.id}", c.rect, c.radius, true, g.camRect(), true,
-                { CallCompactView(ctx, c, p) }, { (it as Bindable).bind(p) })
+                { CallCompactView(ctx, c, p) }, { (it as Bindable).bind(p) }, b?.first, b?.second, b?.third ?: false, bk)
+            is LiveItem -> Spec("live:c:${p.id}", c.rect, c.radius, true, g.camRect(), true,
+                { LiveCompactView(ctx, c, p) }, null, b?.first, b?.second, b?.third ?: false, bk)
             else -> idleSpec(g)
         }
     }
 
+    private fun transientSpec(g: Geometry, p: Item): Spec = when (p) {
+        is NotifItem -> expandedSpec(g, p)
+        is ChargeItem -> {
+            val c = g.compact(34 * d, textW("${p.level}%", 14f) + 6 * d)
+            Spec("charge:${p.kind}:${p.level}", c.rect, c.radius, true, g.camRect(), true, { MiniView(ctx, c, p) })
+        }
+        is MiniItem -> {
+            val c = g.compact(26 * d, if (p.text.isEmpty()) 0f else textW(p.text, 14f) + 6 * d)
+            Spec("mini:${p.id}:${p.text}", c.rect, c.radius, true, g.camRect(), true, { MiniView(ctx, c, p) })
+        }
+        else -> expandedSpec(g, p)
+    }
+
+    private val expCache = HashMap<String, Pair<Int, Exp>>()
+
+    /** Раскрытый вид; высота считается по реальному содержимому, поэтому ничего не обрезается. */
     private fun expandedSpec(g: Geometry, p: Item): Spec {
         val maxW = 400 * d
-        return when (p) {
-            is NotifItem -> {
-                val e = g.expanded(48 * d, maxW)
-                Spec("n:${p.id}:${(p.title.toString() + p.text).hashCode()}", e.rect, e.radius, true, g.camRect(), true,
-                    { NotifView(ctx, e, p) })
-            }
-            is ChargeItem -> {
-                val e = g.expanded(36 * d, maxW)
-                Spec("charge:${p.kind}:${p.level}", e.rect, e.radius, true, g.camRect(), true, { ChargeView(ctx, e, p) })
-            }
-            is MediaItem -> {
-                val e = g.expanded(152 * d, maxW)
-                Spec("media:e", e.rect, e.radius, true, g.camRect(), true,
-                    { MediaExpandedView(ctx, e, p) }, { (it as Bindable).bind(p) })
-            }
-            is CallItem -> {
-                val e = g.expanded((if (p.ringing) 106 else 48 + if (p.decline != null) 56 else 0) * d, maxW)
-                Spec("call:e:${p.id}:${p.ringing}", e.rect, e.radius, true, g.camRect(), true,
-                    { CallExpandedView(ctx, e, p) })
-            }
+        val make: (Exp) -> FrameLayout
+        val key: String
+        when (p) {
+            is NotifItem -> { key = "n:${p.id}:${(p.title.toString() + p.text).hashCode()}"; make = { NotifView(ctx, it, p) } }
+            is MediaItem -> { key = "media:e"; make = { MediaExpandedView(ctx, it, p) } }
+            is CallItem -> { key = "call:e:${p.id}:${p.ringing}"; make = { CallExpandedView(ctx, it, p) } }
+            is LiveItem -> { key = "live:e:${p.id}"; make = { LiveExpandedView(ctx, it, p) } }
+            is AlertItem -> { key = "alert:${p.id}"; make = { AlertView(ctx, it, p) } }
+            else -> return idleSpec(g)
         }
+        val cached = expCache[key]
+        val e: Exp = if (cached != null && cached.first == geoVer) cached.second else {
+            val e0 = g.expanded(0f, maxW)
+            val bh = max(make(e0).bodyHeight((e0.rect.width() - 32 * d).toInt()).toFloat(), 40 * d)
+            g.expanded(bh, maxW).also { if (expCache.size > 20) expCache.clear(); expCache[key] = geoVer to it }
+        }
+        val upd: ((View) -> Unit)? = if (p is MediaItem) { v -> (v as Bindable).bind(p) } else null
+        return Spec(key, e.rect, e.radius, true, g.camRect(), true, { make(e) }, upd)
     }
 
     private fun present(s: Spec) {
         lastSpec = s
         val u = RectF(s.rect)
-        if (islandAttached) u.union(island.bounds())
+        s.bubble?.let { u.union(it) }
+        if (islandAttached) { u.union(island.bounds()); island.bubbleBounds()?.let { u.union(it) } }
         if (s.visible) u.union(s.origin)
         u.inset(-26 * d, -26 * d)
         setWindow(u, s.touchable)
@@ -373,6 +555,7 @@ class IslandController(private val ctx: Context) {
     fun onSettled() {
         val s = lastSpec ?: return
         val r = RectF(s.rect)
+        s.bubble?.let { if (s.visible) r.union(it) }
         if (s.visible) r.inset(-4 * d, -4 * d)
         setWindow(r, s.touchable)
     }
@@ -408,46 +591,59 @@ class IslandController(private val ctx: Context) {
     private fun buzz() {
         if (!prefs.haptics) return
         try {
-            vib?.vibrate(
-                if (Build.VERSION.SDK_INT >= 29) VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
-                else VibrationEffect.createOneShot(10, 120),
-            )
+            vib?.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK))
         } catch (_: Exception) {}
     }
 
     // ------------------------------------------------------------ демо
 
     fun demo(kind: String) {
+        val appIcon = ctx.packageManager.getApplicationIcon(ctx.packageName)
+        val orange = 0xFFFF9F0A.toInt()
         when (kind) {
             "notif" -> showNotification(NotifItem(
-                "demo:" + SystemClock.uptimeMillis(), "Сообщения", ctx.packageManager.getApplicationIcon(ctx.packageName),
-                letterAvatar(ctx, "А", 0xFF0A84FF.toInt()), "Алекс", "Ты уже видел новый Dynamic Island? Выглядит огонь 🔥", null))
+                "demo:" + SystemClock.uptimeMillis(), "Сообщения", appIcon,
+                letterAvatar(ctx, "А", 0xFF0A84FF.toInt()), "Алекс",
+                "Ты уже видел новый Dynamic Island? Выглядит огонь 🔥 Давай попробуем на твоём телефоне, там вообще всё очень плавно.", null))
             "charge" -> enqueue(ChargeItem(batteryLevel().coerceIn(1, 100), 0))
             "low" -> enqueue(ChargeItem(14, 1))
-            "music" -> {
-                val m = MediaItem().apply {
-                    app = "Музыка"; title = "Blinding Lights"; artist = "The Weeknd"
-                    art = coverArt(ctx, 0xFFFF2D55.toInt(), 0xFF3A0CA3.toInt()); color = 0xFFFF375F.toInt()
-                    playing = true; durMs = 200_000; posMs = 42_000; stamp = SystemClock.elapsedRealtime()
-                }
-                m.onToggle = { }
-                onMedia(m)
-                h.removeCallbacks(clearDemoMedia); h.postDelayed(clearDemoMedia, 45_000)
-            }
+            "ringer" -> enqueue(MiniItem("ringer", 0, "Без звука", orange, R.drawable.ic_bell, true))
+            "bt" -> enqueue(MiniItem("bt", 1, "AirPods", GREEN, R.drawable.ic_headphones))
+            "unlock" -> enqueue(MiniItem("unlock", 2, "", WHITE, R.drawable.ic_lock))
+            "music" -> demoMusic()
             "call" -> startDemoCall()
+            "timer" -> {
+                val stop = Act("Стоп") { removeLive("demo-timer") }
+                setLive(LiveItem("demo-timer", "Таймер", "Таймер", "Чай 🍵", appIcon,
+                    SystemClock.elapsedRealtime() + 5 * 60_000L, true, listOf(stop, Act("Пауза") {}), null))
+            }
+            "alarm" -> setLive(AlertItem("demo-alarm", "07:30", "Подъём", appIcon,
+                listOf(Act("Отложить") { removeLive("demo-alarm") }, Act("Стоп") { removeLive("demo-alarm") }), null))
+            "split" -> { demoMusic(); demo("timer") }
         }
+    }
+
+    private fun demoMusic() {
+        val m = MediaItem().apply {
+            app = "Музыка"; title = "Blinding Lights"; artist = "The Weeknd"
+            art = coverArt(ctx, 0xFFFF2D55.toInt(), 0xFF3A0CA3.toInt()); color = 0xFFFF375F.toInt()
+            playing = true; durMs = 200_000; posMs = 42_000; stamp = SystemClock.elapsedRealtime()
+        }
+        m.onToggle = { }
+        m.onSeek = { }
+        onMedia(m)
+        h.removeCallbacks(clearDemoMedia); h.postDelayed(clearDemoMedia, 60_000)
     }
 
     private val clearDemoMedia = Runnable { if (media?.app == "Музыка") onMedia(null) }
 
     private fun startDemoCall() {
         val avatar = letterAvatar(ctx, "М", 0xFFFF9F0A.toInt())
-        lateinit var ring: CallItem
-        val end = Act("Сбросить") { onCallRemoved("demo-call") }
-        ring = CallItem("demo-call", "Мама", null, avatar, true, System.currentTimeMillis(),
+        val end = Act("Сбросить") { removeLive("demo-call") }
+        val ring = CallItem("demo-call", "Мама", null, avatar, true, System.currentTimeMillis(),
             Act("Принять") {
-                onCall(CallItem("demo-call", "Мама", null, avatar, false, System.currentTimeMillis(), null, end, null))
+                setLive(CallItem("demo-call", "Мама", null, avatar, false, System.currentTimeMillis(), null, end, null))
             }, end, null)
-        onCall(ring)
+        setLive(ring)
     }
 }

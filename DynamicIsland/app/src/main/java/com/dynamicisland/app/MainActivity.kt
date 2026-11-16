@@ -24,6 +24,7 @@ class MainActivity : Activity() {
     private lateinit var rowOverlay: PermRow
     private lateinit var rowListener: PermRow
     private lateinit var rowPost: PermRow
+    private lateinit var rowA11y: PermRow
     private val modeChips = ArrayList<TextView>()
     private val bg = 0xFF000000.toInt()
     private val card = 0xFF1C1C1E.toInt()
@@ -54,8 +55,7 @@ class MainActivity : Activity() {
         }
         if (!prefs.onboarded) {
             prefs.onboarded = true
-            if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
-                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
+            requestRuntimePerms()
         }
     }
 
@@ -63,12 +63,25 @@ class MainActivity : Activity() {
         super.onResume()
         refresh()
         // сервис мог быть включён ранее — поднимем его, если все разрешения на месте
-        if (prefs.enabled && Settings.canDrawOverlays(this) && !IslandBus.running) startIsland()
+        if (prefs.enabled && canRun() && !IslandBus.running) startIsland()
     }
 
     override fun onRequestPermissionsResult(c: Int, p: Array<out String>, r: IntArray) { refresh() }
 
     // ------------------------------------------------------------ состояние
+
+    private fun requestRuntimePerms() {
+        val need = ArrayList<String>()
+        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) need += Manifest.permission.POST_NOTIFICATIONS
+        if (Build.VERSION.SDK_INT >= 31 && checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) need += Manifest.permission.BLUETOOTH_CONNECT
+        if (need.isNotEmpty()) requestPermissions(need.toTypedArray(), 1)
+    }
+
+    private fun hasA11y() = IslandAccessibility.instance != null ||
+        (Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES) ?: "").contains(packageName)
+
+    /** Хватает ли способа рисовать остров: специальные возможности (лучше) или «поверх окон». */
+    private fun canRun() = hasA11y() || hasOverlay()
 
     private fun hasOverlay() = Settings.canDrawOverlays(this)
     private fun hasListener() =
@@ -76,30 +89,38 @@ class MainActivity : Activity() {
     private fun hasPost() = Build.VERSION.SDK_INT < 33 || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
 
     private fun refresh() {
-        rowOverlay.set(hasOverlay()); rowListener.set(hasListener()); rowPost.set(hasPost())
-        val on = prefs.enabled && hasOverlay()
+        rowOverlay.set(hasOverlay()); rowListener.set(hasListener()); rowPost.set(hasPost()); rowA11y.set(hasA11y())
+        val on = prefs.enabled && canRun()
         mainBtn.text = if (on) "Выключить Dynamic Island" else "Включить Dynamic Island"
         mainBtn.background = GradientDrawable().apply { setColor(if (on) 0xFF3A3A3C.toInt() else blue); cornerRadius = dp(18f) }
         camText.text = IslandBus.controller?.describe() ?: phone.describe()
     }
 
     private fun startIsland() {
+        if (IslandAccessibility.instance != null) return
         try { startForegroundService(Intent(this, IslandService::class.java)) } catch (e: Exception) {
             Toast.makeText(this, "Не удалось запустить сервис: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 
     private fun toggleMain() {
-        if (prefs.enabled && hasOverlay()) {
+        if (prefs.enabled && canRun()) {
             prefs.enabled = false
             stopService(Intent(this, IslandService::class.java))
+            IslandBus.post { render() }
         } else {
-            if (!hasOverlay()) { openOverlaySettings(); return }
+            if (!canRun()) { openA11ySettings(); return }
             prefs.enabled = true
             startIsland()
+            IslandBus.post { render() }
             if (!hasListener()) Toast.makeText(this, "Дайте доступ к уведомлениям — иначе остров не увидит музыку и сообщения", Toast.LENGTH_LONG).show()
         }
         window.decorView.postDelayed({ refresh() }, 600)
+    }
+
+    private fun openA11ySettings() {
+        Toast.makeText(this, "Найдите «Dynamic Island» в списке и включите", Toast.LENGTH_LONG).show()
+        startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
     }
 
     private fun openOverlaySettings() {
@@ -116,7 +137,7 @@ class MainActivity : Activity() {
     }
 
     private fun demo(kind: String) {
-        if (!hasOverlay()) { openOverlaySettings(); return }
+        if (!canRun()) { openA11ySettings(); return }
         if (!IslandBus.running) {
             prefs.enabled = true; startIsland()
             window.decorView.postDelayed({ IslandBus.post { demo(kind) }; refresh() }, 900)
@@ -124,7 +145,7 @@ class MainActivity : Activity() {
     }
 
     private fun calibrate() {
-        if (!hasOverlay()) { openOverlaySettings(); return }
+        if (!canRun()) { openA11ySettings(); return }
         if (!IslandBus.running) {
             prefs.enabled = true; startIsland()
             window.decorView.postDelayed({ IslandBus.post { startCalibration() }; refresh() }, 1000)
@@ -219,28 +240,32 @@ class MainActivity : Activity() {
         // --- разрешения
         root.addView(header("Разрешения"))
         val perms = cardView()
-        rowOverlay = PermRow("Поверх других окон", "Чтобы рисовать остров над статус-баром") { openOverlaySettings() }
+        rowA11y = PermRow("Специальные возможности ★",
+            "Рекомендуется: остров рисуется поверх часов и значков статус-бара и принимает нажатия. Содержимое экрана не читается.") { openA11ySettings() }
+        rowOverlay = PermRow("Поверх других окон", "Запасной вариант, если специальные возможности не включены (нажатия в зоне статус-бара могут не работать)") { openOverlaySettings() }
         rowListener = PermRow("Доступ к уведомлениям",
             "Сообщения, звонки и музыка. Если переключатель серый: Настройки → Приложения → Dynamic Island → ⋮ → «Разрешить ограниченные настройки»") { openListenerSettings() }
-        rowPost = PermRow("Показ уведомлений", "Для значка работающей службы (Android 13+)") {
-            if (Build.VERSION.SDK_INT >= 33) requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
-        }
-        addPermRow(perms, rowOverlay, false); addPermRow(perms, rowListener, false); addPermRow(perms, rowPost, true)
+        rowPost = PermRow("Уведомления и Bluetooth", "Значок службы и показ подключения наушников (Android 12–13+)") { requestRuntimePerms() }
+        addPermRow(perms, rowA11y, false); addPermRow(perms, rowOverlay, false); addPermRow(perms, rowListener, false); addPermRow(perms, rowPost, true)
         root.addView(perms)
 
         // --- демо
         root.addView(header("Посмотреть в деле"))
         val demoCard = cardView()
-        val grid = LinearLayout(this); val grid2 = LinearLayout(this)
-        fun chip(l: String, kind: String, p: LinearLayout) = tv(this, l, 15f, WHITE, true).apply {
-            gravity = Gravity.CENTER; setPadding(0, dpi(13f), 0, dpi(13f))
+        val rows = List(4) { LinearLayout(this) }
+        fun chip(l: String, kind: String, p: LinearLayout) = tv(this, l, 14f, WHITE, true).apply {
+            gravity = Gravity.CENTER; setPadding(0, dpi(12f), 0, dpi(12f))
             background = GradientDrawable().apply { setColor(0xFF2C2C2E.toInt()); cornerRadius = dp(14f) }
             setOnClickListener { demo(kind) }
             p.addView(this, LinearLayout.LayoutParams(0, -2, 1f).apply { setMargins(dpi(4f), dpi(4f), dpi(4f), dpi(4f)) })
         }
-        chip("💬 Сообщение", "notif", grid); chip("🎵 Музыка", "music", grid)
-        chip("⚡ Зарядка", "charge", grid2); chip("📞 Звонок", "call", grid2)
-        demoCard.addView(grid); demoCard.addView(grid2)
+        chip("💬 Сообщение", "notif", rows[0]); chip("🎵 Музыка", "music", rows[0])
+        chip("⚡ Зарядка", "charge", rows[1]); chip("📞 Звонок", "call", rows[1])
+        chip("⏱ Таймер", "timer", rows[2]); chip("⏰ Будильник", "alarm", rows[2])
+        chip("🔕 Без звука", "ringer", rows[3]); chip("🎧 Наушники", "bt", rows[3])
+        val rows5 = LinearLayout(this)
+        chip("🔓 Разблокировка", "unlock", rows5); chip("🫧 Две активности", "split", rows5)
+        rows.forEach { demoCard.addView(it) }; demoCard.addView(rows5)
         root.addView(demoCard)
 
         // --- настройки
@@ -249,6 +274,8 @@ class MainActivity : Activity() {
         switchRow(st, "Сообщения и уведомления", prefs.notifications) { prefs.notifications = it }
         switchRow(st, "Музыка", prefs.media) { prefs.media = it; IslandBus.post { if (!it) onMedia(null) else refreshMedia() } }
         switchRow(st, "Звонки", prefs.calls) { prefs.calls = it }
+        switchRow(st, "Таймеры и будильники", prefs.timers) { prefs.timers = it }
+        switchRow(st, "Звук, наушники, разблокировка", prefs.system) { prefs.system = it }
         switchRow(st, "Зарядка и низкий заряд", prefs.charging) { prefs.charging = it }
         switchRow(st, "Вибро-отклик", prefs.haptics) { prefs.haptics = it }
         switchRow(st, "Всегда показывать капсулу", prefs.idleAlways) { prefs.idleAlways = it; settingsChanged(false) }

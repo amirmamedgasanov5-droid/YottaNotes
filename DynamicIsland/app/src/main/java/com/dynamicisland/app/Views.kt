@@ -10,6 +10,7 @@ import android.os.SystemClock
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewOutlineProvider
@@ -141,13 +142,29 @@ class EqualizerView(ctx: Context, var color: Int, private val bars: Int = 4) : V
 
 class ProgressBarView(ctx: Context) : View(ctx) {
     var frac = 0f
-        set(v) { field = v.coerceIn(0f, 1f); invalidate() }
+        set(v) { if (!dragging) field = v.coerceIn(0f, 1f); invalidate() }
+    var onSeek: ((Float) -> Unit)? = null
+    private var dragging = false
     private val p = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val bar = ctx.dp(4f)
 
     override fun onDraw(c: Canvas) {
-        val h = height.toFloat(); val w = width.toFloat()
-        p.color = 0x40FFFFFF; c.drawRoundRect(0f, 0f, w, h, h / 2, h / 2, p)
-        p.color = 0xE6FFFFFF.toInt(); c.drawRoundRect(0f, 0f, max(h, w * frac), h, h / 2, h / 2, p)
+        val cy = height / 2f; val w = width.toFloat()
+        val b = if (dragging) bar * 1.8f else bar
+        p.color = 0x40FFFFFF; c.drawRoundRect(0f, cy - b / 2, w, cy + b / 2, b / 2, b / 2, p)
+        p.color = 0xE6FFFFFF.toInt(); c.drawRoundRect(0f, cy - b / 2, max(b, w * frac), cy + b / 2, b / 2, b / 2, p)
+    }
+
+    override fun onTouchEvent(e: MotionEvent): Boolean {
+        if (onSeek == null) return false
+        parent?.requestDisallowInterceptTouchEvent(true)
+        val f = (e.x / width).coerceIn(0f, 1f)
+        when (e.actionMasked) {
+            MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> { dragging = true; frac = f; invalidate() }
+            MotionEvent.ACTION_UP -> { dragging = false; frac = f; onSeek?.invoke(f) }
+            MotionEvent.ACTION_CANCEL -> dragging = false
+        }
+        return true
     }
 }
 
@@ -197,10 +214,19 @@ fun Exp.populate(f: FrameLayout, lead: View?, trail: View?, body: View?) {
         })
     }
     body?.let {
-        f.addView(it, FrameLayout.LayoutParams((rect.width() - ctx.dp(32f)).toInt(), bodyH.toInt(), Gravity.TOP or Gravity.START).apply {
+        it.tag = "body"
+        f.addView(it, FrameLayout.LayoutParams((rect.width() - ctx.dp(32f)).toInt(),
+            if (bodyH > 0f) bodyH.toInt() else WRAP, Gravity.TOP or Gravity.START).apply {
             leftMargin = ctx.dpi(16f); topMargin = bodyTop.toInt()
         })
     }
+}
+
+/** Реальная высота тела раскрытого вида при заданной ширине — чтобы ничего не обрезалось. */
+fun FrameLayout.bodyHeight(widthPx: Int): Int {
+    measure(View.MeasureSpec.makeMeasureSpec(widthPx, View.MeasureSpec.EXACTLY),
+        View.MeasureSpec.makeMeasureSpec(10000, View.MeasureSpec.AT_MOST))
+    return findViewWithTag<View>("body")?.measuredHeight ?: 0
 }
 
 fun Compact.populate(f: FrameLayout, lead: View?, trail: View?) {
@@ -218,7 +244,7 @@ fun Compact.populate(f: FrameLayout, lead: View?, trail: View?) {
     }
 }
 
-private fun pillButton(ctx: Context, label: String, bg: Int, ic: Int, onClick: () -> Unit) =
+fun pillButton(ctx: Context, label: String, bg: Int, ic: Int, onClick: () -> Unit) =
     row(ctx, icon(ctx, ic, WHITE, 20f), tv(ctx, label, 14f, WHITE, true).apply { setPadding(ctx.dpi(6f), 0, 0, 0) }).apply {
         gravity = Gravity.CENTER
         background = GradientDrawable().apply { setColor(bg); cornerRadius = ctx.dp(22f) }
@@ -239,7 +265,7 @@ class NotifView(ctx: Context, e: Exp, n: NotifItem) : FrameLayout(ctx), Bindable
             gravity = Gravity.CENTER_VERTICAL
             setPadding(ctx.dpi(12f), 0, 0, 0)
             addView(tv(ctx, n.title, 15f, WHITE, true))
-            if (n.text.isNotEmpty()) addView(tv(ctx, n.text, 14f, SEC, false, 2).apply { setPadding(0, ctx.dpi(2f), 0, 0) })
+            if (n.text.isNotEmpty()) addView(tv(ctx, n.text, 14f, SEC, false, 3).apply { setPadding(0, ctx.dpi(2f), 0, 0) })
         }
         val body = LinearLayout(ctx).apply {
             gravity = Gravity.CENTER_VERTICAL
@@ -344,11 +370,12 @@ class MediaExpandedView(ctx: Context, e: Exp, private var m: MediaItem) : FrameL
         val body = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
             addView(top, LinearLayout.LayoutParams(-1, ctx.dpi(50f)))
-            addView(prog, LinearLayout.LayoutParams(-1, ctx.dpi(4f)).apply { topMargin = ctx.dpi(12f) })
-            addView(times, LinearLayout.LayoutParams(-1, WRAP).apply { topMargin = ctx.dpi(5f) })
+            addView(prog, LinearLayout.LayoutParams(-1, ctx.dpi(22f)).apply { topMargin = ctx.dpi(4f) })
+            addView(times, LinearLayout.LayoutParams(-1, WRAP))
             addView(controls, LinearLayout.LayoutParams(-1, ctx.dpi(44f)).apply { topMargin = ctx.dpi(2f) })
         }
         e.populate(this, lead, trail, body)
+        prog.onSeek = { f -> if (m.durMs > 0) { val t = (f * m.durMs).toLong(); m.onSeek?.invoke(t); m.posMs = t; m.stamp = SystemClock.elapsedRealtime(); updateProgress() } }
         bind(m)
     }
 
@@ -425,4 +452,147 @@ class CallExpandedView(ctx: Context, e: Exp, private var call: CallItem) : Frame
         e.populate(this, lead, trail, body)
     }
     override fun bind(item: Item) { call = item as CallItem }
+}
+
+// ---------------------------------------------------------------- колокольчик (со слэшем для «без звука»)
+
+class BellView(ctx: Context, private val slashed: Boolean, private val color: Int) : View(ctx) {
+    private val bell = ctx.getDrawable(R.drawable.ic_bell)!!.mutate().apply { setTint(color) }
+    private val p = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeCap = Paint.Cap.ROUND; color = this@BellView.color }
+
+    override fun onDraw(c: Canvas) {
+        val w = width; val h = height
+        bell.setBounds(0, 0, w, h); bell.draw(c)
+        if (slashed) {
+            p.strokeWidth = w * 0.09f
+            p.color = Color.BLACK; p.strokeWidth = w * 0.20f
+            c.drawLine(w * 0.16f, h * 0.12f, w * 0.86f, h * 0.88f, p)
+            p.color = color; p.strokeWidth = w * 0.09f
+            c.drawLine(w * 0.16f, h * 0.12f, w * 0.86f, h * 0.88f, p)
+        }
+    }
+}
+
+// ---------------------------------------------------------------- мини-пилюля (зарядка, звук, наушники, разблокировка)
+
+class MiniView(ctx: Context, c: Compact, private val item: Item) : FrameLayout(ctx), Bindable {
+    private var img: ImageView? = null
+
+    init {
+        val lead = FrameLayout(ctx)
+        var trail: View? = null
+        when (item) {
+            is ChargeItem -> {
+                val col = if (item.kind == 1) RED else GREEN
+                lead.addView(BatteryView(ctx, item.level, col), FrameLayout.LayoutParams(ctx.dpi(28f), ctx.dpi(14f), Gravity.CENTER))
+                trail = FrameLayout(ctx).apply {
+                    addView(tv(ctx, "${item.level}%", 14f, col, true), FrameLayout.LayoutParams(WRAP, WRAP, Gravity.CENTER_VERTICAL or Gravity.END))
+                }
+            }
+            is MiniItem -> {
+                if (item.kind == 0) {
+                    lead.addView(BellView(ctx, item.slashed, item.color), FrameLayout.LayoutParams(ctx.dpi(19f), ctx.dpi(19f), Gravity.CENTER))
+                } else {
+                    val v = ImageView(ctx).apply { setImageResource(item.icon); setColorFilter(item.color) }
+                    img = v
+                    lead.addView(v, FrameLayout.LayoutParams(ctx.dpi(19f), ctx.dpi(19f), Gravity.CENTER))
+                }
+                if (item.text.isNotEmpty()) trail = FrameLayout(ctx).apply {
+                    addView(tv(ctx, item.text, 14f, item.color, true), FrameLayout.LayoutParams(WRAP, WRAP, Gravity.CENTER_VERTICAL or Gravity.END))
+                }
+            }
+            else -> {}
+        }
+        c.populate(this, lead, trail)
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        val v = img
+        if (item is MiniItem && item.kind == 2 && v != null) {
+            // Face ID-стиль: замок → щёлкает и открывается
+            v.postDelayed({
+                v.setImageResource(R.drawable.ic_lock_open); v.setColorFilter(GREEN)
+                v.scaleX = 0.6f; v.scaleY = 0.6f
+                v.animate().scaleX(1f).scaleY(1f).setDuration(380)
+                    .setInterpolator(android.view.animation.OvershootInterpolator(3f)).start()
+            }, 520)
+        }
+    }
+
+    override fun bind(item: Item) {}
+}
+
+// ---------------------------------------------------------------- таймер / секундомер
+
+private fun chrono(ctx: Context, base: Long, countDown: Boolean, sp: Float, color: Int, gravity: Int) = Chronometer(ctx).apply {
+    setTextColor(color); setTextSize(TypedValue.COMPLEX_UNIT_SP, sp)
+    typeface = Typeface.create(Typeface.create("sans-serif", Typeface.NORMAL), 600, false)
+    includeFontPadding = false; this.gravity = gravity
+    isCountDown = countDown
+    this.base = base; start()
+}
+
+fun actionButtons(ctx: Context, acts: List<Act>): LinearLayout = LinearLayout(ctx).apply {
+    acts.take(3).forEachIndexed { i, a ->
+        val last = i == acts.take(3).size - 1 && acts.size > 1
+        addView(TextView(ctx).apply {
+            text = a.title; setTextColor(WHITE); setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            typeface = Typeface.create(Typeface.create("sans-serif", Typeface.NORMAL), 600, false)
+            gravity = Gravity.CENTER; maxLines = 1; ellipsize = TextUtils.TruncateAt.END
+            setPadding(ctx.dpi(8f), 0, ctx.dpi(8f), 0)
+            background = GradientDrawable().apply { setColor(if (last) 0xFFFF9F0A.toInt() else 0xFF3A3A3C.toInt()); cornerRadius = ctx.dp(22f) }
+            isClickable = true; setOnClickListener { a.run() }
+        }, LinearLayout.LayoutParams(0, ctx.dpi(44f), 1f).apply { if (i > 0) leftMargin = ctx.dpi(10f) })
+    }
+}
+
+class LiveCompactView(ctx: Context, c: Compact, item: LiveItem) : FrameLayout(ctx), Bindable {
+    init {
+        val lead = FrameLayout(ctx).apply { addView(roundImg(ctx, item.appIcon, 24f, 7f, 0xFFFF9F0A.toInt(), R.drawable.ic_timer)) }
+        c.populate(this, lead, chrono(ctx, item.base, item.countDown, 13f, 0xFFFF9F0A.toInt(), Gravity.CENTER_VERTICAL or Gravity.END))
+    }
+    override fun bind(item: Item) {}
+}
+
+class LiveExpandedView(ctx: Context, e: Exp, item: LiveItem) : FrameLayout(ctx), Bindable {
+    init {
+        val orange = 0xFFFF9F0A.toInt()
+        val lead = row(ctx, roundImg(ctx, item.appIcon, 18f, 5f, orange, R.drawable.ic_timer),
+            tv(ctx, item.app, 12f, SEC, true).apply { setPadding(ctx.dpi(6f), 0, 0, 0); maxWidth = e.leadMax.toInt() })
+        val col = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_VERTICAL
+            addView(tv(ctx, item.title, 16f, WHITE, true))
+            if (item.text.isNotEmpty()) addView(tv(ctx, item.text, 13f, SEC).apply { setPadding(0, ctx.dpi(2f), 0, 0) })
+        }
+        val head = LinearLayout(ctx).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            addView(col, LinearLayout.LayoutParams(0, WRAP, 1f))
+            addView(chrono(ctx, item.base, item.countDown, 30f, orange, Gravity.CENTER_VERTICAL or Gravity.END))
+        }
+        val body = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(head, LinearLayout.LayoutParams(-1, WRAP))
+            if (item.actions.isNotEmpty()) addView(actionButtons(ctx, item.actions), LinearLayout.LayoutParams(-1, WRAP).apply { topMargin = ctx.dpi(12f) })
+        }
+        e.populate(this, lead, null, body)
+    }
+    override fun bind(item: Item) {}
+}
+
+class AlertView(ctx: Context, e: Exp, item: AlertItem) : FrameLayout(ctx), Bindable {
+    init {
+        val orange = 0xFFFF9F0A.toInt()
+        val lead = row(ctx, icon(ctx, R.drawable.ic_bell, orange, 16f),
+            tv(ctx, "Будильник", 12f, SEC, true).apply { setPadding(ctx.dpi(5f), 0, 0, 0); maxWidth = e.leadMax.toInt() })
+        val trail = row(ctx, EqualizerView(ctx, orange).apply { layoutParams = LinearLayout.LayoutParams(ctx.dpi(22f), ctx.dpi(18f)) })
+        val body = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(tv(ctx, item.title, 22f, WHITE, true))
+            if (item.text.isNotEmpty()) addView(tv(ctx, item.text, 14f, SEC, false, 2).apply { setPadding(0, ctx.dpi(2f), 0, 0) })
+            if (item.actions.isNotEmpty()) addView(actionButtons(ctx, item.actions), LinearLayout.LayoutParams(-1, WRAP).apply { topMargin = ctx.dpi(12f) })
+        }
+        e.populate(this, lead, trail, body)
+    }
+    override fun bind(item: Item) {}
 }

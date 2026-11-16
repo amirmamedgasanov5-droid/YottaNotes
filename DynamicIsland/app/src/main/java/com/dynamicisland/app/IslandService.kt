@@ -30,7 +30,7 @@ class IslandService : Service() {
         if (Build.VERSION.SDK_INT >= 34) startForeground(1, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         else startForeground(1, n)
 
-        if (!Settings.canDrawOverlays(this)) { stopSelf(); return }
+        if (IslandAccessibility.instance != null || !Settings.canDrawOverlays(this)) { stopSelf(); return }
         controller = IslandController(applicationContext).also { it.start() }
     }
 

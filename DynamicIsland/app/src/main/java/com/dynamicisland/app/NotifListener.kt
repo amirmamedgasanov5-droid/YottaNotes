@@ -25,7 +25,7 @@ class NotifListener : NotificationListenerService() {
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
         val id = sbn.key
-        IslandBus.post { notificationRemoved(id); onCallRemoved(id) }
+        IslandBus.post { notificationRemoved(id); removeLive(id) }
     }
 
     private fun handle(sbn: StatusBarNotification) {
@@ -57,7 +57,28 @@ class NotifListener : NotificationListenerService() {
             fun act(a: Notification.Action?) = a?.let { x -> Act(x.title) { send(x.actionIntent) } }
             val item = CallItem(sbn.key, title.ifEmpty { appName }, appIcon, avatar, ringing,
                 if (n.`when` > 0) n.`when` else System.currentTimeMillis(), act(answer), act(decline), open)
-            IslandBus.post { onCall(item) }
+            IslandBus.post { setLive(item) }
+            return
+        }
+
+        // ---- будильник
+        if (n.category == Notification.CATEGORY_ALARM) {
+            val acts = (n.actions ?: emptyArray()).filter { it?.actionIntent != null }.take(2)
+                .map { x -> Act(x.title) { send(x.actionIntent) } }
+            val item = AlertItem(sbn.key, title.ifEmpty { appName }, text, appIcon, acts, open)
+            IslandBus.post { setLive(item) }
+            return
+        }
+
+        // ---- таймер / секундомер: постоянное уведомление с хронометром
+        if (chrono && n.flags and Notification.FLAG_ONGOING_EVENT != 0 && n.category != Notification.CATEGORY_TRANSPORT) {
+            val whenMs = if (n.`when` > 0) n.`when` else System.currentTimeMillis()
+            val base = android.os.SystemClock.elapsedRealtime() + (whenMs - System.currentTimeMillis())
+            val acts = (n.actions ?: emptyArray()).filter { it?.actionIntent != null }.take(2)
+                .map { x -> Act(x.title) { send(x.actionIntent) } }
+            val item = LiveItem(sbn.key, appName, title.ifEmpty { appName }, text, appIcon, base,
+                ex.getBoolean("android.chronometerCountDown", false), acts, open)
+            IslandBus.post { setLive(item) }
             return
         }
 
