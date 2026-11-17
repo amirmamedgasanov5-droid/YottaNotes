@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">TV Desk</string>
+    <string name="a11y_label">TV Desk: курсор и тачпад</string>
+    <string name="a11y_desc">Нужна, чтобы тачпад мог двигать курсор, нажимать, прокручивать и перетаскивать в других приложениях. Приложение не читает содержимое экрана.</string>
+    <string name="ime_label">TV Desk клавиатура</string>
+</resources>
