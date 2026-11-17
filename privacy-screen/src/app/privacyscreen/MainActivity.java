@@ -12,6 +12,7 @@ import android.provider.Settings;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
@@ -63,6 +64,13 @@ public class MainActivity extends Activity {
         dimBar.setProgress(prefs.dim());
         dimBar.setOnSeekBarChangeListener(new Watcher(this, true));
         root.addView(dimBar);
+
+        CheckBox useBr = new CheckBox(this);
+        useBr.setText("Дополнительно снижать яркость экрана");
+        useBr.setChecked(prefs.useBrightness());
+        useBr.setOnCheckedChangeListener((v, on) -> { prefs.setUseBrightness(on); push(); });
+        useBr.setPadding(0, dp(12), 0, 0);
+        root.addView(useBr);
 
         brightLabel = text("", 14, false);
         brightLabel.setPadding(0, dp(12), 0, 0);

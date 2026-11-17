@@ -14,10 +14,13 @@ final class Prefs {
     void setEnabled(boolean v) { sp.edit().putBoolean("enabled", v).apply(); }
 
     /** Затемнение поверх экрана, 0..85 (%) */
-    int dim() { return sp.getInt("dim", 55); }
+    int dim() { return sp.getInt("dim", 30); }
     void setDim(int v) { sp.edit().putInt("dim", v).apply(); }
 
+    boolean useBrightness() { return sp.getBoolean("useBr", false); }
+    void setUseBrightness(boolean v) { sp.edit().putBoolean("useBr", v).apply(); }
+
     /** Яркость экрана, 1..100 (%). Чем ниже, тем хуже видно сбоку. */
-    int brightness() { return sp.getInt("brightness", 15); }
+    int brightness() { return sp.getInt("brightness", 40); }
     void setBrightness(int v) { sp.edit().putInt("brightness", v).apply(); }
 }

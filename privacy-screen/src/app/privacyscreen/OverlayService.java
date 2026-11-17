@@ -61,7 +61,9 @@ public class OverlayService extends Service {
     private void showOrUpdate(Prefs prefs) {
         if (wm == null) wm = (WindowManager) getSystemService(WINDOW_SERVICE);
         int alpha = Math.round(255f * prefs.dim() / 100f);
-        float brightness = Math.max(0.01f, prefs.brightness() / 100f);
+        float brightness = prefs.useBrightness()
+                ? Math.max(0.01f, prefs.brightness() / 100f)
+                : WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
 
         if (overlay == null) {
             overlay = new View(this);
