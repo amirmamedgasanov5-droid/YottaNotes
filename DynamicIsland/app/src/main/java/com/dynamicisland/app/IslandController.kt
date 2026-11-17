@@ -262,6 +262,7 @@ class IslandController(
         live[item.id] = item
         if (item.urgent && old?.urgent != true) buzz()
         render(); armTimers()
+        if (old == null) h.postDelayed({ island.pulse() }, 200)
     }
 
     fun removeLive(id: String) {
@@ -276,9 +277,11 @@ class IslandController(
     fun onMedia(m: MediaItem?) {
         val prev = media
         media = if (prefs.media) m else null
+        val trackChanged = prev != null && m != null && prev.title != m.title
         if (prev == null || media == null || prev.title != media?.title) suppressed.remove("media")
         if (media == null) { if (primaryOverride == "media") primaryOverride = null; if (expandedId == "media") expandedId = null }
         render()
+        if (trackChanged) island.pulse()
     }
 
     private fun onBattery(i: Intent) {
@@ -399,6 +402,13 @@ class IslandController(
         if (p.urgent) return
         expandedId = if (expandedId == p.id) null else p.id
         buzz(); render(); armTimers()
+    }
+
+    /** Свайп вниз по свёрнутой капсуле — раскрыть (как в iOS). */
+    fun onSwipeDown() {
+        if (current != null) return
+        val p = primary() ?: return
+        if (expandedId != p.id && !p.urgent) { expandedId = p.id; buzz(); render(); armTimers() }
     }
 
     fun onSwipeUp() {

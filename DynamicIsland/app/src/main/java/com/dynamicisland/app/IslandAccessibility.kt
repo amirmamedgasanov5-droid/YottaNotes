@@ -25,6 +25,7 @@ class IslandAccessibility : AccessibilityService() {
         if (IslandBus.controller != null) stopService(Intent(this, IslandService::class.java))
         Prefs(this).enabled = true
         controller = IslandController(this, WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY).also { it.start() }
+        WatchdogJob.schedule(this)
     }
 
     override fun onAccessibilityEvent(e: AccessibilityEvent?) {}

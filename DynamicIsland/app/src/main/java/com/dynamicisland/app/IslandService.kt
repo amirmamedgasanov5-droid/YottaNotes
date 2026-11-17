@@ -34,6 +34,7 @@ class IslandService : Service() {
 
         if (IslandAccessibility.instance != null || !Settings.canDrawOverlays(this)) { stopSelf(); return }
         controller = IslandController(applicationContext).also { it.start() }
+        WatchdogJob.schedule(this)
     }
 
     override fun onStartCommand(i: Intent?, flags: Int, startId: Int) = START_STICKY

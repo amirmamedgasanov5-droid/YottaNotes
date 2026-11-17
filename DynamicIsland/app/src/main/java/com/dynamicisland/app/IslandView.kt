@@ -63,6 +63,7 @@ class IslandView(ctx: Context, private val ctl: IslandController) : FrameLayout(
     private var bKey: String? = null
     // эффект нажатия
     private val press = Spring(1f)
+    private val drag = Spring(0f)
 
     private var zeta = 0.7f
     private var alphaV = 0f
@@ -90,7 +91,9 @@ class IslandView(ctx: Context, private val ctl: IslandController) : FrameLayout(
         override fun onScroll(e1: MotionEvent?, e2: MotionEvent, dx: Float, dy: Float): Boolean {
             if (e1 == null || swiped) return true
             val mx = e2.x - e1.x; val my = e2.y - e1.y
-            if (my < -28 * d && abs(my) > abs(mx)) { swiped = true; ctl.onSwipeUp() }
+            if (!swiped) { drag.target = (my * 0.22f).coerceIn(-3.5f * d, 3.5f * d); start() }
+            if (my < -28 * d && abs(my) > abs(mx)) { swiped = true; drag.target = 0f; ctl.onSwipeUp() }
+            else if (my > 28 * d && abs(my) > abs(mx)) { swiped = true; drag.target = 0f; ctl.onSwipeDown() }
             else if (abs(mx) > 56 * d && abs(mx) > abs(my) * 1.4f) { swiped = true; ctl.onSwipeSide() }
             return true
         }
@@ -103,6 +106,9 @@ class IslandView(ctx: Context, private val ctl: IslandController) : FrameLayout(
     })
 
     init { setWillNotDraw(false) }
+
+    /** Лёгкий «толчок» формы — как отклик острова на событие. */
+    fun pulse() { press.v = 1.07f; press.target = 1f; press.vel = 0f; start() }
 
     fun bounds() = RectF(sl.v, st.v, sr.v, sb.v)
     fun bubbleBounds() = if (bAlpha > 0.02f) RectF(bl.v, bt.v, br.v, bb.v) else null
@@ -196,13 +202,14 @@ class IslandView(ctx: Context, private val ctl: IslandController) : FrameLayout(
             bl.step(dt, 0.40f, 0.70f); br.step(dt, 0.40f, 0.70f)
             bt.step(dt, 0.40f, 0.70f); bb.step(dt, 0.40f, 0.70f)
             press.step(dt, 0.26f, 0.62f)
+            drag.step(dt, 0.30f, 0.70f)
             alphaV += (alphaT - alphaV) * min(1f, dt * 16f)
             if (abs(alphaT - alphaV) < 0.01f) alphaV = alphaT
             bAlpha += (bTarget - bAlpha) * min(1f, dt * 14f)
             if (abs(bTarget - bAlpha) < 0.01f) bAlpha = bTarget
             invalidate()
             val done = sl.settled() && st.settled() && sr.settled() && sb.settled() && rad.settled() &&
-                bl.settled() && bt.settled() && br.settled() && bb.settled() && press.settled() &&
+                bl.settled() && bt.settled() && br.settled() && bb.settled() && press.settled() && drag.settled() &&
                 alphaV == alphaT && bAlpha == bTarget
             if (done) { running = false; ctl.onSettled() } else Choreographer.getInstance().postFrameCallback(this)
         }
@@ -212,6 +219,7 @@ class IslandView(ctx: Context, private val ctl: IslandController) : FrameLayout(
         if (alphaV < 0.01f && bAlpha < 0.01f) return
         getLocationOnScreen(loc)
         c.save()
+        c.translate(0f, drag.v)
         val ps = press.v
         if (abs(ps - 1f) > 0.001f) {
             c.scale(ps, ps, (sl.v + sr.v) / 2 - loc[0], (st.v + sb.v) / 2 - loc[1])
@@ -279,7 +287,7 @@ class IslandView(ctx: Context, private val ctl: IslandController) : FrameLayout(
             return true
         }
         when (e.actionMasked) {
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> { ctl.onTouch(false); pressTo(1f) }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> { ctl.onTouch(false); drag.target = 0f; pressTo(1f) }
         }
         return super.dispatchTouchEvent(e)
     }
