@@ -1,0 +1,101 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1920
+PlayResY: 1080
+WrapStyle: 0
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding
+Style: Main,DejaVu Sans,56,&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,5,2,2,120,120,48,1
+Style: Sys,DejaVu Sans,46,&H00D0D0D0,&H00D0D0D0,&H00000000,&H80000000,0,1,0,0,100,100,0,0,1,4,2,8,120,120,60,1
+
+[Events]
+Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
+Dialogue: 0,0:00:00.80,0:00:03.20,Sys,,0,0,0,,Parodiya. Bütün personajlar uydurmadır.
+Dialogue: 0,0:00:06.00,0:00:11.07,Main,,0,0,0,,{\c&HFFE066&}Şərhçi Valera:{\c&HFFFFFF&} Xabib yenə qalib gəldi! O, o qədər sakit idi ki, rəqib özü yatdı.
+Dialogue: 0,0:00:11.75,0:00:16.89,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Mən də UFC-yə getmək istəyirəm! Həm əlcəklərim var, həm də qorxulu baxışım.
+Dialogue: 0,0:00:17.41,0:00:19.49,Main,,0,0,0,,{\c&HC8A0FF&}Ana:{\c&HFFFFFF&} Amir! Dərslərini etmisən?
+Dialogue: 0,0:00:19.93,0:00:22.07,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Ana, mən döyüşə hazırlaşıram.
+Dialogue: 0,0:00:22.51,0:00:23.81,Main,,0,0,0,,{\c&HC8A0FF&}Ana:{\c&HFFFFFF&} Kiminlə?
+Dialogue: 0,0:00:24.17,0:00:25.47,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Xabiblə.
+Dialogue: 0,0:00:25.83,0:00:27.26,Main,,0,0,0,,{\c&HC8A0FF&}Ana:{\c&HFFFFFF&} O xəbərdardır?
+Dialogue: 0,0:00:27.78,0:00:30.49,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Hələ yox. İndi məktub yazacağam.
+Dialogue: 0,0:00:31.89,0:00:37.32,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Xabib, gəl döyüşək. Ünvan: divan. Amir, on yaşım var. Dəyişək paltar gətir.
+Dialogue: 0,0:00:37.84,0:00:39.91,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Təyyarəciklə göndərirəm!
+Dialogue: 0,0:00:42.07,0:00:44.47,Sys,,0,0,0,,Dağlar. Xabibin zalı.
+Dialogue: 0,0:00:44.99,0:00:48.63,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Gəl döyüşək. Ünvan: divan. Dəyişək paltar gətir.
+Dialogue: 0,0:00:49.39,0:00:51.04,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Uşaqdır. Yaxşı.
+Dialogue: 0,0:00:51.56,0:00:54.34,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Mişa, bu gün balacayla işləyirik.
+Dialogue: 0,0:00:55.58,0:01:00.08,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Salam! Mən sizi məğlub etməyə gəlmişəm. Yalnız nahardan sonra.
+Dialogue: 0,0:01:00.60,0:01:02.39,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Əvvəlcə sinə üstə əyilmə.
+Dialogue: 0,0:01:02.83,0:01:04.13,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Neçə dəfə?
+Dialogue: 0,0:01:04.49,0:01:06.13,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Nə qədər bacarsan.
+Dialogue: 0,0:01:07.85,0:01:10.99,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Bir! ...Bəs. Mən əyilmə çempionuyam.
+Dialogue: 0,0:01:11.51,0:01:13.09,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Sən bir dənə etdin.
+Dialogue: 0,0:01:13.53,0:01:15.60,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Amma çox keyfiyyətli!
+Dialogue: 0,0:01:16.12,0:01:20.62,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Cüt iş. Bu Mişadır. O, tərbiyəlidir. Əsas odur ki, səs-küy salma.
+Dialogue: 0,0:01:22.66,0:01:23.96,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} O öldü?
+Dialogue: 0,0:01:24.40,0:01:27.04,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Xeyr. O, sənin əyilmələrini gördü.
+Dialogue: 0,0:01:27.64,0:01:30.64,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} İndi tutma. Mənim ayağımdan tut.
+Dialogue: 0,0:01:32.20,0:01:35.34,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Mən tutmuram! Sadəcə buraxmağa qorxuram!
+Dialogue: 0,0:01:35.86,0:01:39.51,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Başlanğıc üçün olar. Və sonuncu. Güc papağı.
+Dialogue: 0,0:01:40.91,0:01:44.05,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Heç nə görmürəm, amma çox güclüyəm!
+Dialogue: 0,0:01:46.21,0:01:51.35,Main,,0,0,0,,{\c&HFFE066&}Şərhçi Valera:{\c&HFFFFFF&} Təcili xəbər! Conor McGregor döyüşə çağırıb... belə... uşağı.
+Dialogue: 0,0:01:51.87,0:01:56.01,Main,,0,0,0,,{\c&HFFE066&}Şərhçi Valera:{\c&HFFFFFF&} Yoxladıq. Uşaq mövcuddur. Anası təsdiq edib.
+Dialogue: 0,0:01:56.61,0:02:01.83,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Ey, balaca! Mən o qədər sürətliyəm ki, dünən öz kölgəmdən qaçdım!
+Dialogue: 0,0:02:02.27,0:02:04.55,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} O, hələ də məni axtarır!
+Dialogue: 0,0:02:05.15,0:02:07.44,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} O, çox danışır.
+Dialogue: 0,0:02:07.96,0:02:10.17,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Qoy danışsın. Bu, onun isinməsidir.
+Dialogue: 0,0:02:10.77,0:02:15.63,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Mənim kostyumum sənin evindən bahalıdır! Hərçənd... sənin evin var ki?
+Dialogue: 0,0:02:16.15,0:02:17.79,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Var! Divanlı!
+Dialogue: 0,0:02:18.23,0:02:19.81,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Divan zəifdir!
+Dialogue: 0,0:02:20.57,0:02:22.78,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Ona qulaq asma, divançıq.
+Dialogue: 0,0:02:24.46,0:02:26.86,Sys,,0,0,0,,Çəkiyə çıxma.
+Dialogue: 0,0:02:27.38,0:02:32.38,Main,,0,0,0,,{\c&HFFE066&}Şərhçi Valera:{\c&HFFFFFF&} Xanımlar və cənablar! Xabib Nur... Nurməmmədov... fərqi yoxdur, hamı gəlib!
+Dialogue: 0,0:02:32.90,0:02:34.47,Main,,0,0,0,,{\c&HE0E0E0&}Hakim Petroviç:{\c&HFFFFFF&} Conor, tərəziyə.
+Dialogue: 0,0:02:35.71,0:02:38.50,Main,,0,0,0,,{\c&HE0E0E0&}Hakim Petroviç:{\c&HFFFFFF&} Tərəzi sizdən düşməyi xahiş edir. Nəzakətlə.
+Dialogue: 0,0:02:39.02,0:02:40.66,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Bu, onların problemidir!
+Dialogue: 0,0:02:41.18,0:02:44.11,Main,,0,0,0,,{\c&HFFE066&}Şərhçi Valera:{\c&HFFFFFF&} Mühafizəçi Gennadi yatır. Bu normaldır.
+Dialogue: 0,0:02:44.87,0:02:46.51,Main,,0,0,0,,{\c&HE0E0E0&}Hakim Petroviç:{\c&HFFFFFF&} Amir, indi sən.
+Dialogue: 0,0:02:47.59,0:02:52.95,Main,,0,0,0,,{\c&HE0E0E0&}Hakim Petroviç:{\c&HFFFFFF&} İyirmi doqquz kiloqram. Üstəgəl papaq. Üstəgəl sendviç. Üstəgəl çanta.
+Dialogue: 0,0:02:53.47,0:02:55.97,Main,,0,0,0,,{\c&HE0E0E0&}Hakim Petroviç:{\c&HFFFFFF&} Yaxşı. Bu çəki deyil, bu nahardır.
+Dialogue: 0,0:02:56.49,0:02:59.92,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Ana dedi: sendvicsiz çıxma.
+Dialogue: 0,0:03:00.52,0:03:03.66,Main,,0,0,0,,{\c&HE0E0E0&}Hakim Petroviç:{\c&HFFFFFF&} Baxış yarışı. Kim göz qırparsa, uduzur.
+Dialogue: 0,0:03:06.34,0:03:08.41,Main,,0,0,0,,{\c&HE0E0E0&}Hakim Petroviç:{\c&HFFFFFF&} Mən göz qırpdım. Uduzdum.
+Dialogue: 0,0:03:08.93,0:03:10.65,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Sən iştirak etmirsən!
+Dialogue: 0,0:03:11.17,0:03:13.02,Main,,0,0,0,,{\c&HE0E0E0&}Hakim Petroviç:{\c&HFFFFFF&} Yenə də uduzdum.
+Dialogue: 0,0:03:14.54,0:03:16.94,Sys,,0,0,0,,Arena. Şənbə.
+Dialogue: 0,0:03:17.46,0:03:22.18,Main,,0,0,0,,{\c&HFFE066&}Şərhçi Valera:{\c&HFFFFFF&} Sol küncdə — Amir... Amirka... Amirçik! Sağ küncdə — Conor!
+Dialogue: 0,0:03:22.70,0:03:24.34,Main,,0,0,0,,{\c&H8CC8FF&}Mühafizəçi Gennadi:{\c&HFFFFFF&} Nə? Artıq başladılar?
+Dialogue: 0,0:03:24.78,0:03:26.08,Main,,0,0,0,,{\c&HE0E0E0&}Hakim Petroviç:{\c&HFFFFFF&} Döyüş!
+Dialogue: 0,0:03:26.68,0:03:31.39,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Mən səni tutacağam! Mən çempionam! Mən gözələm! Kostyumum var! Və mən...
+Dialogue: 0,0:03:31.91,0:03:33.27,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Hələ çoxdur?
+Dialogue: 0,0:03:33.79,0:03:38.29,Main,,0,0,0,,{\c&HFFE066&}Şərhçi Valera:{\c&HFFFFFF&} Conor artıq bir dəqiqədir danışır! Bu, danışma sürəti rekorddur!
+Dialogue: 0,0:03:39.37,0:03:41.87,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Mənim qalstukum! O, italyandır!
+Dialogue: 0,0:03:42.39,0:03:45.46,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Hakim! Ayı qaydalara uyğun deyil!
+Dialogue: 0,0:03:45.98,0:03:50.63,Main,,0,0,0,,{\c&HE0E0E0&}Hakim Petroviç:{\c&HFFFFFF&} Qaydalarda ayılar haqqında heç nə yoxdur. Yoxladım. Mən onları yemişəm.
+Dialogue: 0,0:03:51.39,0:03:53.17,Main,,0,0,0,,{\c&HE0E0E0&}Hakim Petroviç:{\c&HFFFFFF&} Bir dəqiqə. Ayaqqabı bağı.
+Dialogue: 0,0:03:54.57,0:03:56.29,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Sendviç yeyərsən?
+Dialogue: 0,0:03:56.73,0:03:58.03,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Nəylə?
+Dialogue: 0,0:03:58.39,0:03:59.69,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Kolbasalı.
+Dialogue: 0,0:04:00.05,0:04:01.35,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Ver.
+Dialogue: 0,0:04:02.03,0:04:05.95,Main,,0,0,0,,{\c&HFFE066&}Şərhçi Valera:{\c&HFFFFFF&} Döyüşçülər sendviçi bölürlər! UFC-də belə hal olmayıb!
+Dialogue: 0,0:04:06.55,0:04:09.20,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Amir! Dediyimi et!
+Dialogue: 0,0:04:09.64,0:04:11.71,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Siz heç nə deməmişdiniz!
+Dialogue: 0,0:04:12.15,0:04:15.01,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Deməli, deməyəni et!
+Dialogue: 0,0:04:15.45,0:04:16.75,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Başa düşdüm!
+Dialogue: 0,0:04:18.15,0:04:22.15,Main,,0,0,0,,{\c&HFFE066&}Şərhçi Valera:{\c&HFFFFFF&} Nokaut! Amir heç nə etmədən qalib gəldi! Dahiyanə!
+Dialogue: 0,0:04:23.51,0:04:26.01,Main,,0,0,0,,{\c&HC8A0FF&}Ana:{\c&HFFFFFF&} AMİR! BU NƏDİR?! EVƏ!
+Dialogue: 0,0:04:26.53,0:04:28.53,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Mən günahkar deyiləm! Bu, odur!
+Dialogue: 0,0:04:29.05,0:04:30.90,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Salam, ana.
+Dialogue: 0,0:04:31.42,0:04:32.99,Main,,0,0,0,,{\c&H8CC8FF&}Mühafizəçi Gennadi:{\c&HFFFFFF&} Nə? Artıq sondur?
+Dialogue: 0,0:04:33.43,0:04:35.15,Main,,0,0,0,,{\c&HE0E0E0&}Hakim Petroviç:{\c&HFFFFFF&} Qalib... ana!
+Dialogue: 0,0:04:36.67,0:04:39.07,Sys,,0,0,0,,Şam yeməyi.
+Dialogue: 0,0:04:39.59,0:04:41.23,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Əlavə ola bilər?
+Dialogue: 0,0:04:41.67,0:04:42.97,Main,,0,0,0,,{\c&HC8A0FF&}Ana:{\c&HFFFFFF&} Əllərini yumusan?
+Dialogue: 0,0:04:43.41,0:04:44.84,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Mən axı çempionam!
+Dialogue: 0,0:04:45.28,0:04:47.14,Main,,0,0,0,,{\c&HC8A0FF&}Ana:{\c&HFFFFFF&} Çempionlar əllərini yuyurlar.
+Dialogue: 0,0:04:48.22,0:04:50.36,Main,,0,0,0,,{\c&HC8A0FF&}Ana:{\c&HFFFFFF&} Amir, afərin. Bəs dərslər?
+Dialogue: 0,0:04:50.88,0:04:53.45,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Xabib, məni geri məğlub edin!
+Dialogue: 0,0:04:53.97,0:04:55.27,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Xeyr.

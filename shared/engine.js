@@ -3,7 +3,7 @@
    Coordinates: 360 x 640 viewBox, characters stand with their feet at (0,0) local. */
 (() => {
   const NS = 'http://www.w3.org/2000/svg';
-  const E = window.E = { TOTAL: 120 };
+  const E = window.E = { TOTAL: 120, W: 360, H: 640 };
   const svg = E.svg = document.getElementById('svg');
   const el = E.el = (tag, attrs = {}, parent = svg) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
   const G = E.G = (parent, attrs) => el('g', attrs || {}, parent);
@@ -76,13 +76,13 @@
     <radialGradient id="blueglow"><stop offset="0" stop-color="#9fd3ff" stop-opacity=".8"/><stop offset="1" stop-color="#9fd3ff" stop-opacity="0"/></radialGradient>`;
 
   /* ---------- effects ---------- */
-  E.dim = pts => { const r = el('rect', { width: 360, height: 640, fill: '#000' }, E.layers.fx); E.opacity(r, pts); return r; };
-  E.vignette = pts => { const r = el('rect', { width: 360, height: 640, fill: 'url(#vg)' }, E.layers.fx); E.opacity(r, pts); return r; };
-  E.flash = (t, color = '#fff', dur = .45, peak = .95) => { const r = el('rect', { width: 360, height: 640, fill: color }, E.layers.top); E.opacity(r, [[0, 0], [t - .001, 0], [t, peak], [t + dur, 0]]); };
-  E.cut = (t, dur = .3) => { const r = el('rect', { width: 360, height: 640, fill: '#000' }, E.layers.top); E.opacity(r, [[0, 0], [t - dur, 0], [t, 1], [t + dur, 0]]); };
+  E.dim = pts => { const r = el('rect', { width: E.W, height: E.H, fill: '#000' }, E.layers.fx); E.opacity(r, pts); return r; };
+  E.vignette = pts => { const r = el('rect', { width: E.W, height: E.H, fill: 'url(#vg)' }, E.layers.fx); E.opacity(r, pts); return r; };
+  E.flash = (t, color = '#fff', dur = .45, peak = .95) => { const r = el('rect', { width: E.W, height: E.H, fill: color }, E.layers.top); E.opacity(r, [[0, 0], [t - .001, 0], [t, peak], [t + dur, 0]]); };
+  E.cut = (t, dur = .3) => { const r = el('rect', { width: E.W, height: E.H, fill: '#000' }, E.layers.top); E.opacity(r, [[0, 0], [t - dur, 0], [t, 1], [t + dur, 0]]); };
   E.card = (t0, t1, items, bg = '#05070a') => {
-    const g = G(E.layers.top); el('rect', { width: 360, height: 640, fill: bg }, g);
-    items.forEach(it => { const x = el('text', { x: 180, y: it.y, 'text-anchor': 'middle', 'font-size': it.size, 'font-weight': it.weight || 900, fill: it.color || '#fff' }, g); x.textContent = it.text; });
+    const g = G(E.layers.top); el('rect', { width: E.W, height: E.H, fill: bg }, g);
+    items.forEach(it => { const x = el('text', { x: E.W / 2, y: it.y, 'text-anchor': 'middle', 'font-size': it.size, 'font-weight': it.weight || 900, fill: it.color || '#fff' }, g); x.textContent = it.text; });
     E.opacity(g, [[0, 0], [t0 - .001, 0], [t0, 1], [t1 - .6, 1], [t1, 0]]);
   };
   E.tag = (t0, t1, text) => {

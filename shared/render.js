@@ -7,7 +7,7 @@ const frames = Math.round(+fps * +total);
   const b = await chromium.launch({ args: ['--disable-threaded-animation'] });
   const per = Math.ceil(frames / +workers);
   await Promise.all([...Array(+workers).keys()].map(async w => {
-    const ctx = await b.newContext({ viewport: { width: 540, height: 960 }, deviceScaleFactor: 2 });
+    const ctx = await b.newContext({ viewport: { width: +(process.env.VW || 540), height: +(process.env.VH || 960) }, deviceScaleFactor: +(process.env.DSF || 2) });
     const p = await ctx.newPage();
     await p.goto(`file:///home/user/YottaNotes/${dir}/index.html`);
     await p.evaluate(() => window.seek(0)); await p.waitForTimeout(400);
