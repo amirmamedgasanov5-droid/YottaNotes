@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Амир в UFC — пародия</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#000}
+  body{display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;width:min(100vw,56.25vh);aspect-ratio:9/16;overflow:hidden;background:#000}
+  svg{position:absolute;inset:0;width:100%;height:100%;display:block;font-family:"DejaVu Sans","Trebuchet MS","Segoe UI",system-ui,sans-serif}
+</style>
+</head>
+<body>
+<div id="stage"><svg id="svg" viewBox="0 0 360 640" preserveAspectRatio="xMidYMid slice"></svg></div>
+<script src="../shared/engine.js"></script>
+<script src="kit.js"></script>
+<script>
+E.TOTAL = 300;
+const S = 1.5, Y = 440, Y2 = 470, Y3 = 505;
+const fg = E.G(E.svg); E.layers.actors.after(fg); E.layers.fg = fg;
+
+/* actor / prop transform track: [t, x, y, rotation, scale] (values carry over).
+   tr() records segments; flushTR() merges all segments of one node into ONE animation
+   (several animations on the same node would override each other). */
+const SEGS = new Map();
+function tr(node, pts, sc = S) {
+  const n = node.g || node;
+  pts = pts.map((p, i) => (i === 0 && p[4] === undefined) ? [p[0], p[1], p[2], p[3], sc] : p);
+  SEGS.set(n, (SEGS.get(n) || []).concat([pts]));
+}
+function flushTR() {
+  SEGS.forEach((segs, n) => {
+    segs.sort((a, b) => a[0][0] - b[0][0]);
+    let x = 0, y = Y, r = 0, s = S; const frames = [];
+    const st = () => ({ transform: `translate(${x}px,${y}px) rotate(${r}deg) scale(${s})` });
+    segs.forEach((seg, k) => {
+      if (k > 0) frames.push([seg[0][0] - .001, st()]);          // hold the previous state until the next segment starts
+      seg.forEach(([t, px, py, pr, ps]) => {
+        if (px !== undefined) x = px; if (py !== undefined) y = py; if (pr !== undefined) r = pr; if (ps !== undefined) s = ps;
+        frames.push([t, st()]);
+      });
+    });
+    E.anim(n, frames);
+  });
+}
+const talk = (t0, t1, a, b, period = .6) => { const w = []; for (let t = t0; t < t1 - .05; t += period) w.push([t, Math.min(t + period / 2, t1), a], [Math.min(t + period / 2, t1), Math.min(t + period, t1), b]); return w; };
+
+/* ---------- scenes ---------- */
+let wardrobe;
+const sc1 = E.scene(0, 42.4, g => { K.bedroom(g); const wr = E.G(g); wardrobe = K.wardrobe(wr); return { wr, door: wardrobe.door }; });
+const sc2 = E.scene(42.3, 125.5, g => K.gym(g));
+let scaleA, scaleB;
+const sc3 = E.scene(125.4, 172.3, g => { K.weigh(g); scaleA = K.scale(g); scaleB = K.scale(g); return {}; });
+const sc4 = E.scene(172.2, 282.9, g => K.arena(g));
+const sc5 = E.scene(282.8, 300.5, g => K.dinner(g));
+[42.35, 125.45, 172.25, 282.85].forEach(t => E.cut(t, .3));
+
+/* --- scene 1: Amir's room --- */
+E.shake(sc1.wr, [[17.4, 18.6, 2.2, 16]]);
+E.doorSwing(sc1.door, 17.9, 21.5, .12);
+
+/* --- scene 2: the gym, the TV --- */
+E.vis(sc2.comm, [[92.8, 98.2]]); E.vis(sc2.con, [[98.2, 125.5]]); E.vis(sc2.live, [[92.4, 125.5]]);
+E.bob(sc2.con, 2.5, 230);
+[[99.6, 14, -26], [100.0, -16, -30]].forEach(([t, dx, dy], i) => { // popping suit buttons
+  const c = E.el('circle', { cx: 270, cy: 190, r: 3.4, fill: '#e8b32a', stroke: '#111', 'stroke-width': 1 }, sc2.g);
+  E.anim(c, [[0, { opacity: 0, transform: 'translate(0px,0px)' }], [t - .01, { opacity: 0, transform: 'translate(0px,0px)' }], [t, { opacity: 1, transform: 'translate(0px,0px)' }], [t + .5, { opacity: 1, transform: `translate(${dx * 2}px,${dy * 2 - 10}px)` }], [t + .9, { opacity: 0, transform: `translate(${dx * 3}px,${dy}px)` }]]);
+});
+
+/* --- scene 3: weigh-in --- */
+E.vis(scaleA.s, [[125.4, 141]]); E.vis(scaleB.s, [[141, 172.3]]);
+E.anim(scaleA.nd, [[0, { transform: 'rotate(0deg)' }], [127.9, { transform: 'rotate(0deg)' }], [130.5, { transform: 'rotate(1500deg)' }], [172, { transform: 'rotate(1500deg)' }]]);
+E.anim(scaleB.nd, [[0, { transform: 'rotate(-60deg)' }], [143.3, { transform: 'rotate(-60deg)' }], [144.2, { transform: 'rotate(-18deg)' }], [172, { transform: 'rotate(-18deg)' }]]);
+K.num(129.4, 135, 'ERR', 180, 214, '#ff4d4d');
+K.num(144.4, 149, '34 kg', 180, 214, '#7dff9c');
+[128.0, 135.4, 144.2, 152.4, 160.1, 168.2].forEach(t => E.flash(t, '#fff', .18, .55));
+const spring = E.el('circle', { cx: 180, cy: 300, r: 6, fill: '#c8cdd4', stroke: '#111', 'stroke-width': 2 }, sc3.g);
+E.anim(spring, [[0, { opacity: 0, transform: 'translate(0px,0px)' }], [130.3, { opacity: 0, transform: 'translate(0px,0px)' }], [130.31, { opacity: 1, transform: 'translate(0px,0px)' }], [130.8, { opacity: 1, transform: 'translate(70px,-150px)' }], [131.6, { opacity: 1, transform: 'translate(120px,60px)' }], [131.7, { opacity: 0, transform: 'translate(120px,60px)' }]]);
+
+/* --- characters --- */
+const amir = K.Amir(E.layers.actors), khabib = K.Khabib(E.layers.actors), conor = K.Conor(E.layers.actors), ref = K.Ref(E.layers.actors);
+const mom = E.Mom(E.layers.actors);
+const bear = K.bear(E.layers.actors);
+E.vis(amir.g, [[0, 300.5]]);
+E.vis(khabib.g, [[42.35, 125.4], [172.3, 300.5]]);
+E.vis(conor.g, [[125.5, 300.5]]);
+E.vis(ref.g, [[125.5, 300.5]]);
+E.vis(mom.g, [[283.4, 300.5]]);
+E.vis(bear, [[77.9, 125.4], [283.3, 300.5]]);
+tr(bear, [[0, 360, Y], [77.9, 360], [79.6, 300], [125, 300], [283.3, 330, Y3, 0, 1.2], [300, 330]], 1.4);
+
+// Khabib's tea: glass + steam in his hand, lifted for a sip now and then
+K.glass(khabib.hand); K.steam(khabib.hand);
+{
+  const base = 'translate(35px,-52px)', up = 'translate(8px,-98px)'; const f = [[0, { transform: base }]];
+  [71.2, 109.0, 266.2, 276.0, 291.0].forEach(t => f.push([t - .02, { transform: base }], [t + .5, { transform: up }], [t + 1.4, { transform: up }], [t + 1.9, { transform: base }]));
+  E.anim(khabib.hand, f);
+}
+
+/* Amir - scene 1 */
+tr(amir, [[0, 130, Y, 0], [13, 130], [13.4, 160], [13.8, 130], [14.4, 165], [14.8, 130], [15.4, 170], [15.8, 130], [16.6, 190], [17.0, 205], [17.9, 205], [18.5, 120, Y - 30, 35], [19.0, 70, Y, 82], [22.8, 70, Y, 82], [23.4, 125, Y, 0], [38.9, 125], [39.1, 125, Y - 36], [39.3, 125, Y], [39.6, 150], [39.9, 110], [40.2, 150], [40.5, 110], [41.2, 135], [42.2, 135]]);
+/* Amir - scene 2 */
+tr(amir, [[42.3, -80, Y, 0], [42.4, -80], [44.4, 120], [47.4, 120, Y, 0], [47.8, 120, Y, 8], [48.6, 120, Y, -4], [49.4, 120, Y, 0], [51.0, 120], [52.5, 320], [53.9, 40], [55.2, 120], [56.4, 120], [57.4, 90], [58.0, 90, Y, 85], [58.8, 90, Y, 85], [58.95, 275, Y - 85, -90], [60.8, 145], [62.4, 105], [64.5, 225], [66.5, 305], [67.6, 305], [67.7, 300, Y, 0], [68.8, 150], [86.6, 150], [87.2, 215], [87.5, 100, Y - 40, 60], [88.3, 40, Y, 85], [89.8, 40, Y, 85], [90.4, 70, Y, 0], [92.3, 70], [92.4, 110]]);
+/* Amir - weigh-in (scene 3) */
+tr(amir, [[125.4, -90, Y, 0], [139.5, -90], [141.5, 120], [143.2, 120], [143.5, 180, Y - 26], [148.2, 180], [148.5, 130, Y], [156.4, 130], [156.5, 165], [172.1, 165]]);
+/* Amir - arena (scene 4) */
+tr(amir, [[172.2, 95, Y2, 0], [216.4, 95], [216.7, 80, Y2, -25], [217.5, 95, Y2, 0], [218.6, 95], [218.9, 115, Y2, -30], [219.7, 95, Y2, 0], [220.0, 85, Y2, -40], [220.7, 95, Y2, 0], [234.0, 95], [234.9, 229], [236.15, 229], [238.15, 124], [240.15, 224], [242.15, 104], [244.15, 214], [246.15, 234], [246.4, 272, Y2 - 90, 12, S * .9], [247.8, 162], [249.2, 302], [250.8, 212], [251.3, 236, Y2, 0, S], [252.5, 60, Y2, 0], [279.0, 60], [281.4, 325], [282.4, 330], [282.8, 330]]);
+/* Amir - dinner */
+tr(amir, [[282.9, 125, Y3, 0, 1.4], [300.5, 125]], 1.4);
+
+/* Khabib */
+tr(khabib, [[42.3, 250, Y, 0], [58.9, 250], [60.8, 120], [62.4, 80], [64.5, 200], [66.5, 280], [67.6, 280], [68.4, 250], [92.4, 250], [92.5, 235], [125.4, 235]]);
+tr(khabib, [[172.2, 30, Y2 - 8, 0, S * .95], [250.4, 30], [254.6, 120], [259.9, 150], [262, 200], [264.5, 250], [266.5, 300], [279.0, 300], [283.0, 430], [283.2, 205, Y3, 0, 1.4], [300.5, 205]]);
+/* Conor */
+tr(conor, [[125.5, 430, Y, 0], [125.6, 420], [127.4, 250], [127.6, 180, Y - 26], [130.6, 180], [131.0, 260, Y], [172.1, 215]]);
+tr(conor, [[172.2, 270, Y2, 0], [182.7, 270], [184, 250], [186, 290], [188, 255], [190, 285], [192, 260], [194, 250], [199.2, 250], [200.0, 215], [200.3, 285, Y2 - 60, -40], [200.8, 320, Y2 - 20, -95], [201.3, 320, Y2, -95], [209.2, 320, Y2, -95], [209.8, 320, Y2, 0], [210.6, 295], [211.5, 270], [216.3, 270], [216.6, 150], [217.2, 100, Y2, 360], [217.25, 100, Y2, 0], [218.0, 270], [218.4, 270], [218.7, 150], [219.2, 80, Y2, 360], [219.25, 80, Y2, 0], [220.2, 270], [233.0, 270], [234.8, 255], [236, 255], [238, 150], [240, 250], [242, 130], [244, 240], [246.0, 260], [246.2, 260], [247.6, 150], [249.0, 290], [250.6, 200], [255.0, 200], [255.8, 200], [257.0, 300], [258.4, 60], [260.0, 320], [261.6, 40], [263.0, 300], [264.0, 330], [264.2, 330, Y2 - 30], [265.2, 330, Y2 - 135], [274.9, 330, Y2 - 135], [275.7, 330, Y2], [279.0, 330], [281.8, 430]]);
+tr(conor, [[282.9, 55, Y3, 0, 1.4], [300.5, 55]], 1.4);
+/* referee */
+tr(ref, [[125.5, 60, Y, 0], [172.1, 60]]);
+tr(ref, [[172.2, 185, Y2 - 12, 0, 1.35], [202.0, 185], [202.8, 300], [208.0, 300], [209.0, 185], [270, 185], [279.0, 185], [282.0, 430]], 1.35);
+tr(ref, [[282.9, 270, Y3, 0, 1.4], [300.5, 270]], 1.4);
+tr(mom, [[283.4, 330, Y3, 0, 1.4], [300.5, 330]], 1.4);
+
+/* belt: on Conor, then on the floor, then on Amir */
+E.vis(conor.belt, [[0, 280.4]]); E.vis(amir.belt, [[282.0, 300.5]]);
+const beltFloor = E.G(E.layers.actors); E.raw(beltFloor, '<rect x="-24" y="-8" width="48" height="10" rx="3" fill="#e8b32a" stroke="#111" stroke-width="2"/><circle cx="0" cy="-3" r="5" fill="#f6d86a" stroke="#111"/>');
+tr(beltFloor, [[0, 325, Y2, 0, 1.2], [300, 325]], 1.2); E.vis(beltFloor, [[280.4, 282.0]]);
+/* banana, peels, stars */
+const banana = K.banana(E.layers.actors); tr(banana, [[0, 150, Y - 80, 0, 1.4], [300, 150]], 1.4); E.vis(banana, [[148.6, 152.0]]);
+const peel1 = K.peel(E.layers.actors); tr(peel1, [[0, 110, Y + 4, 0, 1.4], [300, 110]], 1.4); E.vis(peel1, [[152.0, 172.3]]);
+const peel2 = K.peel(E.layers.actors); tr(peel2, [[0, 215, Y2 + 2, 0, 1.5], [300, 215]], 1.5); E.vis(peel2, [[198.9, 210.5]]);
+const stars = K.stars(E.layers.ui); tr(stars, [[0, 150, 380, 0, 1.2], [300, 150]], 1.2); E.vis(stars, [[200.9, 208.8]]);
+// the referee counts out loud (numbers only: no language needed)
+[[203.5, 204.4, '1'], [204.4, 205.3, '2'], [205.3, 206.0, '3'], [206.0, 206.6, '5'], [206.6, 207.5, '10']].forEach(([a, b, t]) => K.num(a, b, t, 250, 330));
+
+/* ---------- faces ---------- */
+E.face(amir, [[0, 13, 'calm', 1], [13, 17.9, 'grim', 1], [17.9, 19.2, 'shock', 0], [19.2, 23.3, 'smile', 0], [23.3, 31, 'worry', 0], [31, 35.4, 'worry', 0], [35.4, 38.9, 'calm', 0], [38.9, 40.2, 'shock', 0], [40.2, 42.4, 'smile', 0],
+  [42.4, 47, 'smile', 1], [47, 51, 'grim', 1], [51, 57.4, 'scared', 1], [57.4, 59, 'cry', 0], [59, 64.2, 'scared', 0], [64.2, 68, 'worry', 0], [68, 74, 'calm', -1], [74, 83.2, 'smile', 1], [83.2, 87.2, 'grim', 1], [87.2, 90.3, 'shock', 1], [90.3, 125.4, 'calm', 0],
+  [125.4, 139.9, 'calm', 0], [139.9, 148.4, 'worry', 0], [148.4, 156.5, 'smile', 0], [156.5, 160.0, 'grim', 1], [160.0, 172.3, 'smile', 1],
+  [172.3, 216.3, 'worry', 1], [216.3, 224.7, 'scared', 1], [224.7, 234.2, 'scared', 1], [234.2, 245.9, 'grim', 1], [245.9, 252.5, 'scared', 1], [252.5, 270.2, 'worry', -1], [270.2, 273, 'shock', 0], [273, 278.9, 'worry', 0], [278.9, 282.9, 'smile', 0], [282.9, 300.5, 'smile', 0]]);
+E.face(khabib, [[42.4, 77.9, 'calm', 0], [77.9, 82.8, 'smile', 0], [82.8, 90.2, 'calm', 0], [90.2, 92.5, 'smile', 0], [92.5, 107.3, 'calm', 1], [107.3, 112, 'smile', 1], [112, 125.4, 'calm', 1],
+  [172.3, 228.3, 'calm', 1], [228.3, 234.0, 'worry', 1], [234.0, 250.4, 'calm', 1], [250.4, 273, 'grim', 1], [273, 282.9, 'smile', 0], [282.9, 300.5, 'calm', 0]]);
+E.face(conor, [[125.5, 127.6, 'smile', 0], [127.6, 130.6, 'shock', 0], [130.6, 135.3, 'grim', 0], [135.3, 139.6, 'shock', 0], [139.6, 156.5, 'grim', 0], [156.5, 159.9, 'grim', -1], [159.9, 163.7, 'scared', -1], [163.7, 172.3, 'grim', -1],
+  [172.3, 182.7, 'smile', 0], ...talk(182.7, 198.2, 'shock', 'smile', .6), [198.2, 200.0, 'smile', 0], [200.0, 208.8, 'shock', 0], [208.8, 216, 'worry', 0], [216, 221, 'grim', 0], [221, 234.2, 'worry', 0], [234.2, 246, 'shock', 0], [246, 250.6, 'scared', 0], [250.6, 270.2, 'scared', 0], [270.2, 275, 'shock', 0], [275, 282.9, 'worry', 0], [282.9, 300.5, 'smile', 0]]);
+E.face(ref, [[125.5, 172.3, 'calm', 0], [172.3, 203, 'calm', 0], [203, 207.2, 'shock', 0], [207.2, 209.3, 'worry', 0], [209.3, 282.9, 'calm', 0], [282.9, 300.5, 'smile', 0]]);
+E.face(mom, [[283.4, 300.5, 'smile', 0]]);
+
+/* ---------- picture-in-picture commentator + loudspeaker ---------- */
+const pip = E.G(E.layers.ui); E.raw(pip, '<rect x="8" y="10" width="104" height="92" rx="8" fill="#18202e" stroke="#e8b32a" stroke-width="3"/>');
+const pb = E.G(pip, { transform: 'translate(60 62)' }); const pbb = E.G(pb); K.bustComm(E.G(pbb, { transform: 'scale(.9)' })); E.bob(pbb, 1.5, 260);
+E.raw(pip, '<rect x="12" y="14" width="30" height="13" rx="3" fill="#d62828"/><text x="27" y="24" text-anchor="middle" font-size="9" font-weight="900" fill="#fff">LIVE</text>');
+E.vis(pip, [[125.6, 282.8]]);
+const horn = E.G(E.layers.ui); E.raw(horn, '<path d="M-30 -14 L-8 -14 L22 -34 L22 34 L-8 14 L-30 14Z" fill="#c8cdd4" stroke="#111" stroke-width="4" stroke-linejoin="round"/><path d="M34 -16 q14 16 0 32 M46 -28 q24 28 0 56" fill="none" stroke="#ffd23f" stroke-width="5" stroke-linecap="round"/>');
+tr(horn, [[0, 180, 70, 0, 1], [300, 180, 70, 0, 1]], 1); E.vis(horn, [[270.1, 275]]); E.rings(270.2, 274.8, 190, 70, '#ffd23f', 3);
+
+/* ---------- dinner (table in front of the actors) ---------- */
+const table = E.G(fg); K.table(table); E.vis(table, [[282.8, 300.5]]);
+const pot = K.pot(table); tr(pot, [[0, 185, 403, 0, 1.1], [300, 185]], 1.1); E.vis(pot, [[283.5, 300.5]]);
+
+/* ---------- cards ---------- */
+E.card(0, 6.3, [{ text: 'АМИР · AMİR', size: 42, y: 218 }, { text: 'UFC', size: 118, y: 336, color: '#d62828' }, { text: 'пародия · parodiya', size: 16, y: 388, color: '#94a3b8', weight: 400 }]);
+E.card(297.8, 306, [{ text: 'КОНЕЦ · SON', size: 40, y: 306, color: '#ffd23f' }, { text: 'THE END', size: 18, y: 346, color: '#cbd5e1', weight: 400 }], '#05070a');
+E.vignette([[0, .35], [300, .35]]);
+
+flushTR();
+window.TOTAL = E.TOTAL;
+window.seek = t => document.getAnimations().forEach(a => { a.pause(); a.currentTime = t * 1000; });
+</script>
+</body>
+</html>

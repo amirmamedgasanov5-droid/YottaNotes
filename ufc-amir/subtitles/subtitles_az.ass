@@ -1,0 +1,81 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+WrapStyle: 0
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name,Fontname,Fontsize,PrimaryColour,SecondaryColour,OutlineColour,BackColour,Bold,Italic,Underline,StrikeOut,ScaleX,ScaleY,Spacing,Angle,BorderStyle,Outline,Shadow,Alignment,MarginL,MarginR,MarginV,Encoding
+Style: Main,DejaVu Sans,50,&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,6,2,2,60,60,150,1
+Style: Narr,DejaVu Sans,48,&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,1,1,0,0,100,100,0,0,1,6,2,2,60,60,150,1
+Style: Sys,DejaVu Sans,40,&H00D0D0D0,&H00D0D0D0,&H00000000,&H80000000,0,1,0,0,100,100,0,0,1,5,2,2,60,60,150,1
+
+[Events]
+Format: Layer,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text
+Dialogue: 0,0:00:01.00,0:00:05.80,Sys,,0,0,0,,Parodiya. Hər şey uydurmadır.
+Dialogue: 0,0:00:06.50,0:00:12.60,Narr,,0,0,0,,Bu Amirdir. On yaşı var. O, UFC çempionu olmağı arzulayır.
+Dialogue: 0,0:00:12.90,0:00:18.80,Narr,,0,0,0,,Hələlik Amir yalnız öz şkafını məğlub edir. Onu da xallarla.
+Dialogue: 0,0:00:19.20,0:00:22.80,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Bir gün mən dünya çempionu olacağam!
+Dialogue: 0,0:00:23.00,0:00:26.60,Main,,0,0,0,,{\c&HC8A0FF&}Ana:{\c&HFFFFFF&} Amir! Əvvəlcə dərslər!
+Dialogue: 0,0:00:26.90,0:00:30.80,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Ana, çempionlar dərs oxumur!
+Dialogue: 0,0:00:31.00,0:00:35.20,Main,,0,0,0,,{\c&HC8A0FF&}Ana:{\c&HFFFFFF&} Xabib anasına qulaq asırdı. Sən də asacaqsan.
+Dialogue: 0,0:00:35.50,0:00:38.90,Narr,,0,0,0,,Və bu vaxt Amirin telefonu cingildədi.
+Dialogue: 0,0:00:39.20,0:00:42.20,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Xabibin məşqinə dəvət edirlər?! Aaa!
+Dialogue: 0,0:00:42.80,0:00:47.00,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Salam, Amir. Döyüşçünün birinci qaydası — hörmətdir.
+Dialogue: 0,0:00:47.30,0:00:50.50,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Baş üstə! Hörmət edirəm!
+Dialogue: 0,0:00:50.80,0:00:54.60,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} İsinmə: zalın ətrafında beş dövrə.
+Dialogue: 0,0:00:55.00,0:00:58.60,Narr,,0,0,0,,Amir yarım dövrə qaçıb dincəlmək üçün uzandı.
+Dialogue: 0,0:00:58.90,0:01:03.80,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Eybi yoxdur. Səni mən apararam. Təki çayı tökmə.
+Dialogue: 0,0:01:04.20,0:01:08.00,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Bu məşqdir, yoxsa piknik?
+Dialogue: 0,0:01:08.40,0:01:13.80,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Çay — qələbənin səksən faizidir. Qalanı güləşdir.
+Dialogue: 0,0:01:14.00,0:01:17.60,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Düzdür ki, uşaqlıqda ayı balası ilə güləşmisiniz?
+Dialogue: 0,0:01:17.90,0:01:22.80,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Düzdür. O uduzdu. İndi mənim qidalanma məşqçimdir.
+Dialogue: 0,0:01:23.20,0:01:26.80,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Xabib, sizi yıxa bilərəm?
+Dialogue: 0,0:01:27.00,0:01:29.00,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Cəhd et.
+Dialogue: 0,0:01:30.20,0:01:32.40,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Əla yıxıldın. Gözəl.
+Dialogue: 0,0:01:32.80,0:01:38.00,Main,,0,0,0,,{\c&HFFE066&}Şərhçi:{\c&HFFFFFF&} Təcili xəbər! Conor şəhərə çox kiçik kostyumla gəlib!
+Dialogue: 0,0:01:38.20,0:01:43.40,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Mən ən yaxşıyam! Hətta öz əksim də aman diləyir!
+Dialogue: 0,0:01:43.70,0:01:47.00,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} O, çox danışır.
+Dialogue: 0,0:01:47.30,0:01:52.00,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} O danışır. Mən çay içirəm. Hərənin öz işi var.
+Dialogue: 0,0:01:52.30,0:01:58.00,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Ey, göy köynəkli balaca! Döyüşə çıx! Əlbəttə, anan icazə versə!
+Dialogue: 0,0:01:58.20,0:02:01.60,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Ana icazə verər! Yəqin ki.
+Dialogue: 0,0:02:01.90,0:02:05.20,Narr,,0,0,0,,Beləliklə, ən gülməli hissə başladı. Çəkiyə çıxma.
+Dialogue: 0,0:02:05.60,0:02:09.60,Main,,0,0,0,,{\c&HFFE066&}Şərhçi:{\c&HFFFFFF&} Conor tərəziyə çıxır!
+Dialogue: 0,0:02:09.90,0:02:15.00,Main,,0,0,0,,{\c&HD0D0D0&}Hakim:{\c&HFFFFFF&} Tərəzi sındı. O, onun özünəgüvənini daşıya bilmədi.
+Dialogue: 0,0:02:15.30,0:02:19.60,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Mən kök deyiləm! Bu özünəgüvəndir!
+Dialogue: 0,0:02:19.90,0:02:22.80,Main,,0,0,0,,{\c&HFFE066&}Şərhçi:{\c&HFFFFFF&} İndi Amir!
+Dialogue: 0,0:02:23.20,0:02:28.20,Main,,0,0,0,,{\c&HD0D0D0&}Hakim:{\c&HFFFFFF&} Otuz dörd kiloqram. Çəki normadır. Davam.
+Dialogue: 0,0:02:28.50,0:02:32.80,Narr,,0,0,0,,Amir hər ehtimala qarşı əvvəlcə banan yedi.
+Dialogue: 0,0:02:33.20,0:02:37.60,Narr,,0,0,0,,Sonra — baxış yarışı. Kim göz qırparsa, uduzur.
+Dialogue: 0,0:02:40.00,0:02:43.40,Main,,0,0,0,,{\c&HD0D0D0&}Hakim:{\c&HFFFFFF&} Conor göz qırpdı! Xal Amirə!
+Dialogue: 0,0:02:43.70,0:02:47.60,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Bu sayılmır! Gözlərim quruyub!
+Dialogue: 0,0:02:47.90,0:02:51.90,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Sayılır. Məni nənəm belə öyrədib.
+Dialogue: 0,0:02:52.50,0:02:59.80,Main,,0,0,0,,{\c&HFFE066&}Şərhçi:{\c&HFFFFFF&} Xanımlar və cənablar! Mavi küncdə — Amir, Balaca Qartal! Qırmızı küncdə — Conor, Çox Yüksək Səsli!
+Dialogue: 0,0:03:00.00,0:03:02.40,Main,,0,0,0,,{\c&HD0D0D0&}Hakim:{\c&HFFFFFF&} Döyüşçülər, döyüşə!
+Dialogue: 0,0:03:02.70,0:03:08.20,Narr,,0,0,0,,Birinci raund. Conor danışmağa başladı. Və dayana bilmədi.
+Dialogue: 0,0:03:08.50,0:03:14.00,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Mən çempionam, mən əfsanəyəm, kostyumum gözəldir, və mən...
+Dialogue: 0,0:03:14.20,0:03:18.20,Main,,0,0,0,,{\c&HFFE066&}Şərhçi:{\c&HFFFFFF&} Conor artıq iki dəqiqədir danışır! Bu rekorddur!
+Dialogue: 0,0:03:18.50,0:03:22.90,Narr,,0,0,0,,O, o qədər həvəsləndi ki, banan qabığına basdı.
+Dialogue: 0,0:03:23.20,0:03:27.20,Main,,0,0,0,,{\c&HD0D0D0&}Hakim:{\c&HFFFFFF&} Nokdaun! Bir, iki, üç, beş, on... ay, çaşdım.
+Dialogue: 0,0:03:27.50,0:03:30.60,Main,,0,0,0,,{\c&HD0D0D0&}Hakim:{\c&HFFFFFF&} Yenidən saymağa başlayaq.
+Dialogue: 0,0:03:31.00,0:03:36.00,Narr,,0,0,0,,İkinci raund. Conor hirsləndi və hücuma keçdi.
+Dialogue: 0,0:03:36.30,0:03:40.80,Main,,0,0,0,,{\c&HFFE066&}Şərhçi:{\c&HFFFFFF&} Zərbə! Boş! Yenə zərbə! Yenə boş! O, havaya vurur!
+Dialogue: 0,0:03:41.00,0:03:44.40,Main,,0,0,0,,{\c&HFFE066&}Şərhçi:{\c&HFFFFFF&} Amir filmlərdəki kimi yayınır!
+Dialogue: 0,0:03:44.70,0:03:48.00,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Mən sadəcə çox qorxuram!
+Dialogue: 0,0:03:48.30,0:03:54.00,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Amir! Qorxma! Məqamı seç və ayağından tut!
+Dialogue: 0,0:03:54.30,0:03:58.40,Narr,,0,0,0,,Amir ayağından tutdu. Və buraxmadı.
+Dialogue: 0,0:03:58.70,0:04:02.60,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Ayağımı burax! Mən asılqan deyiləm!
+Dialogue: 0,0:04:02.90,0:04:05.90,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Buraxmaram! Bu tutmadır!
+Dialogue: 0,0:04:06.20,0:04:10.40,Narr,,0,0,0,,Conor Amiri qəfəsdə çanta kimi gəzdirdi.
+Dialogue: 0,0:04:10.70,0:04:15.50,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Conor, gəl dürüst olaq. İndi mən.
+Dialogue: 0,0:04:15.80,0:04:19.60,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Ə-ə... Mən zarafat etdim! Bu yumor idi!
+Dialogue: 0,0:04:19.90,0:04:26.40,Narr,,0,0,0,,Xabib sakitcə yeriyirdi. Conor dairə vurub qaçırdı. Xabib — yenə sakitcə.
+Dialogue: 0,0:04:26.70,0:04:29.90,Main,,0,0,0,,{\c&HFFE066&}Şərhçi:{\c&HFFFFFF&} O tələsmir, Conor isə artıq ikinci dövrədədir!
+Dialogue: 0,0:04:30.20,0:04:34.80,Main,,0,0,0,,{\c&HC8A0FF&}Ana:{\c&HFFFFFF&} Amir! Evə! Şam soyuyur!
+Dialogue: 0,0:04:35.00,0:04:38.60,Main,,0,0,0,,{\c&H3C78FF&}Conor:{\c&HFFFFFF&} Ana çağırır? Onda mən də evə.
+Dialogue: 0,0:04:38.90,0:04:42.60,Main,,0,0,0,,{\c&H90EE90&}Xabib:{\c&HFFFFFF&} Ana — əsas çempiondur. Gedək şam yeməyinə.
+Dialogue: 0,0:04:43.00,0:04:49.00,Narr,,0,0,0,,Hamı şam yeməyinə getdi. Hətta şərhçi. Hətta hakim. Hətta ayı balası.
+Dialogue: 0,0:04:49.30,0:04:54.00,Narr,,0,0,0,,Beləliklə, Amir çempion oldu. Düzdür, yalnız şam yeməyi çempionu.
+Dialogue: 0,0:04:54.40,0:04:57.60,Main,,0,0,0,,{\c&H00D7FF&}Amir:{\c&HFFFFFF&} Amma mən üç porsiya yedim!
+Dialogue: 0,0:04:57.80,0:05:00.00,Main,,0,0,0,,
