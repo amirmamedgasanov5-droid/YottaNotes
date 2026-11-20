@@ -1,0 +1,562 @@
+[
+ {
+  "key": "x0",
+  "who": "X",
+  "t": 0.8,
+  "end": 3.2,
+  "ru": "Пародия. Все персонажи выдуманы.",
+  "az": "Parodiya. Bütün personajlar uydurmadır.",
+  "scene": "prolog",
+  "id": 0
+ },
+ {
+  "key": "v1",
+  "who": "V",
+  "t": 6.0,
+  "end": 13.67,
+  "ru": "Бой века! Хабиб против Конора! Билеты кончились, попкорн кончился, терпение кончилось!",
+  "az": "Əsrin döyüşü! Xabib Conora qarşı! Biletlər bitdi, popkorn bitdi, səbr bitdi!",
+  "scene": "home",
+  "id": 1
+ },
+ {
+  "key": "a1",
+  "who": "A",
+  "t": 14.81,
+  "end": 16.81,
+  "ru": "Мам, я иду на бой!",
+  "az": "Ana, mən döyüşə gedirəm!",
+  "scene": "home",
+  "id": 2
+ },
+ {
+  "key": "m1",
+  "who": "M",
+  "t": 17.53,
+  "end": 20.11,
+  "ru": "Куда?! У тебя билета нет!",
+  "az": "Hara?! Sənin biletin yoxdur!",
+  "scene": "home",
+  "id": 3
+ },
+ {
+  "key": "a2",
+  "who": "A",
+  "t": 20.83,
+  "end": 24.5,
+  "ru": "Зато у меня есть характер и бутерброд.",
+  "az": "Amma mənim xarakterim və sendviçim var.",
+  "scene": "home",
+  "id": 4
+ },
+ {
+  "key": "m2",
+  "who": "M",
+  "t": 25.43,
+  "end": 29.01,
+  "ru": "Бутерброд бери. Характер оставь дома.",
+  "az": "Sendviçi götür. Xarakteri evdə burax.",
+  "scene": "home",
+  "id": 5
+ },
+ {
+  "key": "a3",
+  "who": "A",
+  "t": 29.94,
+  "end": 32.36,
+  "ru": "Я буду тренером Хабиба!",
+  "az": "Mən Xabibin məşqçisi olacağam!",
+  "scene": "home",
+  "id": 6
+ },
+ {
+  "key": "m3",
+  "who": "M",
+  "t": 33.08,
+  "end": 34.91,
+  "ru": "А Хабиб в курсе?",
+  "az": "Xabib xəbərdardır?",
+  "scene": "home",
+  "id": 7
+ },
+ {
+  "key": "a4",
+  "who": "A",
+  "t": 35.63,
+  "end": 37.46,
+  "ru": "Узнает в клетке!",
+  "az": "Qəfəsdə biləcək!",
+  "scene": "home",
+  "id": 8
+ },
+ {
+  "key": "x1",
+  "who": "X",
+  "t": 43.82,
+  "end": 46.22,
+  "ru": "Взвешивание.",
+  "az": "Çəkiyə çıxma.",
+  "scene": "weigh",
+  "id": 9
+ },
+ {
+  "key": "v2",
+  "who": "V",
+  "t": 46.94,
+  "end": 53.19,
+  "ru": "Конор пришёл в костюме на два размера меньше! Это называется «стиль».",
+  "az": "Conor iki ölçü kiçik kostyumda gəlib! Buna «stil» deyirlər.",
+  "scene": "weigh",
+  "id": 10
+ },
+ {
+  "key": "c1",
+  "who": "C",
+  "t": 54.12,
+  "end": 57.29,
+  "ru": "Я вешу триста килограммов славы!",
+  "az": "Mən üç yüz kiloqram şöhrət çəkirəm!",
+  "scene": "weigh",
+  "id": 11
+ },
+ {
+  "key": "r1",
+  "who": "R",
+  "t": 60.95,
+  "end": 64.62,
+  "ru": "Весы сломались. Они потеряли дар речи.",
+  "az": "Tərəzi sındı. Danışmaq qabiliyyətini itirdi.",
+  "scene": "weigh",
+  "id": 12
+ },
+ {
+  "key": "k1",
+  "who": "K",
+  "t": 65.55,
+  "end": 69.05,
+  "ru": "Мой вес нормальный. Настроение тоже.",
+  "az": "Mənim çəkim normaldır. Əhval-ruhiyyəm də.",
+  "scene": "weigh",
+  "id": 13
+ },
+ {
+  "key": "g1",
+  "who": "G",
+  "t": 69.98,
+  "end": 74.14,
+  "ru": "Я не сплю! Хр-р... Я охраняю глазами внутрь.",
+  "az": "Mən yatmıram! Xır-r... Mən gözlərimlə içəridən qoruyuram.",
+  "scene": "weigh",
+  "id": 14
+ },
+ {
+  "key": "r2",
+  "who": "R",
+  "t": 75.07,
+  "end": 78.82,
+  "ru": "Гляделки! Кто моргнёт, тот ест пирожок.",
+  "az": "Baxış yarışı! Kim göz qırparsa, piroq yeyir.",
+  "scene": "weigh",
+  "id": 15
+ },
+ {
+  "key": "r3",
+  "who": "R",
+  "t": 84.16,
+  "end": 87.33,
+  "ru": "Я моргнул. Давайте сюда пирожок.",
+  "az": "Mən göz qırpdım. Piroqu ver.",
+  "scene": "weigh",
+  "id": 16
+ },
+ {
+  "key": "x2",
+  "who": "X",
+  "t": 89.49,
+  "end": 91.89,
+  "ru": "Клетка. Бой века.",
+  "az": "Qəfəs. Əsrin döyüşü.",
+  "scene": "fight",
+  "id": 17
+ },
+ {
+  "key": "v3",
+  "who": "V",
+  "t": 92.61,
+  "end": 98.69,
+  "ru": "Раунд первый! Девушка с табличкой идёт по рингу, а за ней — ураган!",
+  "az": "Birinci raund! Lövhəli qız rinqdə yeriyir, arxasında isə qasırğa!",
+  "scene": "fight",
+  "id": 18
+ },
+ {
+  "key": "r4",
+  "who": "R",
+  "t": 99.62,
+  "end": 100.92,
+  "ru": "Бой!",
+  "az": "Döyüş!",
+  "scene": "fight",
+  "id": 19
+ },
+ {
+  "key": "v4",
+  "who": "V",
+  "t": 102.06,
+  "end": 106.81,
+  "ru": "Конор налетает! Джеб, кросс, хук! Мимо, мимо, мимо!",
+  "az": "Conor hücum edir! Cəb, kros, huk! Boş, boş, boş!",
+  "scene": "fight",
+  "id": 20
+ },
+ {
+  "key": "c2",
+  "who": "C",
+  "t": 113.41,
+  "end": 117.75,
+  "ru": "Получай лоукик! Ай! Моя нога! Я сам себя пнул!",
+  "az": "Al lou-kik! Ay! Mənim ayağım! Özümü təpikləmişəm!",
+  "scene": "fight",
+  "id": 21
+ },
+ {
+  "key": "s1",
+  "who": "S",
+  "t": 120.15,
+  "end": 124.4,
+  "ru": "Конор, дыши! Это не соревнование по болтовне!",
+  "az": "Conor, nəfəs al! Bu boşboğazlıq yarışı deyil!",
+  "scene": "fight",
+  "id": 22
+ },
+ {
+  "key": "a5",
+  "who": "A",
+  "t": 126.8,
+  "end": 129.05,
+  "ru": "Хабиб! Заходи в ноги!",
+  "az": "Xabib! Ayaqlara gir!",
+  "scene": "fight",
+  "id": 23
+ },
+ {
+  "key": "k2",
+  "who": "K",
+  "t": 129.77,
+  "end": 131.07,
+  "ru": "Сам знаю.",
+  "az": "Özüm bilirəm.",
+  "scene": "fight",
+  "id": 24
+ },
+ {
+  "key": "v5",
+  "who": "V",
+  "t": 132.0,
+  "end": 136.0,
+  "ru": "Заход в ноги! Поднял! Крутит! Кладёт! Бам!",
+  "az": "Ayaqlara giriş! Qaldırdı! Fırladır! Qoyur! Bam!",
+  "scene": "fight",
+  "id": 25
+ },
+ {
+  "key": "r5",
+  "who": "R",
+  "t": 142.6,
+  "end": 145.93,
+  "ru": "Раз, два, три, пять, девятнадцать!",
+  "az": "Bir, iki, üç, beş, on doqquz!",
+  "scene": "fight",
+  "id": 26
+ },
+ {
+  "key": "c3",
+  "who": "C",
+  "t": 146.86,
+  "end": 149.44,
+  "ru": "Слезь с меня! Я не диван!",
+  "az": "Düş üstümdən! Mən divan deyiləm!",
+  "scene": "fight",
+  "id": 27
+ },
+ {
+  "key": "k3",
+  "who": "K",
+  "t": 150.16,
+  "end": 151.83,
+  "ru": "Диван. Мягкий.",
+  "az": "Divan. Yumşaq.",
+  "scene": "fight",
+  "id": 28
+ },
+ {
+  "key": "y1",
+  "who": "Y",
+  "t": 155.07,
+  "end": 157.9,
+  "ru": "Раунд два! Если вы ещё живы!",
+  "az": "İkinci raund! Əgər hələ sağsınızsa!",
+  "scene": "fight",
+  "id": 29
+ },
+ {
+  "key": "v6",
+  "who": "V",
+  "t": 160.3,
+  "end": 164.89,
+  "ru": "Хабиб достал чай и сидит на Конор как на лавочке!",
+  "az": "Xabib çay çıxardı və Conorun üstündə skamyada kimi oturur!",
+  "scene": "fight",
+  "id": 30
+ },
+ {
+  "key": "v7",
+  "who": "V",
+  "t": 165.82,
+  "end": 169.57,
+  "ru": "А на ринг выбежал болельщик с шашлыком!",
+  "az": "Rinqə isə kabablı azarkeş qaçdı!",
+  "scene": "fight",
+  "id": 31
+ },
+ {
+  "key": "g2",
+  "who": "G",
+  "t": 170.5,
+  "end": 173.58,
+  "ru": "Стоять! Хр-р... Стоять... хр-р.",
+  "az": "Dayan! Xır-r... Dayan... xır-r.",
+  "scene": "fight",
+  "id": 32
+ },
+ {
+  "key": "c4",
+  "who": "C",
+  "t": 180.18,
+  "end": 182.51,
+  "ru": "Я убегаю! Я альпинист!",
+  "az": "Mən qaçıram! Mən alpinistəm!",
+  "scene": "fight",
+  "id": 33
+ },
+ {
+  "key": "s2",
+  "who": "S",
+  "t": 183.44,
+  "end": 187.28,
+  "ru": "Конор, слезай! Там сетка, а не лестница!",
+  "az": "Conor, düş! Orada tor var, pilləkən yox!",
+  "scene": "fight",
+  "id": 34
+ },
+ {
+  "key": "v8",
+  "who": "V",
+  "t": 188.21,
+  "end": 191.87,
+  "ru": "Конор лезет на сетку! Сетка не против!",
+  "az": "Conor torla qalxır! Tor etiraz etmir!",
+  "scene": "fight",
+  "id": 35
+ },
+ {
+  "key": "k4",
+  "who": "K",
+  "t": 198.47,
+  "end": 200.22,
+  "ru": "Тогда я полечу.",
+  "az": "Onda mən uçaram.",
+  "scene": "fight",
+  "id": 36
+ },
+ {
+  "key": "v9",
+  "who": "V",
+  "t": 203.46,
+  "end": 207.13,
+  "ru": "ОРЁЛ! Орёл расправил крылья! Он летит!",
+  "az": "QARTAL! Qartal qanadlarını açdı! O uçur!",
+  "scene": "fight",
+  "id": 37
+ },
+ {
+  "key": "c5",
+  "who": "C",
+  "t": 215.83,
+  "end": 217.83,
+  "ru": "Я не готов к орлу!",
+  "az": "Mən qartala hazır deyiləm!",
+  "scene": "fight",
+  "id": 38
+ },
+ {
+  "key": "k4b",
+  "who": "K",
+  "t": 223.59,
+  "end": 225.51,
+  "ru": "Орёл приземлился.",
+  "az": "Qartal yerə endi.",
+  "scene": "fight",
+  "id": 39
+ },
+ {
+  "key": "v11",
+  "who": "V",
+  "t": 227.49,
+  "end": 232.4,
+  "ru": "Повторим момент! Хабиб летит, Конор висит, Гена спит!",
+  "az": "Anı təkrar edək! Xabib uçur, Conor asılıb, Gennadi yatır!",
+  "scene": "fight",
+  "id": 40
+ },
+ {
+  "key": "a6",
+  "who": "A",
+  "t": 234.8,
+  "end": 236.89,
+  "ru": "Теперь моя очередь!",
+  "az": "İndi mənim növbəmdir!",
+  "scene": "fight",
+  "id": 41
+ },
+ {
+  "key": "v10",
+  "who": "V",
+  "t": 237.82,
+  "end": 242.82,
+  "ru": "Амир зашёл судье в ноги! Судья полетел! Вот это заход!",
+  "az": "Amir hakimin ayaqlarına girdi! Hakim uçdu! Bax bu giriş!",
+  "scene": "fight",
+  "id": 42
+ },
+ {
+  "key": "r6",
+  "who": "R",
+  "t": 250.26,
+  "end": 253.26,
+  "ru": "Я лечу... а считать кто будет?",
+  "az": "Mən uçuram... bəs kim sayacaq?",
+  "scene": "fight",
+  "id": 43
+ },
+ {
+  "key": "m4",
+  "who": "M",
+  "t": 256.26,
+  "end": 258.26,
+  "ru": "АМИР! ДОМОЙ! ЖИВО!",
+  "az": "AMİR! EVƏ! TEZ!",
+  "scene": "mom",
+  "id": 44
+ },
+ {
+  "key": "c6",
+  "who": "C",
+  "t": 259.4,
+  "end": 262.56,
+  "ru": "Я с ним не дрался! Это всё орёл!",
+  "az": "Mən onunla döyüşmədim! Bütün bunlar qartaldır!",
+  "scene": "mom",
+  "id": 45
+ },
+ {
+  "key": "k5",
+  "who": "K",
+  "t": 263.49,
+  "end": 265.58,
+  "ru": "Здравствуйте, мама.",
+  "az": "Salam, ana.",
+  "scene": "mom",
+  "id": 46
+ },
+ {
+  "key": "g3",
+  "who": "G",
+  "t": 266.51,
+  "end": 269.51,
+  "ru": "Что, уже конец? Я всё охранял!",
+  "az": "Nə, artıq sondur? Mən hər şeyi qoruyurdum!",
+  "scene": "mom",
+  "id": 47
+ },
+ {
+  "key": "x3",
+  "who": "X",
+  "t": 271.46,
+  "end": 273.86,
+  "ru": "Ужин.",
+  "az": "Şam yeməyi.",
+  "scene": "dinner",
+  "id": 48
+ },
+ {
+  "key": "c7",
+  "who": "C",
+  "t": 274.58,
+  "end": 276.41,
+  "ru": "А можно добавки?",
+  "az": "Əlavə ola bilər?",
+  "scene": "dinner",
+  "id": 49
+ },
+ {
+  "key": "m5",
+  "who": "M",
+  "t": 277.13,
+  "end": 278.43,
+  "ru": "Руки мыл?",
+  "az": "Əllərini yumusan?",
+  "scene": "dinner",
+  "id": 50
+ },
+ {
+  "key": "c8",
+  "who": "C",
+  "t": 279.15,
+  "end": 280.73,
+  "ru": "Я же чемпион!",
+  "az": "Mən axı çempionam!",
+  "scene": "dinner",
+  "id": 51
+ },
+ {
+  "key": "m6",
+  "who": "M",
+  "t": 281.45,
+  "end": 283.54,
+  "ru": "Чемпионы моют руки!",
+  "az": "Çempionlar əllərini yuyurlar!",
+  "scene": "dinner",
+  "id": 52
+ },
+ {
+  "key": "a7",
+  "who": "A",
+  "t": 285.94,
+  "end": 289.77,
+  "ru": "Мам, я сегодня тренировал самого Хабиба.",
+  "az": "Ana, mən bu gün Xabibin özünü məşq etdirdim.",
+  "scene": "dinner",
+  "id": 53
+ },
+ {
+  "key": "m7",
+  "who": "M",
+  "t": 290.49,
+  "end": 292.41,
+  "ru": "Молодец. А уроки?",
+  "az": "Afərin. Bəs dərslər?",
+  "scene": "dinner",
+  "id": 54
+ },
+ {
+  "key": "k6",
+  "who": "K",
+  "t": 293.34,
+  "end": 294.64,
+  "ru": "Нет.",
+  "az": "Xeyr.",
+  "scene": "dinner",
+  "id": 55
+ }
+]

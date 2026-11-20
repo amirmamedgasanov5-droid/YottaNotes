@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Амир и орёл — пародия</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#000}
+  body{display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;width:min(100vw,177.78vh);aspect-ratio:16/9;overflow:hidden;background:#000}
+  svg{position:absolute;inset:0;width:100%;height:100%;display:block;font-family:"DejaVu Sans","Trebuchet MS","Segoe UI",system-ui,sans-serif}
+</style>
+</head>
+<body>
+<div id="stage"><svg id="svg" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice"></svg></div>
+<script src="../shared/engine.js"></script>
+<script src="../shared/puppet.js"></script>
+<script src="../shared/fx.js"></script>
+<script src="lines.js"></script>
+<script src="../ufc2-amir/kit2.js"></script>
+<script src="kit3.js"></script>
+<script>
+E.TOTAL = 300; E.W = 1280; E.H = 720;
+const L = {}; LINES.forEach(l => L[l.key] = l);
+const T0 = k => L[k].t, T1 = k => L[k].end, SC = SCENES;
+const cutT = n => SC[n] - .45;
+const END = 300.5;
+const RS = 1.3, FY = 650;
+const fg = E.G(E.svg); E.layers.actors.after(fg);
+const wins = (who, a = 0, b = 999) => LINES.filter(l => l.who === who && l.t >= a && l.t < b).map(l => [l.t, l.end]);
+const ST = P.POSE.stand;
+
+/* ---- root-position helpers (every puppet remembers where it is) ---- */
+function place(p, t, x, y = FY, flip = 1, rot = 0, sc = RS) { p.cur = { x, y, flip, rot, sc }; p.go([[t, x, y, flip, rot, sc]]); }
+function put(p, t, patch) { const c = Object.assign({}, p.cur, patch); p.go([[t, c.x, c.y, c.flip, c.rot, c.sc]]); p.cur = c; }
+function jump(p, t, patch) { const c = p.cur; p.go([[t - .001, c.x, c.y, c.flip, c.rot, c.sc]]); put(p, t, patch); }
+function move(p, t0, t1, patch) { const c = p.cur; p.go([[t0, c.x, c.y, c.flip, c.rot, c.sc]]); put(p, t1, patch); }
+function hold(p, t) { const c = p.cur; p.go([[t, c.x, c.y, c.flip, c.rot, c.sc]]); }
+function walk(p, t0, t1, step = .34, amp = 24) { if (p.pstate) P.JOINTS.forEach((j, k) => p.rot(j, [[t0 - .06, p.pstate.ang[k]]])); P.walk(p, t0, t1, step, amp); p.pstate = { ang: ST, t: t1 }; }
+function fill(list, end = END, first = 'neutral') { const o = []; const pts = list.slice().sort((a, b) => a[0] - b[0]); if (!pts.length || pts[0][0] > 0) pts.unshift([0, first]); pts.forEach((p, i) => o.push([p[0], i + 1 < pts.length ? pts[i + 1][0] : end, p[1]])); return o; }
+function trk(node, pts) { let x = 0, y = 0, r = 0, s = 1, f = 1; E.anim(node, pts.map(([t, px, py, pr, ps, pf]) => { if (px !== undefined) x = px; if (py !== undefined) y = py; if (pr !== undefined) r = pr; if (ps !== undefined) s = ps; if (pf !== undefined) f = pf; return [t, { transform: `translate(${x}px,${y}px) rotate(${r}deg) scale(${s * f},${s})` }]; })); }
+
+/* ---- scenes ---- */
+const H1 = cutT('weigh'), W1 = cutT('fight'), F1 = cutT('dinner');
+const sHome = E.scene(0, H1, g => K2.home(g));
+const sWeigh = E.scene(H1, W1, g => K2.weigh(g));
+const sFight = E.scene(W1, F1, g => K3.arena(g));
+const sDinner = E.scene(F1, END, g => K2.kitchen(g));
+[H1, W1, F1].forEach(t => E.cut(t, .32));
+fg.appendChild(sFight.desk); E.vis(sFight.desk, [[W1, F1]]);
+const tableG = E.G(fg); K2.table(tableG); E.vis(tableG, [[F1, END]]);
+E.vis(sWeigh.scaleB.s, [[0, -1]]);
+
+/* ---- people (z-order = creation order) ---- */
+const S1 = K2.person(E.layers.actors, 'S1'), S2 = K2.person(E.layers.actors, 'S2'), Yg = K2.person(E.layers.actors, 'Y'), Fn = K2.person(E.layers.actors, 'F');
+const Mm = K2.person(E.layers.actors, 'M'), Gd = K2.person(E.layers.actors, 'G'), Rf = K2.person(E.layers.actors, 'R'), Vv = K2.person(E.layers.actors, 'V');
+const Kh = K2.person(E.layers.actors, 'K'), Cn = K2.person(E.layers.actors, 'C'), Am = K2.person(E.layers.actors, 'A');
+const bear = K2.bear(E.layers.actors);
+const tie = K2.tie(Cn.parts.torso); tie.setAttribute('transform', 'translate(0 -214) scale(.9)');
+const shadowEagle = E.el('ellipse', { cx: 0, cy: 0, rx: 90, ry: 14, fill: '#000' }, fg);
+const everyone = [Mm, Gd, Rf, Vv, Kh, Cn, Am, S1, S2, Yg, Fn];
+
+/* ---- camera + effects live in one group ---- */
+const cam = FX.camera([E.layers.scenes, E.layers.actors, fg]);
+const fxw = E.G(cam.inner); FX.parent = fxw;
+
+/* ---- TV in Amir's room ---- */
+const cpH = E.el('clipPath', { id: 'tvclip1' }, E.defs); E.el('rect', { x: 0, y: 0, width: 202, height: 142 }, cpH);
+const tvHome = E.G(sHome.tv); tvHome.setAttribute('clip-path', 'url(#tvclip1)');
+const vTV = K2.person(tvHome, 'V');
+{ const r = E.el('rect', { x: 6, y: 6, width: 40, height: 14, rx: 3, fill: '#d62828' }, tvHome); const t = E.el('text', { x: 10, y: 17, 'font-size': 11, 'font-weight': 900, fill: '#fff' }, tvHome); t.textContent = 'LIVE'; }
+
+/* ============================ HOME ============================ */
+{
+  place(Am, 0, 650); Am.show([[0, END]]);
+  place(Mm, 0, 200, FY, 1); Mm.show([[0, H1], [T0('m4') - 2.2, END]]);
+  place(vTV, 0, 101, 190, 1, 0, .5); vTV.show([[T0('v1') - .2, T1('v1') + .6]]);
+  const a1 = T0('a1');
+  const sb = [[0, 'relaxed'], [T0('v1') + 4, 'guard']]; for (let i = 0; i < 4; i++) sb.push([a1 + .1 + i * .5, i % 2 ? 'jabL' : 'jabR'], [a1 + .3 + i * .5, 'guard']);
+  sb.push([T1('a1') + .3, 'relaxed']); P.seq(Am, sb);
+  P.seq(Mm, [[0, 'relaxed'], [T0('m1') - .1, 'point'], [T1('m1') + .2, 'relaxed'], [T0('m2') + 1.4, 'point'], [T1('m2'), 'relaxed'], [T0('m3') - .1, 'shrug'], [T1('m3') + .2, 'relaxed'], [T0('a4') + 1.0, 'facepalm'], [T1('a4') + 2.0, 'facepalm']]);
+  const sw = K2.sandwich(fg); trk(sw, [[0, 250, 500, -8, 1.3], [T0('m2') + 1.3, 250, 500], [T1('m2') + .2, 575, 505, 0, 1.2], [T0('a4') + .9, 600, 520, 0, 1.2], [T0('a4') + 2.2, 1500, 520, 0, 1.2]]);
+  E.vis(sw, [[T0('m2') + 1.3, T0('a4') + 2.2]]);
+  P.seq(Am, [[T0('a2'), 'point'], [T1('a2'), 'relaxed'], [T0('a3') - .1, 'salute'], [T1('a3') + .3, 'relaxed']]);
+  // Amir dashes out to the arena (a4), speed lines behind him
+  const d0 = T0('a4') + .9, d1 = T1('a4') + 2.2;
+  move(Am, d0, d1, { x: 1520 }); walk(Am, d0, d1, .2, 34); FX.speed(d0 + .2, d1 - .5, 780, 520, 1, 280);
+}
+
+/* ============================ WEIGH-IN ============================ */
+{
+  const sA = sWeigh.scaleA;
+  place(Vv, H1, 150, FY, 1); Vv.show([[H1, F1 - 60]].concat([[W1, F1]]));
+  place(Rf, H1, 400, FY, 1); Rf.show([[H1, END]]);
+  place(Gd, H1, 1160, FY, -1); Gd.show([[H1, END]]);
+  Gd.sleep([[H1, T0('g1') - .05], [W1, T0('g2') - .3], [T0('g2') + 5.3, F1 - .2]]);
+  place(Cn, H1, 1400, FY, -1); Cn.show([[H1, END]]);
+  place(Kh, H1, 1400, FY, 1); Kh.show([[H1, END]]);
+  jump(Am, H1, { x: 1500, y: FY, flip: -1, rot: 0 });
+  const zz = E.G(fg); E.raw(zz, '<text x="0" y="0" font-size="58" font-weight="900" fill="#fff" stroke="#1b1414" stroke-width="4" paint-order="stroke">Z</text><text x="46" y="-44" font-size="44" font-weight="900" fill="#fff" stroke="#1b1414" stroke-width="4" paint-order="stroke">z</text>');
+  trk(zz, [[0, 1160, 270, 0, 1]]); E.vis(zz, [[H1, T0('g1') - .05]]); E.bob(zz.firstElementChild, 6, 700);
+  Gd.rot('torso', [[H1, 14], [T0('g1') - .2, 14], [T0('g1'), 0]]); Gd.rot('head', [[H1, 24], [T0('g1') - .2, 24], [T0('g1'), 0]]);
+  // Conor walks to the scale, steps on, breaks it
+  move(Cn, T0('v2') + .5, T0('c1') - .2, { x: 900 }); walk(Cn, T0('v2') + .5, T0('c1') - .2);
+  move(Cn, T0('c1') - .1, T0('c1') + .5, { x: 640, y: 610 });
+  hold(Cn, T0('r1') + .2); move(Cn, T0('r1') + .2, T0('r1') + .9, { x: 800, y: FY });
+  E.anim(sA.nd, [[0, { transform: 'rotate(-120deg)' }], [T0('c1') + .6, { transform: 'rotate(-120deg)' }], [T0('c1') + 2.4, { transform: 'rotate(1500deg)' }], [W1, { transform: 'rotate(1500deg)' }]]);
+  E.shake(sA.s, [[T0('c1') + .6, T0('r1') - .6, 3, 18]]);
+  const spring = E.el('circle', { cx: 0, cy: 0, r: 12, fill: '#c8cdd4', stroke: '#1b1414', 'stroke-width': 3 }, fg);
+  trk(spring, [[0, 640, 300], [T0('c1') + 1.6, 640, 300], [T0('c1') + 2.2, 720, 90], [T0('c1') + 3.0, 860, 520]]); E.vis(spring, [[T0('c1') + 1.6, T0('c1') + 3.0]]);
+  // Khabib arrives; Amir tries to sneak in behind him
+  move(Kh, T0('r1') + 1.8, T0('k1') - .3, { x: 1010, flip: -1 }); walk(Kh, T0('r1') + 1.8, T0('k1') - .3);
+  move(Am, T0('r1') + 2.4, T0('k1') + .8, { x: 1130 }); walk(Am, T0('r1') + 2.4, T0('k1') + .8);
+  // stare-down
+  move(Kh, T0('r2') - .6, T0('r2') + .5, { x: 520, flip: 1 }); walk(Kh, T0('r2') - .6, T0('r2') + .5, .3, 20);
+  move(Cn, T0('r2') - .6, T0('r2') + .5, { x: 800, flip: -1 }); walk(Cn, T0('r2') - .6, T0('r2') + .5, .3, 20);
+  move(Rf, T0('r2') - .6, T0('r2') + .5, { x: 660 }); walk(Rf, T0('r2') - .6, T0('r2') + .5, .3, 16);
+  P.seq(Kh, [[T0('r2') + .6, 'guard']]); P.seq(Cn, [[T0('r2') + .6, 'guard']]);
+  Kh.look([[0, 0, 0], [T0('r2'), 8, 0], [T0('r3') + 1, 0, 0]]); Cn.look([[0, 0, 0], [T0('r2'), -8, 0], [T0('r3') + 1, 0, 0]]);
+  Rf.sleep([[T0('r3') - .35, T0('r3') - .05]]);
+  [T0('c1') + .3, T0('c1') + 2.2, T0('r2') + .2, T0('r3') + .2].forEach(t => E.flash(t, '#fff', .18, .5));
+  P.seq(Vv, [[H1, 'relaxed'], [T0('v2') + 1, 'point'], [T1('v2'), 'relaxed']]);
+  P.seq(Cn, [[T0('c1') + .6, 'cheer'], [T0('r1') - .2, 'shrug'], [T0('r1') + 1.2, 'relaxed']]);
+  P.seq(Rf, [[T0('r1'), 'point'], [T1('r1') + .2, 'relaxed']]);
+  P.seq(Kh, [[T0('k1'), 'shrug'], [T1('k1') + .2, 'relaxed']]);
+}
+
+/* ============================ FIGHT ============================ */
+const F0 = W1;
+const num = (t0, t1, text, x, y, col = '#fff') => FX.word(t0, t1, x, y, text, 54, col, -4);
+const signA = K3.sign(fg, 'ROUND 1'), signB = K3.sign(fg, 'ROUND 2');
+const kebab = K3.kebab(fg);
+const glass = E.raw(Kh.parts.handR, '<path d="M-9 -22 L9 -22 L7 6 Q0 10 -7 6 Z" fill="#f1c27a" fill-opacity=".85" stroke="#1b1414" stroke-width="2.6"/><rect x="-9" y="-22" width="18" height="5" fill="#fff" opacity=".5"/><path d="M9 -16 q8 2 0 12" fill="none" stroke="#1b1414" stroke-width="2.4"/>'); glass.setAttribute('transform', 'translate(0 -4) scale(1.5)');
+{
+  jump(Kh, F0, { x: 470, y: FY, flip: 1, rot: 0, sc: RS }); jump(Cn, F0, { x: 860, y: FY, flip: -1, rot: 0, sc: RS });
+  jump(Rf, F0, { x: 650, y: FY - 8, flip: 1, rot: 0, sc: RS * .92 }); jump(Vv, F0, { x: 150, y: FY, flip: 1, rot: 0 });
+  jump(Gd, F0, { x: 1200, y: FY + 6, flip: -1, rot: 0, sc: RS * 1.06 }); jump(Am, F0, { x: 380, y: FY, flip: 1, rot: 0 });
+  place(S1, F0, 300, FY - 26, 1); S1.show([[F0, F1]]); place(S2, F0, 1010, FY - 26, -1); S2.show([[F0, F1]]);
+  place(Yg, F0, -220, FY - 34, 1, 0, RS * .9); Yg.show([[F0, F1]]); place(Fn, F0, 1520, FY - 10, -1, 0, RS * .98); Fn.show([[F0, F1]]);
+  const zz2 = E.G(fg); E.raw(zz2, '<text x="0" y="0" font-size="58" font-weight="900" fill="#fff" stroke="#1b1414" stroke-width="4" paint-order="stroke">Z</text><text x="46" y="-44" font-size="44" font-weight="900" fill="#fff" stroke="#1b1414" stroke-width="4" paint-order="stroke">z</text>');
+  trk(zz2, [[0, 1170, 270, 0, 1]]); E.vis(zz2, [[F0, T0('g2') - .3]]);
+  Gd.rot('torso', [[F0, 14], [T0('g2') - .5, 14], [T0('g2') - .2, 0]]); Gd.rot('head', [[F0, 24], [T0('g2') - .5, 24], [T0('g2') - .2, 0]]);
+  P.seq(Gd, [[F0, 'relaxed']]);
+
+  // ---- ring girl: Round 1 sign walks across the cage ----
+  const yw0 = T0('x2') + .8, yw1 = T0('r4') + 1.2;
+  move(Yg, yw0, yw1, { x: 1500 }); walk(Yg, yw0, yw1, .5, 14);
+  trk(signA, [[0, -220, 250, 0, 1], [yw0, -220, 250], [yw1, 1500, 250]]); E.vis(signA, [[yw0, yw1]]);
+  // everybody in the cage ready (bell at r4)
+  P.seq(Kh, [[F0, 'relaxed'], [T0('v3') + 3, 'guard']]); P.seq(Cn, [[F0, 'relaxed'], [T0('v3') + 3.4, 'guard']]);
+  P.seq(Rf, [[F0, 'relaxed'], [T0('r4') - .6, 'salute'], [T0('r4') + .4, 'relaxed']]);
+  P.seq(S1, [[F0, 'relaxed'], [T0('s1'), 'cheer'], [T1('s1') + .3, 'relaxed']]); P.seq(S2, [[F0, 'relaxed'], [T0('s2'), 'cheer'], [T1('s2') + .3, 'relaxed']]);
+  P.seq(Vv, [[F0, 'relaxed'], [T0('v3') + 1, 'point'], [T1('v3'), 'relaxed']]);
+  P.seq(Am, [[F0, 'relaxed'], [T0('a5') - .2, 'cheer'], [T1('a5') + .3, 'relaxed']]);
+
+  // ---- BEAT 1: Conor attacks with real combos; Khabib slips, ducks, eats one punch with a poker face ----
+  const c0 = T0('v4') + .3;
+  move(Cn, c0, c0 + .8, { x: 690 }); walk(Cn, c0, c0 + .8, .3, 18);
+  P.seq(Cn, [[c0 + .85, 'guardLow'], [c0 + 1.2, 'jabR'], [c0 + 1.5, 'guardLow'], [c0 + 1.9, 'jabL'], [c0 + 2.2, 'guardLow'], [c0 + 2.6, 'crossR'], [c0 + 3.0, 'guardLow'], [c0 + 3.4, 'hookL'], [c0 + 3.8, 'guard'], [c0 + 4.6, 'shrug'], [T0('c2') + .1, 'shrug']]);
+  P.seq(Kh, [[c0 + .85, 'guard'], [c0 + 1.25, 'sway'], [c0 + 1.7, 'guard'], [c0 + 1.95, 'duck'], [c0 + 2.35, 'guard'], [c0 + 2.65, 'hit'], [c0 + 3.15, 'guard'], [c0 + 3.45, 'sway'], [c0 + 3.9, 'guard'], [T0('c2') + .6, 'guard']]);
+  put(Kh, c0 + 1.2, { x: 440 }); put(Kh, c0 + 1.7, { x: 470 }); put(Kh, c0 + 2.6, { x: 458 }); put(Kh, c0 + 3.4, { x: 440 }); put(Kh, c0 + 3.9, { x: 470 });
+  FX.impact(c0 + 2.72, 508, 330, 1, 'POW!'); FX.sweat(c0 + 2.8, 470, 310, -1);
+  [c0 + 1.2, c0 + 1.9, c0 + 3.4].forEach(t => FX.ring(t + .05, 520, 400, .6));
+  // ---- BEAT 1b: the low kick that hurts Conor ----
+  const k0 = T0('c2') + .2;
+  move(Cn, k0, k0 + .5, { x: 640 });
+  P.seq(Cn, [[k0, 'guardLow'], [k0 + .55, 'kickRlow'], [k0 + .95, 'hitFront'], [k0 + 3.2, 'guard']]);
+  put(Cn, k0 + 1.0, { y: FY - 55 }); put(Cn, k0 + 1.3, { y: FY }); put(Cn, k0 + 1.6, { y: FY - 55 }); put(Cn, k0 + 1.9, { y: FY, x: 690 }); put(Cn, k0 + 2.2, { y: FY - 55 }); put(Cn, k0 + 2.5, { y: FY, x: 720 });
+  FX.impact(k0 + .82, 512, 575, 1, 'CLANG!', '#cfd6e0'); FX.sweat(k0 + 1.2, 640, 330, 1);
+  P.seq(Kh, [[k0 + .6, 'guard']]);
+  hold(Cn, T0('s1') + 1.8);
+
+  // ---- BEAT 2: the double-leg takedown: shoot, grab, lift, spin, SLAM ----
+  const tk = T0('v5') - .2;
+  P.seq(Kh, [[tk - .5, 'crouch'], [tk, 'shoot'], [tk + .3, 'grab'], [tk + .9, 'lift'], [tk + 1.7, 'lift'], [tk + 2.4, 'stand2'], [tk + 3.0, 'stand2'], [tk + 4.4, 'crouch'], [T0('k3') - .2, 'sip'], [T1('k3') + .6, 'crouch'], [T0('y1') + .8, 'stand2']]);
+  move(Kh, tk, tk + .32, { x: 640 }); hold(Kh, tk + 2.4);
+  P.seq(Cn, [[tk - .4, 'guard'], [tk + .3, 'hitFront'], [tk + .9, 'hit'], [tk + 2.4, 'limp'], [T0('y1') + .3, 'dizzy'], [T0('y1') + 1.6, 'guard']]);
+  put(Cn, tk + .3, { x: 725, y: FY }); put(Cn, tk + .9, { x: 715, y: FY - 120, rot: 35 }); put(Cn, tk + 1.8, { x: 700, y: FY - 160, rot: 395 }); put(Cn, tk + 2.1, { x: 715, y: FY - 118, rot: 395 }); put(Cn, tk + 2.42, { x: 735, y: FY - 8, rot: 452 });
+  FX.speed(tk, tk + .34, 560, 520, 1, 320); FX.dust(tk + .3, 700, 650, .8);
+  FX.impact(tk + 2.46, 905, 600, 1.35, 'БАМ!'); FX.dust(tk + 2.46, 800, 652, 1.4); FX.dust(tk + 2.55, 960, 652, 1.1);
+  move(Kh, tk + 3.0, tk + 4.3, { x: 905, y: FY - 56 }); hold(Kh, T0('y1') + .6); move(Kh, T0('y1') + .7, T0('y1') + 1.6, { x: 850, y: FY });
+  E.vis(glass, [[tk + 4.4, T0('y1') + 1.0]]);
+  // referee crawls over to count (numbers pop up), he is a little late
+  move(Rf, tk + 3.2, tk + 5.6, { x: 1060 }); walk(Rf, tk + 3.2, tk + 5.6, .4, 16);
+  P.seq(Rf, [[tk + 5.8, 'bend'], [T1('c3') + .5, 'bend'], [T0('y1') + .5, 'stand2'], [T0('y1') + 1.5, 'relaxed']]);
+  [['1', 0], ['2', .62], ['3', 1.24], ['5', 1.86], ['19', 2.7]].forEach(([tx, dt]) => num(T0('r5') + dt, T0('r5') + dt + .62, tx, 1060, 360, '#fff'));
+  move(Rf, T0('y1') + .6, T0('y1') + 1.6, { x: 700 });
+  put(Cn, T0('y1') + .35, { x: 735, rot: 452 }); put(Cn, T0('y1') + 1.5, { x: 735, rot: 360, y: FY }); put(Cn, T0('y1') + 1.55, { rot: 0 });
+  cam_t = [];
+
+  // ---- BEAT 3: more people in the ring: Round 2 girl, a fan with a kebab, Gena chases him and falls asleep, Misha steals the kebab ----
+  const y0 = T0('y1') - 2.4, y1 = T0('y1') + 8;
+  jump(Yg, y0, { x: 1500, flip: -1 }); move(Yg, y0, y1, { x: -240 }); walk(Yg, y0, y1, .5, 14);
+  trk(signB, [[0, 1500, 250], [y0, 1500, 250], [y1, -240, 250]]); E.vis(signB, [[y0, y1]]);
+  const f0 = T0('v7') - .2;
+  move(Fn, f0, f0 + 3.0, { x: 640 }); move(Fn, f0 + 3.0, f0 + 5.6, { x: 950, flip: 1 }); move(Fn, f0 + 5.6, f0 + 8.6, { x: 420, flip: -1 }); move(Fn, f0 + 8.6, f0 + 10.0, { x: 330, flip: 1 });
+  walk(Fn, f0, f0 + 10.0, .26, 32);
+  trk(kebab, [[0, 1500, 470, 0, 1.3], [f0, 1500, 470], [f0 + 3.0, 700, 470], [f0 + 5.6, 1010, 470], [f0 + 8.6, 480, 470], [f0 + 10.0, 390, 480, 0, 1.3], [f0 + 11.8, 390, 480], [f0 + 12.6, 520, 560, 0, 1.0], [f0 + 14, 560, 560, 0, .2]]);
+  E.vis(kebab, [[f0, f0 + 14]]);
+  P.seq(Mm, [[F0, 'relaxed']]);
+  // Gena wakes up (g2), chases the fan at walking speed, trips and falls asleep again
+  const g0 = T0('g2') + .3;
+  move(Gd, g0, g0 + 4.6, { x: 700 }); walk(Gd, g0, g0 + 4.6, .6, 16);
+  put(Gd, g0 + 4.8, { x: 690, rot: 90, y: FY - 4 }); P.seq(Gd, [[g0 + 5.0, 'limp']]);
+  FX.dust(g0 + 4.9, 700, 652, .9);
+  // Misha wanders in from the left, steals the kebab, falls asleep next to it
+  const b0 = f0 + 8.0;
+  trk(bear.g, [[0, -400, FY + 20, 0, .8], [b0, -400, FY + 20], [b0 + 4.0, 360, FY + 20], [F1 - .2, 360, FY + 20], [F1, 1180, FY + 20, 0, .66, -1], [END, 1180, FY + 20]]);
+  E.vis(bear.g, [[b0, END]]);
+  E.vis(bear.eyesOpen, [[b0, f0 + 13.4], [F1, END]]); E.vis(bear.eyesShut, [[f0 + 13.4, F1]]); E.vis(bear.zzz, [[f0 + 13.6, F1]]);
+  E.anim(bear.head, [[0, { transform: 'rotate(0deg)' }], [f0 + 11.8, { transform: 'rotate(0deg)' }], [f0 + 12.0, { transform: 'rotate(16deg)' }], [f0 + 12.3, { transform: 'rotate(2deg)' }], [f0 + 12.6, { transform: 'rotate(16deg)' }], [f0 + 12.9, { transform: 'rotate(2deg)' }], [f0 + 13.4, { transform: 'rotate(24deg)' }], [F1 - .2, { transform: 'rotate(24deg)' }], [F1, { transform: 'rotate(0deg)' }], [F1 + 2, { transform: 'rotate(0deg)' }]]);
+  P.seq(Kh, [[T0('y1') + 1.7, 'relaxed']]);
+
+  // ---- BEAT 4: Conor escapes and CLIMBS the fence ----
+  const cl0 = T0('c4') + .2;
+  move(Cn, cl0, cl0 + 1.2, { x: 905 }); walk(Cn, cl0, cl0 + 1.2, .2, 34);
+  FX.speed(cl0 + .1, cl0 + 1.1, 800, 520, 1, 260);
+  const cs = [];
+  for (let i = 0; i < 12; i++) cs.push([cl0 + 1.4 + i * .5, i % 2 ? 'climb2' : 'climb1']);
+  cs.push([cl0 + 7.4, 'hang']); P.seq(Cn, cs);
+  put(Cn, cl0 + 1.3, { y: FY, flip: 1 }); put(Cn, cl0 + 7.2, { y: 540 }); hold(Cn, T0('v9') + 2.0);
+  FX.sweat(cl0 + 5, 905, 360, 1); FX.sweat(cl0 + 8, 905, 360, -1);
+  P.seq(Kh, [[T0('v8') + .4, 'relaxed']]);
+
+  // ---- BEAT 5: THE EAGLE ----
+  const e0 = T0('k4');
+  move(Kh, T1('v8') + .3, e0 - .4, { x: 520, flip: 1 }); walk(Kh, T1('v8') + .3, e0 - .4, .34, 22);
+  P.seq(Kh, [[e0, 'eagle']]);
+  const flap = [[0, 0], [e0 - .1, 0], [e0 + 1.8, 1]]; for (let t = T0('v9') + .5, i = 0; t < T0('v9') + 9; t += .22, i++) flap.push([t, i % 2 ? .62 : 1]); flap.push([T0('v9') + 9.2, .35], [T0('v9') + 11.2, 0]);
+  Kh.wings(flap);
+  const ta = T0('v9') + .4;
+  hold(Kh, e0 + 3);
+  put(Kh, ta, { x: 560, y: FY - 70, rot: 0 }); put(Kh, ta + .7, { x: 740, y: 300, rot: 8 }); put(Kh, ta + 1.7, { x: 880, y: 430, rot: 10 });
+  P.seq(Kh, [[ta - .1, 'glide'], [ta + 1.7, 'hug'], [ta + 7.4, 'glide'], [ta + 8.9, 'eagle'], [ta + 11, 'stand2']]);
+  // Khabib carries Conor off the fence around the cage
+  const car = [[ta + 2.3, 640, 250], [ta + 4.0, 380, 300], [ta + 5.6, 640, 330], [ta + 6.9, 770, 300]];
+  car.forEach(([t, x, y]) => put(Kh, t, { x, y, rot: 6 }));
+  put(Cn, ta + 1.7, { x: 905, y: 430, rot: 0 });
+  const conp = [[ta + 1.9, 930, 520], [ta + 2.3, 690, 340], [ta + 4.0, 430, 390], [ta + 5.6, 690, 420], [ta + 6.9, 820, 390]];
+  P.seq(Cn, [[ta + 1.7, 'hang'], [ta + 2.0, 'limp'], [ta + 8.4, 'dizzy']]);
+  conp.forEach(([t, x, y]) => put(Cn, t, { x: x + 40, y: y + 40, rot: 14 }));
+  put(Cn, ta + 7.1, { x: 830, y: 430, rot: 30 }); put(Cn, ta + 7.7, { x: 800, y: FY - 8, rot: 92 }); // drop
+  put(Kh, ta + 7.3, { x: 770, y: 300 }); put(Kh, ta + 8.4, { x: 700, y: FY, rot: 0 });
+  FX.speed(ta + .1, ta + 1.7, 560, 380, 1, 360); FX.speed(ta + 2.4, ta + 3.8, 560, 300, -1, 340); FX.speed(ta + 4.1, ta + 5.5, 520, 320, 1, 340);
+  FX.impact(ta + 7.75, 800, 600, 1.5, 'БАМ!'); FX.dust(ta + 7.75, 760, 652, 1.5); FX.dust(ta + 7.85, 900, 652, 1.2); FX.ring(ta + 7.8, 800, 640, 1.8);
+  trk(shadowEagle, [[0, 0, 650, 0, 1], [ta, 560, 650, 0, 1], [ta + .7, 740, 655, 0, .6], [ta + 1.7, 880, 655, 0, .6], [ta + 2.3, 640, 655, 0, .45], [ta + 4.0, 380, 655, 0, .5], [ta + 5.6, 640, 655, 0, .5], [ta + 6.9, 770, 655, 0, .55], [ta + 8.4, 700, 655, 0, 1]]);
+  E.opacity(shadowEagle, [[0, 0], [ta - .01, 0], [ta, .28], [ta + 8.4, .28], [ta + 8.6, 0]]);
+  // crawl away + replay
+  put(Cn, ta + 9.4, { x: 800, rot: 92 }); put(Cn, ta + 14, { x: 1010, rot: 92 }); P.seq(Cn, [[ta + 9.0, 'limp']]);
+
+  // ---- BEAT 6: Amir's turn: a tiny double-leg takedown on the referee ----
+  const ar = T0('v10') - .4;
+  move(Am, ar, ar + .8, { x: 560 }); walk(Am, ar, ar + .8, .26, 30);
+  P.seq(Am, [[T0('a6') - .2, 'point'], [T1('a6') + .1, 'relaxed']]);
+  P.seq(Am, [[ar + .85, 'shoot'], [ar + 1.2, 'grab'], [ar + 1.9, 'lift'], [ar + 3.0, 'lift'], [ar + 3.4, 'cheer'], [T0('r6') + 2, 'cheer']]);
+  put(Am, ar + 1.2, { x: 640 });
+  P.seq(Rf, [[ar + .5, 'stand2'], [ar + 1.3, 'hit'], [ar + 2.0, 'hit'], [ar + 2.6, 'limp']]);
+  move(Rf, ar + 1.1, ar + 1.6, { x: 700 });
+  put(Rf, ar + 1.9, { x: 705, y: FY - 80, rot: 35 }); put(Rf, ar + 2.5, { x: 820, y: FY - 340, rot: 220 }); put(Rf, ar + 3.1, { x: 900, y: FY - 130, rot: 400 }); put(Rf, ar + 3.5, { x: 930, y: FY - 8, rot: 452 });
+  FX.impact(ar + 1.25, 690, 560, .8, 'ХОП!'); FX.impact(ar + 3.55, 940, 600, 1.2, 'БАМ!'); FX.dust(ar + 3.55, 930, 652, 1.1); FX.ring(ar + 3.6, 930, 640, 1.2);
+  const st = K2.stars(fg); trk(st, [[0, 800, 560, 0, 1.3]]); E.vis(st, [[ar + 3.6, T0('m4') + .4]]);
+  P.seq(Vv, [[ar + 2, 'cheer'], [ar + 5, 'cheer'], [T1('v10') + .4, 'relaxed']]);
+  put(Am, ar + 3.6, { x: 640, y: FY - 30 }); put(Am, ar + 3.9, { y: FY }); put(Am, ar + 4.2, { y: FY - 30 }); put(Am, ar + 4.5, { y: FY });
+
+  // ---- MOM storms in with a rolling pin ----
+  const m0 = T0('m4') - 2.2;
+  const pin = K3.rollingPin(Mm.parts.handR); pin.setAttribute('transform', 'translate(10 -80) rotate(80) scale(.9)'); E.vis(pin, [[m0, END]]);
+  jump(Mm, m0, { x: 1480, y: FY, flip: -1, rot: 0, sc: RS }); move(Mm, m0, T0('m4') + .3, { x: 1070 }); walk(Mm, m0, T0('m4') + .3, .34, 24);
+  P.seq(Mm, [[T0('m4') - .2, 'cheer'], [T1('c6') + 2, 'cheer'], [F1 - .3, 'relaxed']]);
+  move(Mm, T0('c6') + .5, T0('k5') + .6, { x: 860 });
+  // Conor scrambles up and hides behind Khabib, Khabib salutes, Gena wakes up
+  put(Cn, T0('c6') - 1.5, { x: 800, rot: 92 }); put(Cn, T0('c6') - .6, { x: 800, rot: 360, y: FY }); put(Cn, T0('c6') - .55, { rot: 0 });
+  move(Cn, T0('c6') - .5, T0('c6') + .7, { x: 360, flip: 1 }); walk(Cn, T0('c6') - .5, T0('c6') + .7, .22, 34);
+  P.seq(Cn, [[T0('c6') + .8, 'crouch'], [F1 - .4, 'crouch']]);
+  move(Kh, T0('m4') + .2, T0('m4') + 1.6, { x: 330, flip: 1 }); walk(Kh, T0('m4') + .2, T0('m4') + 1.6, .34, 20);
+  P.seq(Kh, [[T0('k5') - .2, 'salute'], [T1('k5') + .8, 'relaxed']]);
+  put(Gd, T0('g3') - .6, { x: 690, rot: 90 }); put(Gd, T0('g3') - .1, { x: 690, rot: 360, y: FY }); put(Gd, T0('g3') - .05, { rot: 0 });
+  P.seq(Gd, [[T0('g3') - .6, 'limp'], [T0('g3') - .1, 'relaxed'], [T0('g3') + 1, 'salute']]);
+  move(Am, T0('m4') + .2, T0('m4') + 1.6, { x: 560 });
+  P.seq(Am, [[T0('m4') + .1, 'shrug'], [F1 - .3, 'shrug']]);
+  put(Rf, T0('c6') + .2, { x: 930, rot: 452 }); put(Rf, T0('k5') + .5, { x: 930, rot: 360, y: FY }); put(Rf, T0('k5') + .55, { rot: 0 }); P.seq(Rf, [[T0('k5') + .3, 'dizzy'], [F1 - .3, 'dizzy']]);
+}
+
+/* ============================ DINNER ============================ */
+{
+  const D0 = F1;
+  jump(Cn, D0, { x: 250, y: FY, flip: 1, rot: 0 }); jump(Am, D0, { x: 470, y: FY, flip: 1, rot: 0 }); jump(Kh, D0, { x: 690, y: FY, flip: 1, rot: 0 });
+  jump(Rf, D0, { x: 890, y: FY, flip: -1, rot: 0, sc: RS * .92 }); jump(Mm, D0, { x: 1060, y: FY, flip: -1, rot: 0 }); jump(Gd, D0, { x: 1190, y: FY, flip: -1, rot: 0, sc: RS * 1.04 });
+  const pot = K2.pot(fg); trk(pot, [[0, 700, 566, 0, 1.1]]); E.vis(pot, [[D0, END]]);
+  P.seq(Cn, [[D0, 'relaxed'], [T0('c7') - .1, 'point'], [T1('c7') + .2, 'relaxed'], [T0('c8') - .1, 'cheer'], [T1('c8') + .3, 'shrug'], [T0('m6') + .6, 'crouch']]);
+  P.seq(Mm, [[D0, 'relaxed'], [T0('m5') - .1, 'point'], [T1('m5') + .3, 'cheer'], [T1('m6') + .5, 'relaxed'], [T0('m7'), 'relaxed']]);
+  move(Cn, T1('m6') - .1, T1('m6') + 1.2, { x: -260, flip: -1 }); walk(Cn, T1('m6') - .1, T1('m6') + 1.2, .2, 34);
+  P.seq(Am, [[D0, 'relaxed'], [T0('a7') - .1, 'point'], [T1('a7') + .3, 'relaxed']]);
+  P.seq(Kh, [[D0, 'relaxed'], [T0('k6') - 1.2, 'sip'], [T0('k6') - .1, 'sip'], [T1('k6') + .6, 'shrug']]);
+  P.seq(Rf, [[D0, 'relaxed']]); P.seq(Gd, [[D0, 'relaxed']]); P.seq(Yg, [[D0, 'relaxed']]); P.seq(Fn, [[D0, 'relaxed']]); P.seq(S1, [[D0, 'relaxed']]); P.seq(S2, [[D0, 'relaxed']]);
+  Kh.look([[0, 0, 0], [T0('k6') - .4, -9, 0], [END, -9, 0]]); Am.look([[0, 0, 0], [T0('a7'), 8, 0], [END, 0, 0]]);
+}
+
+/* ============================ moods, talking, blinking ============================ */
+const M_ = fill;
+Am.mood(M_([[0, 'happy'], [T0('m1'), 'worry'], [T0('a2'), 'smug'], [T0('m3'), 'shock'], [T0('a4'), 'smug'], [H1, 'neutral'], [W1, 'worry'], [T0('a5'), 'angry'], [T1('a5'), 'worry'], [ar_(), 'angry'], [T0('m4'), 'shock'], [F1, 'happy'], [T0('k6') - .5, 'sad']]));
+function ar_() { return T0('v10') - .4; }
+Kh.mood(M_([[0, 'neutral'], [T0('k4'), 'angry'], [T0('v9') + 9, 'smug'], [T0('k5'), 'happy'], [F1, 'neutral'], [T0('k6'), 'smug']]));
+Cn.mood(M_([[0, 'smug'], [T0('c1'), 'smug'], [T0('r1'), 'angry'], [T0('r2'), 'angry'], [T0('r3') + .6, 'smug'], [T0('c2') + .8, 'shock'], [T0('k2'), 'shock'], [T0('y1'), 'worry'], [T0('c4'), 'scared_'], [T0('v9') + 2, 'shock'], [T0('c5'), 'sad'], [T0('m4'), 'worry'], [F1, 'happy'], [T0('c8'), 'worry']].map(x => x[1] === 'scared_' ? [x[0], 'shock'] : x)));
+Rf.mood(M_([[0, 'neutral'], [T0('r3') - .35, 'shock'], [T0('r3'), 'neutral'], [T0('r6') - 2, 'shock'], [T0('r6') + 1, 'worry'], [T0('k5'), 'sad'], [F1, 'happy']]));
+Vv.mood(M_([[0, 'happy'], [T0('v9'), 'shock'], [T0('v11'), 'happy']]));
+Gd.mood(M_([[0, 'neutral'], [T0('g1'), 'shock'], [T1('g1'), 'neutral'], [T0('g2') - .3, 'shock'], [T1('g2'), 'angry'], [T0('g3'), 'shock'], [F1, 'neutral']]));
+Mm.mood(M_([[0, 'neutral'], [T0('m1'), 'angry'], [T1('m1'), 'neutral'], [T0('m3'), 'worry'], [T0('a4') + 1, 'angry'], [T0('m4') - 2.2, 'angry'], [F1, 'neutral'], [T0('m5'), 'angry'], [T0('m7'), 'happy']]));
+vTV.mood(M_([[0, 'happy']]));
+[S1, S2].forEach(p => p.mood(M_([[0, 'angry']]))); Yg.mood(M_([[0, 'happy']])); Fn.mood(M_([[0, 'happy'], [T0('g2'), 'worry'], [T0('g2') + 4, 'shock']]));
+
+Am.talk(wins('A')); Kh.talk(wins('K')); Rf.talk(wins('R')); Gd.talk(wins('G'), 4); Mm.talk(wins('M'), 5); Vv.talk(wins('V', T0('v2'), 999), 2); Cn.talk(wins('C'), 4);
+vTV.talk(wins('V', 0, T0('v2'))); S1.talk(wins('S').filter(w => Math.abs(w[0] - T0('s1')) < .1)); S2.talk(wins('S').filter(w => Math.abs(w[0] - T0('s2')) < .1)); Yg.talk(wins('Y'));
+everyone.concat([vTV]).forEach((p, i) => { p.blink(i + 1); p.flush(); });
+
+/* ============================ camera ============================ */
+{
+  const tk = T0('v5') - .2, ta = T0('v9') + .4, ar = T0('v10') - .4, c0 = T0('v4') + .3, W = [640, 360, 1];
+  const CL = ([t, x, y, z]) => [t, Math.min(1280 - 640 / z, Math.max(640 / z, x)), Math.min(720 - 360 / z, Math.max(360 / z, y)), z];
+  cam.track([[0, ...W], [W1 - .2, ...W], [c0 + 2.2, 640, 380, 1], [c0 + 2.8, 560, 380, 1.28], [c0 + 3.8, 640, 380, 1], [T0('c2') + .6, 640, 400, 1], [T0('c2') + 1.1, 580, 450, 1.3], [T0('c2') + 2.6, 640, 380, 1],
+    [tk - .3, 600, 400, 1], [tk + .9, 700, 420, 1.3], [tk + 2.4, 800, 480, 1.5], [tk + 3.9, 780, 420, 1.1], [tk + 5.2, ...W],
+    [T0('c4') + 1.2, 800, 420, 1.0], [T0('c4') + 6, 900, 330, 1.0], [ta - .2, 760, 400, 1.15], [ta + 1.7, 860, 400, 1.3], [ta + 3.4, 560, 380, 1.1], [ta + 6.8, 780, 420, 1.2], [ta + 7.8, 800, 500, 1.55], [ta + 9.5, ...W],
+    [ar + .3, 600, 440, 1.15], [ar + 2.0, 700, 440, 1.4], [ar + 3.6, 930, 520, 1.5], [ar + 5.2, ...W], [T0('m4') - .5, ...W], [T0('m4') + 1.5, 900, 420, 1.2], [T0('k5') + 1.5, ...W], [END, ...W]].map(CL));
+  cam.shake([[c0 + 2.7, c0 + 3.0, 6, 22], [T0('c2') + 1.0, T0('c2') + 1.3, 6, 22], [tk + 2.42, tk + 3.2, 14, 24], [ta + 7.75, ta + 8.7, 16, 24], [ar + 3.55, ar + 4.2, 12, 24]]);
+}
+
+/* ============================ cards ============================ */
+E.card(0, SC.home - .3, [{ text: 'АМИР И ОРЁЛ', size: 128, y: 330, color: '#ffffff' }, { text: 'и большой бой · və böyük döyüş', size: 46, y: 410, color: '#ffd23f', weight: 700 }, { text: 'пародия · parodiya', size: 30, y: 470, color: '#94a3b8', weight: 400 }]);
+E.card(T1('k6') + .9, END + 6, [{ text: 'КОНЕЦ · SON', size: 120, y: 340, color: '#ffd23f' }, { text: 'THE END', size: 38, y: 410, color: '#cbd5e1', weight: 400 }], '#05070a');
+E.tag(T0('v11'), T1('v11'), '⏪ REPLAY');
+E.vignette([[0, .16], [END, .16]]);
+window.TOTAL = E.TOTAL;
+window.seek = t => document.getAnimations().forEach(a => { a.pause(); a.currentTime = t * 1000; });
+</script>
+</body>
+</html>
