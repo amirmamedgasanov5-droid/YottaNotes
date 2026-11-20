@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Амир и орёл — быстрая версия</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#000}
+  body{display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;width:min(100vw,177.78vh);aspect-ratio:16/9;overflow:hidden;background:#000}
+  svg{position:absolute;inset:0;width:100%;height:100%;display:block;font-family:"DejaVu Sans","Trebuchet MS","Segoe UI",system-ui,sans-serif}
+</style>
+</head>
+<body>
+<div id="stage"><svg id="svg" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice"></svg></div>
+<script src="../shared/engine.js"></script>
+<script src="../shared/puppet.js"></script>
+<script src="../shared/fx.js"></script>
+<script src="lines.js"></script>
+<script src="../ufc2-amir/kit2.js"></script>
+<script src="../ufc3-amir/kit3.js"></script>
+<script>
+E.TOTAL = 62; E.W = 1280; E.H = 720;
+const L = {}; LINES.forEach(l => L[l.key] = l);
+const T0 = k => L[k].t, T1 = k => L[k].end, SC = SCENES;
+const cutT = n => SC[n] - .45;
+const END = 62;
+const RS = 1.3, FY = 650;
+const fg = E.G(E.svg); E.layers.actors.after(fg);
+const wins = (who, a = 0, b = 999) => LINES.filter(l => l.who === who && l.t >= a && l.t < b).map(l => [l.t, l.end]);
+const ST = P.POSE.stand;
+
+/* ---- root-position helpers (every puppet remembers where it is) ---- */
+function place(p, t, x, y = FY, flip = 1, rot = 0, sc = RS) { p.cur = { x, y, flip, rot, sc, q: 1 }; p.go([[t, x, y, flip, rot, sc, 1]]); }
+function put(p, t, patch) { const c = Object.assign({}, p.cur, patch); p.go([[t, c.x, c.y, c.flip, c.rot, c.sc, c.q]]); p.cur = c; }
+function jump(p, t, patch) { const c = p.cur; p.go([[t - .001, c.x, c.y, c.flip, c.rot, c.sc, c.q]]); put(p, t, patch); }
+function move(p, t0, t1, patch) { const c = p.cur; p.go([[t0, c.x, c.y, c.flip, c.rot, c.sc, c.q]]); put(p, t1, patch); }
+function hold(p, t) { const c = p.cur; p.go([[t, c.x, c.y, c.flip, c.rot, c.sc, c.q]]); }
+function sq(p, t, q, back = .22) { const c = p.cur; p.go([[t - .001, c.x, c.y, c.flip, c.rot, c.sc, c.q]]); p.go([[t, c.x, c.y, c.flip, c.rot, c.sc, q]]); p.go([[t + back, c.x, c.y, c.flip, c.rot, c.sc, 1]]); }
+function walk(p, t0, t1, step = .34, amp = 24) { if (p.pstate) P.JOINTS.forEach((j, k) => p.rot(j, [[t0 - .06, p.pstate.ang[k]]])); P.walk(p, t0, t1, step, amp); p.pstate = { ang: ST, t: t1 }; }
+function fill(list, end = END, first = 'neutral') { const o = []; const pts = list.slice().sort((a, b) => a[0] - b[0]); if (!pts.length || pts[0][0] > 0) pts.unshift([0, first]); pts.forEach((p, i) => o.push([p[0], i + 1 < pts.length ? pts[i + 1][0] : end, p[1]])); return o; }
+function trk(node, pts) { let x = 0, y = 0, r = 0, s = 1, f = 1; E.anim(node, pts.map(([t, px, py, pr, ps, pf]) => { if (px !== undefined) x = px; if (py !== undefined) y = py; if (pr !== undefined) r = pr; if (ps !== undefined) s = ps; if (pf !== undefined) f = pf; return [t, { transform: `translate(${x}px,${y}px) rotate(${r}deg) scale(${s * f},${s})` }]; })); }
+
+/* ---- the arena (one set, many camera cuts) ---- */
+const sFight = E.scene(0, END, g => K3.arena(g));
+fg.appendChild(sFight.desk);
+const S1 = K2.person(E.layers.actors, 'S1'), S2 = K2.person(E.layers.actors, 'S2'), Yg = K2.person(E.layers.actors, 'Y');
+const Mm = K2.person(E.layers.actors, 'M'), Gd = K2.person(E.layers.actors, 'G'), Rf = K2.person(E.layers.actors, 'R'), Vv = K2.person(E.layers.actors, 'V');
+const Kh = K2.person(E.layers.actors, 'K'), Cn = K2.person(E.layers.actors, 'C'), Am = K2.person(E.layers.actors, 'A');
+const tie = K2.tie(Cn.parts.torso); tie.setAttribute('transform', 'translate(0 -214) scale(.9)');
+const shadowEagle = E.el('ellipse', { cx: 0, cy: 0, rx: 90, ry: 14, fill: '#000' }, fg);
+const everyone = [Mm, Gd, Rf, Vv, Kh, Cn, Am, S1, S2, Yg];
+const cam = FX.camera([E.layers.scenes, E.layers.actors, fg]);
+const fxw = E.G(cam.inner); FX.parent = fxw;
+E.layers.actors.style.filter = 'drop-shadow(-3px -3px 0 rgba(130,200,255,.55)) drop-shadow(4px 5px 0 rgba(255,150,60,.25)) contrast(1.1) saturate(1.2)';
+
+/* ---- stage lights ---- */
+const lt = E.G(E.layers.fx); lt.style.mixBlendMode = 'screen'; lt.style.pointerEvents = 'none';
+{
+  const gd = E.el('linearGradient', { id: 'cone', x1: 0, y1: 0, x2: 0, y2: 1 }, E.defs);
+  E.el('stop', { offset: 0, 'stop-color': '#fff', 'stop-opacity': .38 }, gd); E.el('stop', { offset: 1, 'stop-color': '#fff', 'stop-opacity': 0 }, gd);
+  [[260, '#7fb8ff', 14, 3.1], [1020, '#ffb35a', -14, 2.6], [640, '#ff6aa0', 0, 3.7]].forEach(([x, col, rot, per], i) => {
+    const g = E.G(lt); const poly = E.el('polygon', { points: '-14,0 14,0 190,760 -190,760', fill: 'url(#cone)', style: `mix-blend-mode:screen` }, g); poly.setAttribute('opacity', .55);
+    const c = E.el('circle', { cx: 0, cy: 0, r: 30, fill: col, opacity: .8 }, g);
+    const a = []; for (let t = 0; t <= END + per; t += per / 2) a.push([t, { transform: `translate(${x}px,-6px) rotate(${rot + (a.length % 2 ? -1 : 1) * 11}deg)` }]);
+    E.anim(g, a);
+  });
+}
+const wash = E.el('rect', { width: E.W, height: E.H, fill: '#ff4a2a' }, E.layers.fx); wash.style.pointerEvents = 'none'; wash.style.mixBlendMode = 'soft-light'; { const o = []; for (let t = 0; t <= END; t += .9) o.push([t, .16 + .1 * ((o.length) % 2)]); E.opacity(wash, o); }
+const impactLight = (t, col = '#fff') => E.flash(t, col, .32, .55);
+
+/* ============================ props & people ============================ */
+const F0 = 0;
+const signA = K3.sign(fg, 'ROUND 1');
+const ts = T0('x0');
+place(Kh, 0, 470, FY, 1); place(Cn, 0, 860, FY, -1); place(Rf, 0, 650, FY - 8, 1, 0, RS * .92); place(Vv, 0, 150, FY, 1); place(Gd, 0, 1200, FY + 6, -1, 0, RS * 1.06); place(Am, 0, 380, FY, 1);
+place(S1, 0, 300, FY - 26, 1); place(S2, 0, 1010, FY - 26, -1); place(Yg, 0, -220, FY - 34, 1, 0, RS * .9); place(Mm, 0, 1700, FY, -1);
+everyone.forEach(p => p.show([[0, END]]));
+Gd.sleep([[0, T0('v3') + 1]]); Gd.rot('torso', [[0, 14], [T0('v3') + .9, 14], [T0('v3') + 1.2, 0]]); Gd.rot('head', [[0, 24], [T0('v3') + .9, 24], [T0('v3') + 1.2, 0]]);
+const zz = E.G(fg); E.raw(zz, '<text x="0" y="0" font-size="58" font-weight="900" fill="#fff" stroke="#1b1414" stroke-width="4" paint-order="stroke">Z</text><text x="46" y="-44" font-size="44" font-weight="900" fill="#fff" stroke="#1b1414" stroke-width="4" paint-order="stroke">z</text>');
+trk(zz, [[0, 1170, 270, 0, 1]]); E.vis(zz, [[0, T0('v3') + 1]]);
+Kh.wings([[0, 0], [T0('k2') - .1, 0], [T0('k2') + .9, 1]]);
+const num = (t0, t1, text, x, y) => FX.word(t0, t1, x, y, text, 64, '#fff', -4);
+const pin = K3.rollingPin(Mm.parts.handR); pin.setAttribute('transform', 'translate(10 -80) rotate(80) scale(.9)');
+
+/* ---- intro: ring girl crosses, Conor flexes, Khabib shrugs ---- */
+{
+  const y0 = T0('v1') - .2, y1 = T0('r1') + .8;
+  jump(Yg, y0, { x: -220 }); move(Yg, y0, y1, { x: 1500 }); walk(Yg, y0, y1, .5, 14);
+  trk(signA, [[0, -220, 250, 0, 1], [y0, -220, 250], [y1, 1500, 250]]); E.vis(signA, [[y0, y1]]);
+  P.seq(Kh, [[0, 'relaxed'], [T0('k1') - .3, 'shrug'], [T1('k1') + .2, 'guard']]);
+  P.seq(Cn, [[0, 'relaxed'], [T0('c1'), 'cheer'], [T0('c1') + 1.6, 'point'], [T1('c1') + .2, 'guard']]);
+  P.seq(Rf, [[0, 'relaxed'], [T0('r1') - .5, 'salute'], [T1('r1') + .3, 'relaxed']]);
+  P.seq(Vv, [[0, 'relaxed'], [T0('v1'), 'point'], [T1('v1'), 'relaxed']]);
+  P.seq(S1, [[0, 'relaxed'], [T0('v2'), 'cheer'], [T0('v2') + 2.4, 'relaxed']]); P.seq(S2, [[0, 'relaxed'], [T0('v2') + .6, 'cheer'], [T0('v2') + 3, 'relaxed']]);
+  P.seq(Am, [[0, 'relaxed'], [T0('a1'), 'cheer'], [T1('a1') + .3, 'relaxed']]); P.seq(Gd, [[0, 'relaxed']]); P.seq(Mm, [[0, 'relaxed']]);
+  sq(Cn, T0('c1') + .1, 1.22); sq(Cn, T0('c1') + .7, 1.2); sq(Cn, T0('c1') + 1.3, 1.2);
+  FX.ring(T1('r1') - .2, 640, 300, 1.4); impactLight(T1('r1') - .1, '#ffd23f');
+}
+
+/* ---- BEAT 1: combos ---- */
+const c0 = T0('v2') + .3;
+{
+  move(Cn, c0, c0 + .8, { x: 690 }); walk(Cn, c0, c0 + .8, .3, 18);
+  P.seq(Cn, [[c0 + .85, 'guardLow'], [c0 + 1.2, 'jabR'], [c0 + 1.5, 'guardLow'], [c0 + 1.9, 'jabL'], [c0 + 2.2, 'guardLow'], [c0 + 2.6, 'crossR'], [c0 + 3.0, 'guardLow'], [c0 + 3.4, 'hookL'], [c0 + 3.8, 'guard'], [c0 + 4.6, 'shrug']]);
+  P.seq(Kh, [[c0 + .85, 'guard'], [c0 + 1.25, 'sway'], [c0 + 1.7, 'guard'], [c0 + 1.95, 'duck'], [c0 + 2.35, 'guard'], [c0 + 2.65, 'hit'], [c0 + 3.15, 'guard'], [c0 + 3.45, 'sway'], [c0 + 3.9, 'guard']]);
+  put(Kh, c0 + 1.2, { x: 440 }); put(Kh, c0 + 1.7, { x: 470 }); put(Kh, c0 + 2.6, { x: 450 }); put(Kh, c0 + 3.4, { x: 440 }); put(Kh, c0 + 3.9, { x: 470 });
+  sq(Cn, c0 + 1.15, 1.18, .15); sq(Cn, c0 + 1.85, 1.18, .15); sq(Cn, c0 + 2.55, 1.25, .2); sq(Cn, c0 + 3.35, 1.18, .15);
+  sq(Kh, c0 + 2.72, .8, .25);
+  FX.impact(c0 + 2.72, 508, 330, 1.2, 'POW!'); FX.sweat(c0 + 2.8, 470, 310, -1); impactLight(c0 + 2.72);
+  [c0 + 1.2, c0 + 1.9, c0 + 3.4].forEach(t => FX.ring(t + .05, 520, 400, .6));
+  // low kick
+  const k0 = T0('c2') + .2;
+  move(Cn, k0, k0 + .5, { x: 640 });
+  P.seq(Cn, [[k0, 'guardLow'], [k0 + .55, 'kickRlow'], [k0 + .95, 'hitFront'], [k0 + 3.0, 'guard']]);
+  [1.0, 1.3, 1.6, 1.9, 2.2, 2.5].forEach((d, i) => { put(Cn, k0 + d, { y: i % 2 ? FY : FY - 55, x: 640 + i * 18 }); });
+  FX.impact(k0 + .82, 512, 575, 1.1, 'CLANG!', '#cfd6e0'); FX.sweat(k0 + 1.2, 640, 330, 1); impactLight(k0 + .82, '#cfd6e0');
+  sq(Kh, k0 + .8, .9, .2);
+  hold(Cn, T0('a1') + 1.5);
+}
+
+/* ---- BEAT 2: double-leg takedown ---- */
+const tk = T1('v3') - 3.0;
+{
+  P.seq(Kh, [[tk - .5, 'crouch'], [tk, 'shoot'], [tk + .3, 'grab'], [tk + .9, 'lift'], [tk + 1.7, 'lift'], [tk + 2.4, 'stand2'], [tk + 3.6, 'stand2'], [T0('k2') - .3, 'relaxed']]);
+  move(Kh, tk, tk + .32, { x: 640 }); hold(Kh, tk + 2.4);
+  sq(Kh, tk - .02, .75, .3); sq(Kh, tk + .85, 1.2, .3);
+  P.seq(Cn, [[tk - .4, 'guard'], [tk + .3, 'hitFront'], [tk + .9, 'hit'], [tk + 2.4, 'limp'], [T0('c3') - .6, 'dizzy'], [T0('c3') + 1.2, 'dizzy']]);
+  put(Cn, tk + .3, { x: 725, y: FY }); put(Cn, tk + .9, { x: 715, y: FY - 120, rot: 35 }); put(Cn, tk + 1.8, { x: 700, y: FY - 160, rot: 395 }); put(Cn, tk + 2.1, { x: 715, y: FY - 118, rot: 395 }); put(Cn, tk + 2.45, { x: 790, y: FY - 8, rot: 452 });
+  sq(Cn, tk + 2.47, .7, .35);
+  FX.speed(tk, tk + .34, 560, 520, 1, 320); FX.dust(tk + .3, 700, 650, .8);
+  FX.impact(tk + 2.48, 905, 600, 1.5, 'БАМ!'); FX.dust(tk + 2.48, 800, 652, 1.5); FX.dust(tk + 2.58, 960, 652, 1.1); FX.ring(tk + 2.5, 790, 640, 1.8); impactLight(tk + 2.48);
+  // ref counts
+  const r0 = T0('r2') - .9;
+  move(Rf, r0, r0 + .9, { x: 880 }); walk(Rf, r0, r0 + .9, .4, 16);
+  P.seq(Rf, [[r0 + 1.0, 'bend'], [T1('r2') + .4, 'bend'], [T0('c3'), 'stand2'], [T0('a2') + .2, 'relaxed']]);
+  [['1', .1], ['2', .85], ['3', 1.6], ['!', 2.3]].forEach(([tx, dt]) => num(T0('r2') + dt, T0('r2') + dt + .75, tx, 880, 380));
+  // Conor sits up: "I'm just lying down!"
+  put(Cn, T0('c3') - .05, { x: 790, rot: 452 }); put(Cn, T0('c3') + .9, { x: 790, rot: 360, y: FY }); put(Cn, T0('c3') + .95, { rot: 0 });
+  P.seq(Cn, [[T0('c3') + .95, 'shrug']]);
+  move(Rf, T0('c3') + 1.0, T0('c3') + 1.8, { x: 700 });
+}
+
+/* ---- BEAT 3: fence climb ---- */
+const cl0 = T0('v4') - .1;
+{
+  P.seq(Cn, [[cl0 - .1, 'guard']]);
+  move(Cn, cl0, cl0 + .9, { x: 905, flip: 1 }); walk(Cn, cl0, cl0 + .9, .2, 34); FX.speed(cl0 + .05, cl0 + .85, 800, 520, 1, 260);
+  const cs = []; for (let i = 0; i < 7; i++) cs.push([cl0 + 1.0 + i * .34, i % 2 ? 'climb2' : 'climb1']);
+  cs.push([cl0 + 3.4, 'hang']); P.seq(Cn, cs);
+  put(Cn, cl0 + .95, { y: FY, flip: 1 }); put(Cn, cl0 + 3.3, { y: 540 }); hold(Cn, T0('v5') + .6);
+  FX.sweat(cl0 + 2.8, 905, 380, 1);
+}
+/* ---- BEAT 4: the eagle ---- */
+const ta = T1('v5') - 3.6;
+{
+  const e0 = T0('k2');
+  move(Kh, T1('c3'), e0 - .1, { x: 520, flip: 1 }); walk(Kh, T1('c3'), e0 - .1, .34, 22);
+  P.seq(Kh, [[e0, 'eagle'], [ta - .1, 'glide'], [ta + 1.1, 'hug'], [ta + 3.0, 'glide'], [ta + 3.5, 'eagle'], [ta + 5.0, 'relaxed']]);
+  const flap = []; for (let t = T0('k2') + 1.0, i = 0; t < ta + 4; t += .2, i++) flap.push([t, i % 2 ? .62 : 1]); flap.push([ta + 4.6, .4], [ta + 6, 0]); Kh.wings(flap);
+  hold(Kh, e0 + 3);
+  put(Kh, ta, { x: 560, y: FY - 70 }); sq(Kh, ta - .02, .75, .25); put(Kh, ta + .5, { x: 760, y: 300, rot: 8 }); put(Kh, ta + 1.1, { x: 880, y: 440, rot: 10 });
+  [[ta + 1.8, 700, 250], [ta + 2.5, 480, 290], [ta + 3.0, 560, 330]].forEach(([t, x, y]) => put(Kh, t, { x, y, rot: 6 }));
+  put(Kh, ta + 3.35, { x: 640, y: FY, rot: 0 });
+  P.seq(Cn, [[ta + 1.0, 'hang'], [ta + 1.2, 'limp'], [ta + 3.4, 'dizzy']]);
+  [[ta + 1.1, 925, 485], [ta + 1.8, 740, 290], [ta + 2.5, 520, 330], [ta + 3.0, 600, 380]].forEach(([t, x, y]) => put(Cn, t, { x, y: y + 40, rot: 14 }));
+  put(Cn, ta + 3.25, { x: 620, y: FY - 10, rot: 92 }); sq(Cn, ta + 3.28, .65, .4);
+  FX.speed(ta + .1, ta + 1.0, 560, 380, 1, 360); FX.speed(ta + 1.3, ta + 2.4, 560, 300, -1, 340);
+  FX.impact(ta + 3.3, 640, 600, 1.6, 'БАМ!'); FX.dust(ta + 3.3, 600, 652, 1.5); FX.dust(ta + 3.4, 760, 652, 1.2); FX.ring(ta + 3.35, 640, 640, 1.8); impactLight(ta + 3.3);
+  trk(shadowEagle, [[0, 0, 650, 0, 1], [ta, 560, 650, 0, 1], [ta + .5, 760, 655, 0, .6], [ta + 1.1, 880, 655, 0, .6], [ta + 1.8, 700, 655, 0, .45], [ta + 2.5, 480, 655, 0, .5], [ta + 3.0, 560, 655, 0, .5], [ta + 3.35, 640, 655, 0, 1]]);
+  E.opacity(shadowEagle, [[0, 0], [ta - .01, 0], [ta, .28], [ta + 3.3, .28], [ta + 3.5, 0]]);
+  put(Cn, T0('c4') - .2, { x: 620, rot: 92 }); put(Cn, T0('c4') + 1.2, { x: 800, rot: 92 }); P.seq(Cn, [[T0('c4') - .3, 'limp']]);
+}
+/* ---- BEAT 5: Amir takes down the referee ---- */
+const ar = T0('v6') + .1;
+{
+  move(Am, T0('a2') + .1, ar, { x: 590 }); walk(Am, T0('a2') + .1, ar, .26, 30);
+  P.seq(Am, [[T0('a2') - .1, 'point'], [T1('a2') - .1, 'relaxed']]);
+  P.seq(Am, [[ar + .05, 'crouch'], [ar + .4, 'shoot'], [ar + .7, 'grab'], [ar + 1.4, 'lift'], [ar + 2.4, 'lift'], [ar + 3.0, 'cheer'], [T0('m1') + 1, 'cheer']]);
+  put(Am, ar + .7, { x: 650 }); sq(Am, ar + .38, .72, .25);
+  P.seq(Rf, [[ar + .1, 'stand2'], [ar + .75, 'hit'], [ar + 1.4, 'hit'], [ar + 2.2, 'limp']]);
+  move(Rf, ar + .6, ar + 1.0, { x: 700 });
+  put(Rf, ar + 1.4, { x: 705, y: FY - 80, rot: 35 }); put(Rf, ar + 2.0, { x: 830, y: FY - 340, rot: 220 }); put(Rf, ar + 2.6, { x: 930, y: FY - 130, rot: 400 }); put(Rf, ar + 3.0, { x: 960, y: FY - 8, rot: 452 });
+  sq(Rf, ar + 3.02, .65, .35);
+  FX.impact(ar + .8, 690, 560, .9, 'ХОП!'); FX.impact(ar + 3.05, 960, 600, 1.4, 'БАМ!'); FX.dust(ar + 3.05, 940, 652, 1.2); FX.ring(ar + 3.1, 950, 640, 1.2); impactLight(ar + 3.05);
+  const st = K2.stars(fg); trk(st, [[0, 960, 560, 0, 1.3]]); E.vis(st, [[ar + 3.1, T0('m2') + .4]]);
+  P.seq(Vv, [[ar, 'cheer'], [T1('v6'), 'relaxed']]); P.seq(S1, [[ar + 1, 'cheer'], [T1('v6'), 'relaxed']]);
+}
+/* ---- ending: mom storms in ---- */
+{
+  const m0 = T0('m1') - 1.8; E.vis(pin, [[m0, END]]);
+  jump(Mm, m0, { x: 1480, flip: -1 }); move(Mm, m0, T0('m1') + .5, { x: 1070 }); walk(Mm, m0, T0('m1') + .5, .34, 24);
+  P.seq(Mm, [[T0('m1') - .2, 'cheer'], [T1('m2') + 1, 'cheer']]); move(Mm, T0('c5'), T0('m2') + .3, { x: 860 });
+  sq(Mm, T0('m1') + .55, .8, .3);
+  move(Cn, T0('c5') - .4, T0('c5') + .5, { x: 380, flip: 1 }); walk(Cn, T0('c5') - .4, T0('c5') + .5, .22, 34);
+  put(Cn, T0('c4') + 1.3, { x: 800, rot: 360, y: FY }); put(Cn, T0('c4') + 1.35, { rot: 0 });
+  P.seq(Cn, [[T0('c4') + 1.35, 'shrug'], [T0('c5') + .55, 'crouch']]);
+  move(Kh, T0('m1'), T0('m1') + 1.2, { x: 330, flip: 1 }); walk(Kh, T0('m1'), T0('m1') + 1.2, .34, 20);
+  P.seq(Kh, [[T0('k3') - .2, 'salute']]);
+  put(Rf, T0('m1') - .2, { x: 960, rot: 452 }); put(Rf, T0('m2') + .2, { x: 960, rot: 360, y: FY }); put(Rf, T0('m2') + .25, { rot: 0 }); P.seq(Rf, [[T0('m2') + .2, 'dizzy']]);
+  move(Am, T0('m1') + .1, T0('m1') + 1.3, { x: 560 }); P.seq(Am, [[T0('m1') + .1, 'shrug']]);
+  P.seq(Gd, [[T0('m2') - 1, 'salute']]);
+}
+
+/* ============================ faces ============================ */
+Am.mood(fill([[0, 'happy'], [T0('v6') - .2, 'angry'], [T0('m1'), 'shock']]));
+Kh.mood(fill([[0, 'neutral'], [T0('k2'), 'angry'], [T1('v5'), 'smug'], [T0('m1'), 'neutral']]));
+Cn.mood(fill([[0, 'smug'], [T0('r1'), 'angry'], [T0('c2') + .6, 'shock'], [T0('c3'), 'worry'], [T0('v4'), 'shock'], [T0('c4'), 'sad'], [T0('c5'), 'shock']]));
+Rf.mood(fill([[0, 'neutral'], [T0('r2'), 'shock'], [T0('c3'), 'neutral'], [T0('v6') + 1.5, 'shock'], [T0('m2'), 'sad']]));
+Vv.mood(fill([[0, 'happy'], [T0('v3'), 'shock'], [T0('v6'), 'happy']]));
+Gd.mood(fill([[0, 'neutral'], [T0('v3') + 1, 'shock']])); Mm.mood(fill([[0, 'angry']])); [S1, S2].forEach(p => p.mood(fill([[0, 'angry']]))); Yg.mood(fill([[0, 'happy']]));
+Am.talk(wins('A')); Kh.talk(wins('K')); Rf.talk(wins('R')); Mm.talk(wins('M'), 5); Vv.talk(wins('V'), 2); Cn.talk(wins('C'), 4);
+everyone.forEach((p, i) => { p.blink(i + 1); p.flush(); });
+
+/* ============================ camera: hard cuts ============================ */
+{
+  const W = [640, 400, 1], hd = (x, z = 2.1) => [x, 345, z];
+  const shots = [[0, ...W], [T0('v1') - .1, 150, 380, 1.9], [T0('v1') + 1.6, ...W], [T0('c1'), ...hd(860)], [T0('c1') + 1.5, 860, 430, 1.5], [T0('k1') - .1, ...hd(470)], [T0('r1') - .05, 640, 380, 1.1], [T0('v2') - .1, ...W],
+    [c0 + .9, 690, 400, 1.2], [c0 + 1.15, ...hd(690, 1.9)], [c0 + 1.7, ...hd(460, 1.9)], [c0 + 1.95, 520, 430, 1.4], [c0 + 2.5, ...hd(470, 2.5)], [c0 + 3.2, ...W], [c0 + 3.35, ...hd(690, 2.0)], [c0 + 4.0, ...W],
+    [T0('c2') + .55, 600, 560, 1.9], [T0('c2') + 1.3, ...hd(660, 1.8)], [T0('c2') + 2.4, ...W], [T0('a1') - .05, ...hd(380, 2.1)], [T1('a1') + .1, ...W],
+    [tk - .55, 640, 520, 1.6], [tk + .3, 700, 450, 1.4], [tk + 1.0, 720, 400, 1.3], [tk + 2.3, 780, 560, 1.9], [tk + 3.0, ...W], [T0('r2'), 840, 520, 1.7], [T0('r2') + 1.8, 800, 560, 1.4],
+    [T0('c3') - .05, ...hd(790, 1.8)], [T1('c3') + .1, 700, 420, 1.0], [cl0 + .5, 905, 440, 1.2], [cl0 + 1.6, 905, 380, 1.4], [cl0 + 2.6, 905, 330, 1.7], [T0('k2') - .05, ...hd(520, 2.4)], [T0('k2') + .7, 640, 380, 1.0],
+    [ta, 600, 480, 1.3], [ta + .6, 790, 350, 1.4], [ta + 1.1, 900, 440, 1.8], [ta + 1.8, 700, 320, 1.4], [ta + 2.5, 520, 340, 1.4], [ta + 3.1, 620, 520, 1.5], [ta + 3.3, 640, 540, 2.0], [ta + 4.1, ...W],
+    [T0('c4') - .05, ...hd(700, 1.7)], [T1('c4'), ...W], [T0('a2') - .05, ...hd(400, 2.1)], [T1('a2') - .1, 600, 450, 1.2], [ar + .3, 620, 470, 1.8], [ar + 1.3, 700, 420, 1.4], [ar + 2.0, 830, 330, 1.2], [ar + 2.9, 950, 560, 1.9], [T1('v6') + .2, ...W],
+    [T0('m1') - .05, 1070, 390, 1.8], [T0('m1') + 1.6, ...W], [T0('c5') - .05, 400, 400, 1.9], [T0('m2') - .05, ...W], [T0('m2') + 1.2, 860, 430, 1.4], [T0('k3') - .05, ...hd(330, 2.1)], [END, ...hd(330, 1.8)]];
+  const out = [];
+  shots.forEach(([t, cx, cy, z], i) => {
+    const nt = i + 1 < shots.length ? shots[i + 1][0] - .001 : END;
+    const clampc = (x, y, zz) => [Math.min(1280 - 640 / zz, Math.max(640 / zz, x)), Math.min(720 - 360 / zz, Math.max(360 / zz, y)), zz];
+    const a = clampc(cx, cy, z), b = clampc(cx, cy, z * 1.07);
+    out.push([t, ...a]); out.push([Math.max(t + .001, nt), ...b]);
+  });
+  cam.track(out);
+  cam.shake([[c0 + 2.7, c0 + 3.0, 6, 22], [T0('c2') + 1.0, T0('c2') + 1.3, 6, 22], [tk + 2.46, tk + 3.2, 14, 24], [ta + 3.3, ta + 4.2, 16, 24], [ar + 3.05, ar + 3.7, 12, 24]]);
+}
+E.card(0, T1('x0') + .1, [{ text: 'АМИР И ОРЁЛ', size: 128, y: 340, color: '#ffffff' }, { text: 'пародия · parodiya', size: 40, y: 430, color: '#ffd23f', weight: 700 }]);
+E.card(T1('k3') + .6, END + 4, [{ text: 'КОНЕЦ · SON', size: 120, y: 340, color: '#ffd23f' }], '#05070a');
+E.vignette([[0, .22], [END, .22]]);
+window.TOTAL = E.TOTAL;
+window.seek = t => document.getAnimations().forEach(a => { a.pause(); a.currentTime = t * 1000; });
+</script>
+</body>
+</html>

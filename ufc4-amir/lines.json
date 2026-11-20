@@ -1,0 +1,212 @@
+[
+ {
+  "key": "x0",
+  "who": "X",
+  "t": 0.8,
+  "end": 3.0,
+  "ru": "Пародия. Все персонажи выдуманы.",
+  "az": "Parodiya. Bütün personajlar uydurmadır.",
+  "scene": "fight",
+  "id": 0
+ },
+ {
+  "key": "v1",
+  "who": "V",
+  "t": 3.15,
+  "end": 6.08,
+  "ru": "Бой века! Хабиб против Конора!",
+  "az": "Əsrin döyüşü! Xabib Conora qarşı!",
+  "scene": "fight",
+  "id": 1
+ },
+ {
+  "key": "c1",
+  "who": "C",
+  "t": 6.23,
+  "end": 9.25,
+  "ru": "Я самый красивый! Я всех побью!",
+  "az": "Mən ən yaraşıqlıyam! Hamını döyəcəyəm!",
+  "scene": "fight",
+  "id": 2
+ },
+ {
+  "key": "k1",
+  "who": "K",
+  "t": 9.4,
+  "end": 10.8,
+  "ru": "Посмотрим.",
+  "az": "Baxarıq.",
+  "scene": "fight",
+  "id": 3
+ },
+ {
+  "key": "r1",
+  "who": "R",
+  "t": 11.0,
+  "end": 11.98,
+  "ru": "Бой!",
+  "az": "Döyüş!",
+  "scene": "fight",
+  "id": 4
+ },
+ {
+  "key": "v2",
+  "who": "V",
+  "t": 12.13,
+  "end": 17.88,
+  "ru": "Конор налетает! Джеб, кросс, хук! Мимо, мимо, мимо!",
+  "az": "Conor hücum edir! Cəb, kros, huk! Boş, boş, boş!",
+  "scene": "fight",
+  "id": 5
+ },
+ {
+  "key": "c2",
+  "who": "C",
+  "t": 18.03,
+  "end": 21.19,
+  "ru": "Получай лоукик! Ай! Моя нога!",
+  "az": "Al lou-kik! Ay! Mənim ayağım!",
+  "scene": "fight",
+  "id": 6
+ },
+ {
+  "key": "a1",
+  "who": "A",
+  "t": 21.34,
+  "end": 23.01,
+  "ru": "Хабиб, давай!",
+  "az": "Xabib, hayda!",
+  "scene": "fight",
+  "id": 7
+ },
+ {
+  "key": "v3",
+  "who": "V",
+  "t": 23.16,
+  "end": 27.78,
+  "ru": "Заход в ноги! Поднял! Крутит! Кладёт! Бам!",
+  "az": "Ayaqlara girdi! Qaldırdı! Fırladır! Qoyur! Bam!",
+  "scene": "fight",
+  "id": 8
+ },
+ {
+  "key": "r2",
+  "who": "R",
+  "t": 28.83,
+  "end": 32.46,
+  "ru": "Раз! Два! Три! Он дышит!",
+  "az": "Bir! İki! Üç! O nəfəs alır!",
+  "scene": "fight",
+  "id": 9
+ },
+ {
+  "key": "c3",
+  "who": "C",
+  "t": 32.61,
+  "end": 34.19,
+  "ru": "Я просто прилёг!",
+  "az": "Mən sadəcə uzandım!",
+  "scene": "fight",
+  "id": 10
+ },
+ {
+  "key": "v4",
+  "who": "V",
+  "t": 34.44,
+  "end": 36.46,
+  "ru": "Конор лезет на сетку!",
+  "az": "Conor torla yuxarı dırmanır!",
+  "scene": "fight",
+  "id": 11
+ },
+ {
+  "key": "k2",
+  "who": "K",
+  "t": 36.61,
+  "end": 37.71,
+  "ru": "Орёл.",
+  "az": "Qartal.",
+  "scene": "fight",
+  "id": 12
+ },
+ {
+  "key": "v5",
+  "who": "V",
+  "t": 38.06,
+  "end": 41.71,
+  "ru": "Полёт орла! Хабиб ловит Конора! Бам!",
+  "az": "Qartalın uçuşu! Xabib Conoru tutur! Bam!",
+  "scene": "fight",
+  "id": 13
+ },
+ {
+  "key": "c4",
+  "who": "C",
+  "t": 42.26,
+  "end": 43.6,
+  "ru": "Хочу к маме!",
+  "az": "Anamın yanına istəyirəm!",
+  "scene": "fight",
+  "id": 14
+ },
+ {
+  "key": "a2",
+  "who": "A",
+  "t": 43.75,
+  "end": 45.66,
+  "ru": "Теперь моя очередь!",
+  "az": "İndi mənim növbəmdir!",
+  "scene": "fight",
+  "id": 15
+ },
+ {
+  "key": "v6",
+  "who": "V",
+  "t": 45.81,
+  "end": 49.9,
+  "ru": "Амир делает заход в ноги судье! Судья улетел!",
+  "az": "Amir hakimə ayaqlara giriş edir! Hakim uçdu!",
+  "scene": "fight",
+  "id": 16
+ },
+ {
+  "key": "m1",
+  "who": "M",
+  "t": 50.45,
+  "end": 52.99,
+  "ru": "Амир! Домой! Ужин!",
+  "az": "Amir! Evə! Şam yeməyi!",
+  "scene": "fight",
+  "id": 17
+ },
+ {
+  "key": "c5",
+  "who": "C",
+  "t": 53.14,
+  "end": 54.78,
+  "ru": "Мама, спаси!",
+  "az": "Ana, xilas et!",
+  "scene": "fight",
+  "id": 18
+ },
+ {
+  "key": "m2",
+  "who": "M",
+  "t": 54.93,
+  "end": 57.48,
+  "ru": "Все за стол! Руки мыть!",
+  "az": "Hamı süfrəyə! Əllər yuyulsun!",
+  "scene": "fight",
+  "id": 19
+ },
+ {
+  "key": "k3",
+  "who": "K",
+  "t": 57.73,
+  "end": 59.21,
+  "ru": "Слушаюсь.",
+  "az": "Baş üstə.",
+  "scene": "fight",
+  "id": 20
+ }
+]

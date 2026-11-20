@@ -260,11 +260,11 @@
       // root
       if (obj.rootSegs.length) {
         const segs = obj.rootSegs.slice().sort((a, b) => a[0][0] - b[0][0]);
-        let x = 0, y = 0, fl = 1, rt = 0, sc = 1; const frames = [];
-        const st = () => ({ transform: `translate(${x}px,${y}px) rotate(${rt}deg) scale(${sc * fl},${sc})` });
+        let x = 0, y = 0, fl = 1, rt = 0, sc = 1, q = 1; const frames = [];
+        const st = () => ({ transform: `translate(${x}px,${y}px) rotate(${rt}deg) scale(${sc * fl / Math.sqrt(q)},${sc * Math.sqrt(q)})` });
         segs.forEach((seg, k) => {
           if (k > 0) frames.push([seg[0][0] - .001, st()]);
-          seg.forEach(([t, px, py, pf, pr, ps]) => { if (px !== undefined) x = px; if (py !== undefined) y = py; if (pf !== undefined) fl = pf; if (pr !== undefined) rt = pr; if (ps !== undefined) sc = ps; frames.push([t, st()]); });
+          seg.forEach(([t, px, py, pf, pr, ps, pq]) => { if (px !== undefined) x = px; if (py !== undefined) y = py; if (pf !== undefined) fl = pf; if (pr !== undefined) rt = pr; if (ps !== undefined) sc = ps; if (pq !== undefined) q = pq; frames.push([t, st()]); });
         });
         E.anim(root, frames);
       }
